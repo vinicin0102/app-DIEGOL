@@ -268,7 +268,7 @@ const FitnessScene = ({ avatarUrl, tier }) => {
                 config={{ mass: 2, tension: 400 }}
                 snap={{ mass: 4, tension: 300 }}
             >
-                <group position={[0, -0.5, 0]}>
+                <group position={[0, -0.15, 0]}>
                     <AvatarModel avatarUrl={avatarUrl} />
 
                     {/* Equipamentos fitness 3D flutuantes */}
@@ -364,7 +364,7 @@ const RealFitness3DDisplay = ({ avatarUrl, userLevel, bossesDefeated, size = 380
             </div>
 
             {avatarUrl ? (
-                <Canvas camera={{ position: [0, 0.2, 4.5], fov: 28 }} style={{ background: 'transparent' }} shadows>
+                <Canvas camera={{ position: [0, 0, 5.5], fov: 25 }} style={{ background: 'transparent' }} shadows>
                     <Suspense fallback={null}>
                         <FitnessScene avatarUrl={avatarUrl} tier={tier} />
                     </Suspense>
