@@ -215,51 +215,48 @@ const Medal3D = ({ tier, position = [0.5, 0.6, 0.3], rotation = [0.2, 0, 0], sca
 const AvatarModel = ({ avatarUrl }) => {
     const groupRef = useRef();
 
-    // Animação suave de respiração e rotação (sem flutuar)
+    // Forçar a pose em cada quadro para evitar que animações padrão a sobrescrevam
     useFrame((state) => {
         if (groupRef.current) {
-            // Apenas rotação suave
+            // Rotação suave do corpo inteiro
             groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
+
+            // Encontrar e manipular os ossos a cada frame
+            groupRef.current.traverse((child) => {
+                if (child.isBone) {
+                    const name = child.name.toLowerCase();
+
+                    // Braço Esquerdo
+                    if (name.includes('leftarm') || name.includes('left_arm')) {
+                        child.rotation.x = -1.2;
+                        child.rotation.y = 0.5;
+                        child.rotation.z = -0.5;
+                    }
+                    if (name.includes('leftforearm') || name.includes('left_forearm')) {
+                        child.rotation.x = -1.9;
+                        child.rotation.y = 0.2;
+                    }
+                    if (name.includes('lefthand') || name.includes('left_hand')) {
+                        child.rotation.x = -0.5;
+                    }
+
+                    // Braço Direito
+                    if (name.includes('rightarm') || name.includes('right_arm')) {
+                        child.rotation.x = -1.2;
+                        child.rotation.y = -0.5;
+                        child.rotation.z = 0.5;
+                    }
+                    if (name.includes('rightforearm') || name.includes('right_forearm')) {
+                        child.rotation.x = -1.9;
+                        child.rotation.y = -0.2;
+                    }
+                    if (name.includes('righthand') || name.includes('right_hand')) {
+                        child.rotation.x = -0.5;
+                    }
+                }
+            });
         }
     });
-
-    useEffect(() => {
-        const { scene } = useGLTF(avatarUrl);
-        // Tentar aplicar pose de braços cruzados manipulando os ossos
-        scene.traverse((child) => {
-            if (child.isBone) {
-                const name = child.name.toLowerCase();
-
-                // Braço Esquerdo
-                if (name === 'leftarm' || name === 'mixamorigleftarm') {
-                    child.rotation.x = -1.0;
-                    child.rotation.y = 0.5;
-                    child.rotation.z = -0.5;
-                }
-                if (name === 'leftforearm' || name === 'mixamorigleftforearm') {
-                    child.rotation.x = -1.8;
-                    child.rotation.y = 0.2;
-                }
-                if (name === 'lefthand' || name === 'mixamoriglefthand') {
-                    child.rotation.x = -0.5;
-                }
-
-                // Braço Direito
-                if (name === 'rightarm' || name === 'mixamorigrightarm') {
-                    child.rotation.x = -1.0;
-                    child.rotation.y = -0.5;
-                    child.rotation.z = 0.5;
-                }
-                if (name === 'rightforearm' || name === 'mixamorigrightforearm') {
-                    child.rotation.x = -1.8;
-                    child.rotation.y = -0.2;
-                }
-                if (name === 'righthand' || name === 'mixamorigrighthand') {
-                    child.rotation.x = -0.5;
-                }
-            }
-        });
-    }, [avatarUrl]);
 
     const AvatarGLB = () => {
         const { scene } = useGLTF(avatarUrl);
