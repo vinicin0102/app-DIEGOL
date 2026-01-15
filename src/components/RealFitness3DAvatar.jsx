@@ -215,18 +215,62 @@ const Medal3D = ({ tier, position = [0.5, 0.6, 0.3], rotation = [0.2, 0, 0], sca
 const AvatarModel = ({ avatarUrl }) => {
     const groupRef = useRef();
 
-    const AvatarGLB = () => {
-        const { scene } = useGLTF(avatarUrl);
-        const clonedScene = useMemo(() => scene.clone(), [scene]);
-        return <primitive object={clonedScene} scale={0.95} position={[0, -0.9, 0]} />;
-    };
-
+    // Animação suave de respiração e rotação (sem flutuar)
     useFrame((state) => {
         if (groupRef.current) {
-            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.15;
-            groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 1.2) * 0.02;
+            // Apenas rotação suave
+            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
         }
     });
+
+    useEffect(() => {
+        const { scene } = useGLTF(avatarUrl);
+        // Tentar aplicar pose de braços cruzados manipulando os ossos
+        scene.traverse((child) => {
+            if (child.isBone) {
+                const name = child.name.toLowerCase();
+
+                // Braço Esquerdo
+                if (name === 'leftarm' || name === 'mixamorigleftarm') {
+                    child.rotation.x = -1.0;
+                    child.rotation.y = 0.5;
+                    child.rotation.z = -0.5;
+                }
+                if (name === 'leftforearm' || name === 'mixamorigleftforearm') {
+                    child.rotation.x = -1.8;
+                    child.rotation.y = 0.2;
+                }
+                if (name === 'lefthand' || name === 'mixamoriglefthand') {
+                    child.rotation.x = -0.5;
+                }
+
+                // Braço Direito
+                if (name === 'rightarm' || name === 'mixamorigrightarm') {
+                    child.rotation.x = -1.0;
+                    child.rotation.y = -0.5;
+                    child.rotation.z = 0.5;
+                }
+                if (name === 'rightforearm' || name === 'mixamorigrightforearm') {
+                    child.rotation.x = -1.8;
+                    child.rotation.y = -0.2;
+                }
+                if (name === 'righthand' || name === 'mixamorigrighthand') {
+                    child.rotation.x = -0.5;
+                }
+            }
+        });
+    }, [avatarUrl]);
+
+    const AvatarGLB = () => {
+        const { scene } = useGLTF(avatarUrl);
+        // Clonar e aplicar escala
+        const clonedScene = useMemo(() => {
+            const clone = scene.clone();
+            return clone;
+        }, [scene]);
+
+        return <primitive object={clonedScene} scale={1.1} position={[0, -1.6, 0]} />;
+    };
 
     if (!avatarUrl) return null;
 
@@ -260,24 +304,26 @@ const FitnessScene = ({ avatarUrl, tier }) => {
                     color={tier.emissive} distance={4} />
             )}
 
-            <group position={[0, 0, 0]}>
+            <group position={[0, 0.4, 0]}>
                 <AvatarModel avatarUrl={avatarUrl} />
 
-                {/* Equipamentos fitness 3D flutuantes */}
-                <Dumbbell3D tier={tier} position={[0.7, 0.5, 0.1]} scale={0.1} />
-                <Kettlebell3D tier={tier} position={[-0.6, 0, 0.2]} scale={0.08} />
-                <Medal3D tier={tier} position={[0.5, 0.9, 0.1]} scale={0.055} />
+                {/* Equipamentos no chão */}
+                <Dumbbell3D tier={tier} position={[0.6, -1.55, 0.3]} rotation={[0, 0, 1.57]} scale={0.12} />
+                <Kettlebell3D tier={tier} position={[-0.6, -1.6, 0.3]} scale={0.1} />
+
+                {/* Medalha flutuando ao lado */}
+                <Medal3D tier={tier} position={[0.5, 0.8, 0.4]} rotation={[0, -0.5, 0]} scale={0.07} />
 
                 <OrbitControls
                     enablePan={false}
                     enableZoom={true}
-                    minDistance={2}
-                    maxDistance={8}
-                    minPolarAngle={Math.PI / 4}
+                    minDistance={2.5}
+                    maxDistance={6}
+                    minPolarAngle={Math.PI / 3}
                     maxPolarAngle={Math.PI / 2}
-                    autoRotate={true}
-                    autoRotateSpeed={2}
-                    target={[0, 0, 0]}
+                    autoRotate={false}
+                    target={[0, -0.5, 0]}
+                    makeDefault
                 />
             </group>
 
