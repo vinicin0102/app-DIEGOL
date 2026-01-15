@@ -260,23 +260,26 @@ const FitnessScene = ({ avatarUrl, tier }) => {
                     color={tier.emissive} distance={4} />
             )}
 
-            <PresentationControls
-                global
-                rotation={[0, 0, 0]}
-                polar={[-0.2, 0.2]}
-                azimuth={[-0.5, 0.5]}
-                config={{ mass: 2, tension: 400 }}
-                snap={{ mass: 4, tension: 300 }}
-            >
-                <group position={[0, -0.15, 0]}>
-                    <AvatarModel avatarUrl={avatarUrl} />
+            <group position={[0, 0, 0]}>
+                <AvatarModel avatarUrl={avatarUrl} />
 
-                    {/* Equipamentos fitness 3D flutuantes */}
-                    <Dumbbell3D tier={tier} position={[0.7, 0.5, 0.1]} scale={0.1} />
-                    <Kettlebell3D tier={tier} position={[-0.6, 0, 0.2]} scale={0.08} />
-                    <Medal3D tier={tier} position={[0.5, 0.9, 0.1]} scale={0.055} />
-                </group>
-            </PresentationControls>
+                {/* Equipamentos fitness 3D flutuantes */}
+                <Dumbbell3D tier={tier} position={[0.7, 0.5, 0.1]} scale={0.1} />
+                <Kettlebell3D tier={tier} position={[-0.6, 0, 0.2]} scale={0.08} />
+                <Medal3D tier={tier} position={[0.5, 0.9, 0.1]} scale={0.055} />
+
+                <OrbitControls
+                    enablePan={false}
+                    enableZoom={true}
+                    minDistance={2}
+                    maxDistance={8}
+                    minPolarAngle={Math.PI / 4}
+                    maxPolarAngle={Math.PI / 2}
+                    autoRotate={true}
+                    autoRotateSpeed={2}
+                    target={[0, 0, 0]}
+                />
+            </group>
 
             <ContactShadows position={[0, -1.2, 0]} opacity={0.6} scale={3} blur={2.5} far={4} />
             <Environment preset="city" background={false} />
@@ -364,7 +367,7 @@ const RealFitness3DDisplay = ({ avatarUrl, userLevel, bossesDefeated, size = 380
             </div>
 
             {avatarUrl ? (
-                <Canvas camera={{ position: [0, 0, 5.5], fov: 25 }} style={{ background: 'transparent' }} shadows>
+                <Canvas camera={{ position: [0, 0.5, 4.5], fov: 45 }} style={{ background: 'transparent' }} shadows>
                     <Suspense fallback={null}>
                         <FitnessScene avatarUrl={avatarUrl} tier={tier} />
                     </Suspense>
