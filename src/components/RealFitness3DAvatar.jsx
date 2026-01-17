@@ -212,32 +212,34 @@ const AvatarModel = ({ avatarUrl }) => {
                 if (child.isBone) {
                     const name = child.name.toLowerCase();
 
-                    // Braço Esquerdo
+                    // Braço Esquerdo (Cruzando)
                     if (name.includes('leftarm') || name.includes('left_arm')) {
-                        child.rotation.x = -1.2;
-                        child.rotation.y = 0.5;
-                        child.rotation.z = -0.5;
+                        child.rotation.x = -1.0; // Levanta um pouco menos
+                        child.rotation.y = 0.8;  // Traz mais para frente/dentro
+                        child.rotation.z = -0.5; // Ajuste lateral
                     }
                     if (name.includes('leftforearm') || name.includes('left_forearm')) {
-                        child.rotation.x = -1.9;
-                        child.rotation.y = 0.2;
+                        child.rotation.x = -2.0; // Dobra o cotovelo para cruzar
+                        child.rotation.y = 0.5;
+                        child.rotation.z = 0.2;
                     }
                     if (name.includes('lefthand') || name.includes('left_hand')) {
-                        child.rotation.x = -0.5;
+                        child.rotation.x = -0.2;
                     }
 
-                    // Braço Direito
+                    // Braço Direito (Cruzando)
                     if (name.includes('rightarm') || name.includes('right_arm')) {
-                        child.rotation.x = -1.2;
-                        child.rotation.y = -0.5;
+                        child.rotation.x = -1.0;
+                        child.rotation.y = -0.8;
                         child.rotation.z = 0.5;
                     }
                     if (name.includes('rightforearm') || name.includes('right_forearm')) {
-                        child.rotation.x = -1.9;
-                        child.rotation.y = -0.2;
+                        child.rotation.x = -2.0;
+                        child.rotation.y = -0.5;
+                        child.rotation.z = -0.2;
                     }
                     if (name.includes('righthand') || name.includes('right_hand')) {
-                        child.rotation.x = -0.5;
+                        child.rotation.x = -0.2;
                     }
                 }
             });
