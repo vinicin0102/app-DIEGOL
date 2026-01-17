@@ -252,7 +252,7 @@ const AvatarModel = ({ avatarUrl }) => {
             return clone;
         }, [scene]);
 
-        return <primitive object={clonedScene} scale={1.1} position={[0, -1.0, 0]} />;
+        return <primitive object={clonedScene} scale={1.2} position={[0, 0, 0]} />;
     };
 
     if (!avatarUrl) return null;
@@ -288,30 +288,31 @@ const FitnessScene = ({ avatarUrl, tier }) => {
             )}
 
             {/* Grupo principal - todo ancorado ao chão */}
-            <group position={[0, -1.8, 0]}>
+            <group position={[0, -2.5, 0]}>
                 <AvatarModel avatarUrl={avatarUrl} />
 
-                {/* Equipamentos no chão - ao nível dos pés do avatar (-1.0) */}
-                <Dumbbell3D tier={tier} position={[0.5, -1.0, 0.25]} rotation={[0, 0, 1.57]} scale={0.055} />
-                <Kettlebell3D tier={tier} position={[-0.45, -1.0, 0.25]} scale={0.045} />
+                {/* Equipamentos no chão - ao nível dos pés do avatar (0) */}
+                <Dumbbell3D tier={tier} position={[0.6, 0.1, 0.3]} rotation={[0, 0, 1.57]} scale={0.06} />
+                <Kettlebell3D tier={tier} position={[-0.55, 0.1, 0.3]} scale={0.05} />
 
-                {/* Medalha flutuando ao lado do avatar */}
-                <Medal3D tier={tier} position={[0.55, 0.0, 0.3]} rotation={[0, -0.5, 0]} scale={0.035} />
+                {/* Medalha flutuando ao lado do avatar (altura do peito) */}
+                <Medal3D tier={tier} position={[0.6, 1.3, 0.3]} rotation={[0, -0.5, 0]} scale={0.04} />
 
                 <OrbitControls
                     enablePan={false}
                     enableZoom={true}
-                    minDistance={2.5}
-                    maxDistance={6}
-                    minPolarAngle={Math.PI / 3}
-                    maxPolarAngle={Math.PI / 2}
-                    autoRotate={false}
-                    target={[0, -0.3, 0]}
+                    minDistance={3}
+                    maxDistance={8}
+                    minPolarAngle={Math.PI / 2.5}
+                    maxPolarAngle={Math.PI / 1.8}
+                    autoRotate={true}
+                    autoRotateSpeed={0.5}
+                    target={[0, 1.0, 0]}
                     makeDefault
                 />
             </group>
 
-            <ContactShadows position={[0, -2.2, 0]} opacity={0.8} scale={4} blur={2} far={5} />
+            <ContactShadows position={[0, -2.5, 0]} opacity={0.65} scale={10} blur={2.5} far={4} color="#000000" />
             <Environment preset="city" background={false} />
         </>
     );
@@ -397,7 +398,7 @@ const RealFitness3DDisplay = ({ avatarUrl, userLevel, bossesDefeated, size = 380
             </div>
 
             {avatarUrl ? (
-                <Canvas camera={{ position: [0, 0, 3.5], fov: 45 }} style={{ background: 'transparent' }} shadows>
+                <Canvas camera={{ position: [0, 0.5, 5.5], fov: 35 }} style={{ background: 'transparent' }} shadows>
                     <Suspense fallback={null}>
                         <FitnessScene avatarUrl={avatarUrl} tier={tier} />
                     </Suspense>
