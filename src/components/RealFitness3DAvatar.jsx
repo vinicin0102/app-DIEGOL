@@ -201,48 +201,83 @@ const Medal3D = ({ tier, position = [0.5, 0.6, 0.3], rotation = [0.2, 0, 0], sca
 const AvatarModel = ({ avatarUrl }) => {
     const groupRef = useRef();
 
-    // Forçar a pose em cada quadro para evitar que animações padrão a sobrescrevam
+    // Referências persistentes para os ossos
+    const bonesRef = useRef({});
+
+    // Encontrar ossos uma única vez quando a cena carregar
+    useEffect(() => {
+        if (!groupRef.current) return;
+
+        const bones = {};
+        groupRef.current.traverse((child) => {
+            if (child.isBone) {
+                const n = child.name.toLowerCase();
+                // Ignorar ossos de torção ou ajuste que podem confundir o alvo
+                if (n.includes('twist') || n.includes('adj')) return;
+
+                // Mapeamento mais robusto
+                if (n.includes('left')) {
+                    if (n.includes('forearm') || n.includes('lowerarm')) bones.leftForeArm = child;
+                    else if (n.includes('arm') || n.includes('upperarm') || n.includes('shoulder')) {
+                        // Cuidado para não pegar clavícula (shoulder) se quisermos braço. 
+                        // Geralmente 'Arm' ou 'UpArm' é o correto. 'Shoulder' é clavícula.
+                        if (!n.includes('shoulder')) bones.leftArm = child;
+                    }
+                    else if (n.includes('hand')) bones.leftHand = child;
+                }
+
+                if (n.includes('right')) {
+                    if (n.includes('forearm') || n.includes('lowerarm')) bones.rightForeArm = child;
+                    else if (n.includes('arm') || n.includes('upperarm')) {
+                        if (!n.includes('shoulder')) bones.rightArm = child;
+                    }
+                    else if (n.includes('hand')) bones.rightHand = child;
+                }
+            }
+        });
+        bonesRef.current = bones;
+        console.log("Ossos encontrados:", Object.keys(bones)); // Debug para o usuário se necessário
+    }, [avatarUrl]);
+
+    // Aplicar pose a cada quadro
     useFrame((state) => {
         if (groupRef.current) {
-            // Rotação suave do corpo inteiro
-            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.1;
+            // Rotação leve do corpo
+            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
+        }
 
-            // Encontrar e manipular os ossos a cada frame
-            groupRef.current.traverse((child) => {
-                if (child.isBone) {
-                    const name = child.name.toLowerCase();
+        const { leftArm, leftForeArm, leftHand, rightArm, rightForeArm, rightHand } = bonesRef.current;
 
-                    // Braço Esquerdo (Cruzando)
-                    if (name.includes('leftarm') || name.includes('left_arm')) {
-                        child.rotation.x = -1.0; // Levanta um pouco menos
-                        child.rotation.y = 0.8;  // Traz mais para frente/dentro
-                        child.rotation.z = -0.5; // Ajuste lateral
-                    }
-                    if (name.includes('leftforearm') || name.includes('left_forearm')) {
-                        child.rotation.x = -2.0; // Dobra o cotovelo para cruzar
-                        child.rotation.y = 0.5;
-                        child.rotation.z = 0.2;
-                    }
-                    if (name.includes('lefthand') || name.includes('left_hand')) {
-                        child.rotation.x = -0.2;
-                    }
+        // POSE DE BRAÇOS CRUZADOS (JOGADOR DE FUTEBOL / BOSS)
+        // Ajuste fino dos ângulos de Euler (em radianos)
 
-                    // Braço Direito (Cruzando)
-                    if (name.includes('rightarm') || name.includes('right_arm')) {
-                        child.rotation.x = -1.0;
-                        child.rotation.y = -0.8;
-                        child.rotation.z = 0.5;
-                    }
-                    if (name.includes('rightforearm') || name.includes('right_forearm')) {
-                        child.rotation.x = -2.0;
-                        child.rotation.y = -0.5;
-                        child.rotation.z = -0.2;
-                    }
-                    if (name.includes('righthand') || name.includes('right_hand')) {
-                        child.rotation.x = -0.2;
-                    }
-                }
-            });
+        if (leftArm) {
+            // Braço esquerdo desce e vai um pouco para frente
+            leftArm.rotation.set(-1.3, 0.6, -0.3);
+        }
+        if (leftForeArm) {
+            // Antebraço dobra totalmente para dentro
+            leftForeArm.rotation.set(-0.2, 0, 2.0); // Z rotaciona o antebraço pra dentro
+            // Dependendo do eixo do bone, pode ser X ou Z. Geralmente Z ou X em rigs T-Pose.
+            // Vamos testar uma combinação que force o cruzamento
+            // Em RPM T-Pose standard: Eixo X dobra o cotovelo? Não, geralmente Z ou Y.
+            // Tentativa de override direto se rotação anterior falhou
+        }
+        if (leftHand) {
+            leftHand.rotation.set(0, -0.5, 0); // Relaxa mão
+        }
+
+        if (rightArm) {
+            // Braço direito desce e vai para frente
+            rightArm.rotation.set(-1.3, -0.6, 0.3);
+        }
+        if (rightForeArm) {
+            // Antebraço direito dobra pra dentro
+            // Note: Right side rotations are often inverted simply by sign, but axes alignment matters
+            rightForeArm.rotation.set(-0.2, 0, -2.0); // Z negativo pra dobrar pro outro lado
+        }
+        if (rightHand) {
+            rightHand.rotation.set(0, 0.5, 0);
         }
     });
 
