@@ -70,44 +70,37 @@ const Dumbbell3D = ({ tier, position = [0.7, 0.2, 0], rotation = [0, 0, 0.3], sc
         roughness: 0.2
     }), []);
 
-    useFrame((state) => {
-        if (groupRef.current) {
-            groupRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 2) * 0.05;
-            groupRef.current.rotation.z = rotation[2] + Math.sin(state.clock.elapsedTime * 1.5) * 0.1;
-        }
-    });
+    // Sem animação - equipamentos estáticos no chão
 
     return (
-        <Float speed={2} rotationIntensity={0.3} floatIntensity={0.5}>
-            <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
-                {/* Barra central */}
-                <mesh material={handleMaterial}>
-                    <cylinderGeometry args={[0.15, 0.15, 4, 32]} />
-                </mesh>
+        <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
+            {/* Barra central */}
+            <mesh material={handleMaterial}>
+                <cylinderGeometry args={[0.15, 0.15, 4, 32]} />
+            </mesh>
 
-                {/* Pesos lado esquerdo */}
-                <mesh position={[-1.5, 0, 0]} material={metalMaterial}>
-                    <cylinderGeometry args={[0.6, 0.6, 0.4, 32]} />
-                </mesh>
-                <mesh position={[-1.9, 0, 0]} material={metalMaterial}>
-                    <cylinderGeometry args={[0.5, 0.5, 0.3, 32]} />
-                </mesh>
+            {/* Pesos lado esquerdo */}
+            <mesh position={[-1.5, 0, 0]} material={metalMaterial}>
+                <cylinderGeometry args={[0.6, 0.6, 0.4, 32]} />
+            </mesh>
+            <mesh position={[-1.9, 0, 0]} material={metalMaterial}>
+                <cylinderGeometry args={[0.5, 0.5, 0.3, 32]} />
+            </mesh>
 
-                {/* Pesos lado direito */}
-                <mesh position={[1.5, 0, 0]} material={metalMaterial}>
-                    <cylinderGeometry args={[0.6, 0.6, 0.4, 32]} />
-                </mesh>
-                <mesh position={[1.9, 0, 0]} material={metalMaterial}>
-                    <cylinderGeometry args={[0.5, 0.5, 0.3, 32]} />
-                </mesh>
+            {/* Pesos lado direito */}
+            <mesh position={[1.5, 0, 0]} material={metalMaterial}>
+                <cylinderGeometry args={[0.6, 0.6, 0.4, 32]} />
+            </mesh>
+            <mesh position={[1.9, 0, 0]} material={metalMaterial}>
+                <cylinderGeometry args={[0.5, 0.5, 0.3, 32]} />
+            </mesh>
 
-                {/* Luz para tiers épicos */}
-                {tier.emissive && (
-                    <pointLight position={[0, 0, 0.5]} intensity={tier.emissiveIntensity * 0.5}
-                        color={tier.emissive} distance={1} />
-                )}
-            </group>
-        </Float>
+            {/* Luz para tiers épicos */}
+            {tier.emissive && (
+                <pointLight position={[0, 0, 0.5]} intensity={tier.emissiveIntensity * 0.5}
+                    color={tier.emissive} distance={1} />
+            )}
+        </group>
     );
 };
 
@@ -123,37 +116,30 @@ const Kettlebell3D = ({ tier, position = [-0.6, -0.3, 0.2], rotation = [0, 0.5, 
         emissiveIntensity: tier.emissiveIntensity || 0
     }), [tier]);
 
-    useFrame((state) => {
-        if (groupRef.current) {
-            groupRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 2.5 + 1) * 0.04;
-            groupRef.current.rotation.y = rotation[1] + Math.sin(state.clock.elapsedTime) * 0.2;
-        }
-    });
+    // Sem animação - equipamentos estáticos no chão
 
     return (
-        <Float speed={2.5} rotationIntensity={0.2} floatIntensity={0.4}>
-            <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
-                {/* Corpo do kettlebell */}
-                <mesh material={metalMaterial}>
-                    <sphereGeometry args={[1.2, 32, 32]} />
-                </mesh>
+        <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
+            {/* Corpo do kettlebell */}
+            <mesh material={metalMaterial}>
+                <sphereGeometry args={[1.2, 32, 32]} />
+            </mesh>
 
-                {/* Base plana */}
-                <mesh position={[0, -1, 0]} material={metalMaterial}>
-                    <cylinderGeometry args={[0.8, 0.9, 0.3, 32]} />
-                </mesh>
+            {/* Base plana */}
+            <mesh position={[0, -1, 0]} material={metalMaterial}>
+                <cylinderGeometry args={[0.8, 0.9, 0.3, 32]} />
+            </mesh>
 
-                {/* Alça */}
-                <mesh position={[0, 1.2, 0]} material={metalMaterial}>
-                    <torusGeometry args={[0.6, 0.15, 16, 32, Math.PI]} />
-                </mesh>
+            {/* Alça */}
+            <mesh position={[0, 1.2, 0]} material={metalMaterial}>
+                <torusGeometry args={[0.6, 0.15, 16, 32, Math.PI]} />
+            </mesh>
 
-                {tier.emissive && (
-                    <pointLight position={[0, 0, 0.8]} intensity={tier.emissiveIntensity * 0.4}
-                        color={tier.emissive} distance={0.8} />
-                )}
-            </group>
-        </Float>
+            {tier.emissive && (
+                <pointLight position={[0, 0, 0.8]} intensity={tier.emissiveIntensity * 0.4}
+                    color={tier.emissive} distance={0.8} />
+            )}
+        </group>
     );
 };
 
@@ -266,7 +252,7 @@ const AvatarModel = ({ avatarUrl }) => {
             return clone;
         }, [scene]);
 
-        return <primitive object={clonedScene} scale={1.1} position={[0, -1.6, 0]} />;
+        return <primitive object={clonedScene} scale={1.1} position={[0, -1.0, 0]} />;
     };
 
     if (!avatarUrl) return null;
@@ -301,15 +287,16 @@ const FitnessScene = ({ avatarUrl, tier }) => {
                     color={tier.emissive} distance={4} />
             )}
 
-            <group position={[0, 0.4, 0]}>
+            {/* Grupo principal - todo ancorado ao chão */}
+            <group position={[0, -1.8, 0]}>
                 <AvatarModel avatarUrl={avatarUrl} />
 
-                {/* Equipamentos no chão */}
-                <Dumbbell3D tier={tier} position={[0.6, -1.55, 0.3]} rotation={[0, 0, 1.57]} scale={0.12} />
-                <Kettlebell3D tier={tier} position={[-0.6, -1.6, 0.3]} scale={0.1} />
+                {/* Equipamentos no chão - ao nível dos pés do avatar (-1.0) */}
+                <Dumbbell3D tier={tier} position={[0.5, -1.0, 0.25]} rotation={[0, 0, 1.57]} scale={0.055} />
+                <Kettlebell3D tier={tier} position={[-0.45, -1.0, 0.25]} scale={0.045} />
 
-                {/* Medalha flutuando ao lado */}
-                <Medal3D tier={tier} position={[0.5, 0.8, 0.4]} rotation={[0, -0.5, 0]} scale={0.07} />
+                {/* Medalha flutuando ao lado do avatar */}
+                <Medal3D tier={tier} position={[0.55, 0.0, 0.3]} rotation={[0, -0.5, 0]} scale={0.035} />
 
                 <OrbitControls
                     enablePan={false}
@@ -319,12 +306,12 @@ const FitnessScene = ({ avatarUrl, tier }) => {
                     minPolarAngle={Math.PI / 3}
                     maxPolarAngle={Math.PI / 2}
                     autoRotate={false}
-                    target={[0, -0.5, 0]}
+                    target={[0, -0.3, 0]}
                     makeDefault
                 />
             </group>
 
-            <ContactShadows position={[0, -1.2, 0]} opacity={0.6} scale={3} blur={2.5} far={4} />
+            <ContactShadows position={[0, -2.2, 0]} opacity={0.8} scale={4} blur={2} far={5} />
             <Environment preset="city" background={false} />
         </>
     );
@@ -410,7 +397,7 @@ const RealFitness3DDisplay = ({ avatarUrl, userLevel, bossesDefeated, size = 380
             </div>
 
             {avatarUrl ? (
-                <Canvas camera={{ position: [0, 0.5, 4.5], fov: 45 }} style={{ background: 'transparent' }} shadows>
+                <Canvas camera={{ position: [0, 0, 3.5], fov: 45 }} style={{ background: 'transparent' }} shadows>
                     <Suspense fallback={null}>
                         <FitnessScene avatarUrl={avatarUrl} tier={tier} />
                     </Suspense>

@@ -386,13 +386,13 @@ const AvatarModel = ({ avatarUrl, tier }) => {
             });
         }, [clonedScene]);
 
-        return <primitive object={clonedScene} scale={1} position={[0, -1, 0]} />;
+        return <primitive object={clonedScene} scale={1} position={[0, -0.95, 0]} />;
     };
 
     useFrame((state) => {
         if (groupRef.current) {
+            // Apenas rotação suave, SEM flutuação vertical
             groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.12;
-            groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 1.2) * 0.015;
         }
     });
 
