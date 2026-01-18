@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Home, Trophy, Users, User, ShieldCheck } from 'lucide-react';
+import InstallPWA from '../components/InstallPWA';
 import './AppLayout.css';
 
 const AppLayout = () => {
@@ -21,7 +22,7 @@ const AppLayout = () => {
           <div className="logo-mark"></div>
           <span className="brand-text">FITQUEST</span>
         </div>
-        
+
         <nav className="nav-menu">
           {navItems.map((item) => (
             <Link
@@ -61,6 +62,7 @@ const AppLayout = () => {
           </Link>
         ))}
       </nav>
+      <InstallPWA />
     </div>
   );
 };
