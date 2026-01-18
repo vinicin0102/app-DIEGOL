@@ -361,11 +361,11 @@ const DetailedShield = ({ tier, position = [-0.55, 0.1, 0.15], rotation = [0.1, 
     );
 };
 
-// Avatar 3D do Ready Player Me com equipamentos anexados
+// Avatar 3D do Ready Player Me com equipamentos anexados e POSE DINÂMICA
 const AvatarModel = ({ avatarUrl, tier }) => {
     const groupRef = useRef();
-    const rightHandRef = useRef();
-    const leftArmRef = useRef();
+    const bonesRef = useRef({});
+    const initialPoseApplied = useRef(false);
 
     const AvatarGLB = () => {
         const { scene } = useGLTF(avatarUrl);
@@ -373,26 +373,124 @@ const AvatarModel = ({ avatarUrl, tier }) => {
         // Clonar para não afetar o original
         const clonedScene = useMemo(() => scene.clone(), [scene]);
 
-        // Procurar bones das mãos quando o modelo carregar
+        // Aplicar pose dinâmica quando o modelo carregar
         useEffect(() => {
+            if (initialPoseApplied.current) return;
+
             clonedScene.traverse((child) => {
-                // Ready Player Me usa estrutura de bones padrão
-                if (child.name === 'RightHand' || child.name === 'mixamorigRightHand' || child.name.toLowerCase().includes('righthand')) {
-                    rightHandRef.current = child;
-                }
-                if (child.name === 'LeftForeArm' || child.name === 'mixamorigLeftForeArm' || child.name.toLowerCase().includes('leftforearm') || child.name.toLowerCase().includes('leftarm')) {
-                    leftArmRef.current = child;
+                if (child.isBone) {
+                    const boneName = child.name.toLowerCase();
+
+                    // Armazenar referências dos bones
+                    bonesRef.current[boneName] = child;
+
+                    // === POSE DE GUERREIRO CONFIANTE ===
+
+                    // Spine (coluna) - leve inclinação para frente, postura confiante
+                    if (boneName.includes('spine') || boneName === 'spine') {
+                        child.rotation.x = -0.05; // Peito levemente para frente
+                    }
+                    if (boneName.includes('spine1') || boneName.includes('spine2')) {
+                        child.rotation.x = -0.03;
+                    }
+
+                    // Braço esquerdo - segurando escudo
+                    if (boneName.includes('leftarm') || boneName === 'leftshoulder') {
+                        child.rotation.z = 0.4; // Braço mais para baixo
+                        child.rotation.x = 0.3; // Levemente para frente
+                        child.rotation.y = 0.2;
+                    }
+                    if (boneName.includes('leftforearm')) {
+                        child.rotation.z = 0.6; // Antebraço dobrado
+                        child.rotation.y = -0.3;
+                    }
+                    if (boneName.includes('lefthand') && !boneName.includes('thumb') && !boneName.includes('index') && !boneName.includes('middle') && !boneName.includes('ring') && !boneName.includes('pinky')) {
+                        child.rotation.x = 0.2;
+                        child.rotation.z = 0.1;
+                    }
+
+                    // Braço direito - segurando espada
+                    if (boneName.includes('rightarm') || boneName === 'rightshoulder') {
+                        child.rotation.z = -0.5; // Braço mais para baixo
+                        child.rotation.x = 0.2; // Levemente para frente
+                        child.rotation.y = -0.15;
+                    }
+                    if (boneName.includes('rightforearm')) {
+                        child.rotation.z = -0.7; // Antebraço dobrado segurando espada
+                        child.rotation.y = 0.2;
+                    }
+                    if (boneName.includes('righthand') && !boneName.includes('thumb') && !boneName.includes('index') && !boneName.includes('middle') && !boneName.includes('ring') && !boneName.includes('pinky')) {
+                        child.rotation.x = -0.3; // Mão em posição de empunhar
+                        child.rotation.z = -0.2;
+                    }
+
+                    // Dedos - fechados para empunhar
+                    if (boneName.includes('thumb') || boneName.includes('index') || boneName.includes('middle') || boneName.includes('ring') || boneName.includes('pinky')) {
+                        if (boneName.includes('proximal') || boneName.includes('1')) {
+                            child.rotation.z = 0.5;
+                        }
+                        if (boneName.includes('intermediate') || boneName.includes('2')) {
+                            child.rotation.z = 0.6;
+                        }
+                        if (boneName.includes('distal') || boneName.includes('3')) {
+                            child.rotation.z = 0.4;
+                        }
+                    }
+
+                    // Pernas - postura de luta
+                    if (boneName.includes('leftupleg') || boneName === 'leftupleg') {
+                        child.rotation.z = 0.05; // Perna esquerda levemente aberta
+                        child.rotation.y = 0.1;
+                    }
+                    if (boneName.includes('rightupleg') || boneName === 'rightupleg') {
+                        child.rotation.z = -0.05; // Perna direita levemente aberta
+                        child.rotation.y = -0.1;
+                    }
+
+                    // Cabeça - olhando levemente para frente/cima
+                    if (boneName === 'head' || boneName.includes('head')) {
+                        child.rotation.x = -0.08; // Queixo levemente levantado
+                    }
+
+                    // Neck (pescoço)
+                    if (boneName === 'neck' || boneName.includes('neck')) {
+                        child.rotation.x = -0.05;
+                    }
                 }
             });
+
+            initialPoseApplied.current = true;
         }, [clonedScene]);
 
         return <primitive object={clonedScene} scale={1} position={[0, -0.95, 0]} />;
     };
 
+    // Animação de respiração sutil e movimento do personagem
     useFrame((state) => {
         if (groupRef.current) {
-            // Apenas rotação suave, SEM flutuação vertical
-            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.12;
+            // Rotação suave mostrando o personagem
+            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.15;
+        }
+
+        // Animação sutil de respiração nos bones
+        const time = state.clock.elapsedTime;
+        const breathIntensity = Math.sin(time * 1.5) * 0.01;
+
+        // Respiração na coluna
+        if (bonesRef.current['spine'] || bonesRef.current['spine1']) {
+            const spine = bonesRef.current['spine'] || bonesRef.current['spine1'];
+            if (spine) {
+                spine.rotation.x = -0.05 + breathIntensity;
+            }
+        }
+
+        // Leve movimento nos braços (como se respirasse)
+        const armBreath = Math.sin(time * 1.5) * 0.008;
+        if (bonesRef.current['leftarm']) {
+            bonesRef.current['leftarm'].rotation.z = 0.4 + armBreath;
+        }
+        if (bonesRef.current['rightarm']) {
+            bonesRef.current['rightarm'].rotation.z = -0.5 - armBreath;
         }
     });
 
@@ -468,12 +566,12 @@ const EquippedSword = ({ tier }) => {
     }, []);
 
     return (
-        // Posição: mão direita do avatar - espada empunhada
+        // Posição: mão direita do avatar - espada empunhada (ajustada para pose dinâmica)
         <group
             ref={groupRef}
-            position={[0.32, 0.95, 0.08]}
-            rotation={[0.2, -0.4, -0.8]}
-            scale={0.65}
+            position={[0.28, 0.55, 0.15]}
+            rotation={[0.4, -0.2, -1.2]}
+            scale={0.60}
         >
             {/* Lâmina principal */}
             <mesh ref={bladeRef} position={[0, 0.32, 0]} material={bladeMaterial}>
@@ -585,12 +683,12 @@ const EquippedShield = ({ tier }) => {
     }, []);
 
     return (
-        // Posição: braço esquerdo do avatar - escudo no antebraço
+        // Posição: braço esquerdo do avatar - escudo no antebraço (ajustada para pose dinâmica)
         <group
             ref={groupRef}
-            position={[-0.38, 0.9, 0.15]}
-            rotation={[0.15, 0.6, 0.1]}
-            scale={0.55}
+            position={[-0.32, 0.45, 0.25]}
+            rotation={[0.3, 0.8, 0.4]}
+            scale={0.50}
         >
             {/* Corpo principal do escudo */}
             <mesh ref={shieldRef} material={mainMaterial}>
