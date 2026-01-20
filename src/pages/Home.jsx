@@ -1,241 +1,259 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { Dumbbell, Trophy, Swords, UserPlus, LogIn, ChevronRight, Star, Shield, Zap } from 'lucide-react';
+import InstallPWA from '../components/InstallPWA';
 
 const Home = () => {
-    const navigate = useNavigate();
-    const { login } = useGame();
+  const navigate = useNavigate();
+  const { login } = useGame();
 
-    const [showLogin, setShowLogin] = useState(false);
-    const [showSignup, setShowSignup] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
 
-    // Form States
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [name, setName] = useState('');
+  // Form States
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
 
-    const handleLogin = (e) => {
-        e.preventDefault();
-        login(email, password);
-        navigate('/app');
+  const handleLogin = (e) => {
+    e.preventDefault();
+    login(email, password);
+    navigate('/app');
+  };
+
+  const handleSignup = (e) => {
+    e.preventDefault();
+    // For now, signup just logs in
+    login(email, password);
+    navigate('/app');
+  };
+
+  // Unlock scroll on mount
+  useEffect(() => {
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+
+    return () => {
+      // Revert when leaving if necessary, but usually we want auto
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
+  }, []);
 
-    const handleSignup = (e) => {
-        e.preventDefault();
-        // For now, signup just logs in
-        login(email, password);
-        navigate('/app');
-    };
+  return (
+    <div className="landing-container">
+      {/* Navbar */}
+      <nav className="landing-nav">
+        <div className="brand">
+          <div className="logo-icon">⚡</div>
+          <span className="brand-text">FITQUEST</span>
+        </div>
+        <div className="nav-actions">
+          <button onClick={() => setShowLogin(true)} className="btn-text">Entrar</button>
+          <button onClick={() => setShowSignup(true)} className="btn-primary-sm">Criar Conta</button>
+        </div>
+      </nav>
 
-    return (
-        <div className="landing-container">
-            {/* Navbar */}
-            <nav className="landing-nav">
-                <div className="brand">
-                    <div className="logo-icon">⚡</div>
-                    <span className="brand-text">FITQUEST</span>
+      {/* Hero Section */}
+      <header className="hero-section">
+        <div className="hero-content">
+          <div className="badge-pill">
+            <span className="badge-dot"></span>
+            Nova Era Fitness
+          </div>
+          <h1 className="hero-title">
+            Transforme seu <br />
+            <span className="text-gradient">Treino em Jogo</span>
+          </h1>
+          <p className="hero-subtitle">
+            Evolua seu personagem real a cada gota de suor. Complete missões, derrote chefes e conquiste o corpo que você sempre quis.
+          </p>
+          <div className="hero-buttons">
+            <button onClick={() => setShowSignup(true)} className="btn-hero-primary">
+              Começar Aventura <ChevronRight size={20} />
+            </button>
+            <button className="btn-hero-secondary">
+              Ver Trailer
+            </button>
+          </div>
+
+          <div className="hero-stats">
+            <div className="stat-item">
+              <strong>12k+</strong>
+              <span>Atletas</span>
+            </div>
+            <div className="stat-separator"></div>
+            <div className="stat-item">
+              <strong>500+</strong>
+              <span>Missões</span>
+            </div>
+            <div className="stat-separator"></div>
+            <div className="stat-item">
+              <strong>4.9</strong>
+              <span>Avaliação</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Visual Hero Element (Abstract Phone/Game UI) */}
+        <div className="hero-visual">
+          <div className="phone-mockup floating">
+            <div className="screen-content">
+              <div className="game-card">
+                <div className="card-header">
+                  <Shield size={24} color="#FFD700" />
+                  <span>Missão Diária</span>
                 </div>
-                <div className="nav-actions">
-                    <button onClick={() => setShowLogin(true)} className="btn-text">Entrar</button>
-                    <button onClick={() => setShowSignup(true)} className="btn-primary-sm">Criar Conta</button>
+                <h3>Derrotar o Preguiça</h3>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: '75%' }}></div>
                 </div>
-            </nav>
-
-            {/* Hero Section */}
-            <header className="hero-section">
-                <div className="hero-content">
-                    <div className="badge-pill">
-                        <span className="badge-dot"></span>
-                        Nova Era Fitness
-                    </div>
-                    <h1 className="hero-title">
-                        Transforme seu <br />
-                        <span className="text-gradient">Treino em Jogo</span>
-                    </h1>
-                    <p className="hero-subtitle">
-                        Evolua seu personagem real a cada gota de suor. Complete missões, derrote chefes e conquiste o corpo que você sempre quis.
-                    </p>
-                    <div className="hero-buttons">
-                        <button onClick={() => setShowSignup(true)} className="btn-hero-primary">
-                            Começar Aventura <ChevronRight size={20} />
-                        </button>
-                        <button className="btn-hero-secondary">
-                            Ver Trailer
-                        </button>
-                    </div>
-
-                    <div className="hero-stats">
-                        <div className="stat-item">
-                            <strong>12k+</strong>
-                            <span>Atletas</span>
-                        </div>
-                        <div className="stat-separator"></div>
-                        <div className="stat-item">
-                            <strong>500+</strong>
-                            <span>Missões</span>
-                        </div>
-                        <div className="stat-separator"></div>
-                        <div className="stat-item">
-                            <strong>4.9</strong>
-                            <span>Avaliação</span>
-                        </div>
-                    </div>
+                <div className="xp-badge">+500 XP</div>
+              </div>
+              <div className="stats-row">
+                <div className="mini-stat">
+                  <Zap size={16} color="#00FF88" />
+                  <span>Força</span>
                 </div>
-
-                {/* Visual Hero Element (Abstract Phone/Game UI) */}
-                <div className="hero-visual">
-                    <div className="phone-mockup floating">
-                        <div className="screen-content">
-                            <div className="game-card">
-                                <div className="card-header">
-                                    <Shield size={24} color="#FFD700" />
-                                    <span>Missão Diária</span>
-                                </div>
-                                <h3>Derrotar o Preguiça</h3>
-                                <div className="progress-bar">
-                                    <div className="progress-fill" style={{ width: '75%' }}></div>
-                                </div>
-                                <div className="xp-badge">+500 XP</div>
-                            </div>
-                            <div className="stats-row">
-                                <div className="mini-stat">
-                                    <Zap size={16} color="#00FF88" />
-                                    <span>Força</span>
-                                </div>
-                                <div className="mini-stat">
-                                    <Swords size={16} color="#7B2FFF" />
-                                    <span>Combate</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div className="mini-stat">
+                  <Swords size={16} color="#7B2FFF" />
+                  <span>Combate</span>
                 </div>
-            </header>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
 
-            {/* Features Grid */}
-            <section className="features-section">
-                <h2 className="section-title">O Jogo Começou</h2>
-                <div className="features-grid">
-                    <div className="feature-card">
-                        <div className="feature-icon icon-green"><Trophy size={32} /></div>
-                        <h3>Gamificação Real</h3>
-                        <p>Seus exercícios viram XP. Suba de nível na vida real e no app simultaneamente.</p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon icon-purple"><Swords size={32} /></div>
-                        <h3>Batalhas de Chefes</h3>
-                        <p>Use seus exercícios para causar dano. A preguiça é seu maior inimigo.</p>
-                    </div>
-                    <div className="feature-card">
-                        <div className="feature-icon icon-blue"><UserPlus size={32} /></div>
-                        <h3>Comunidade Guilda</h3>
-                        <p>Entre em clãs, participe de raids em grupo e conquiste territórios.</p>
-                    </div>
-                </div>
-            </section>
+      {/* Features Grid */}
+      <section className="features-section">
+        <h2 className="section-title">O Jogo Começou</h2>
+        <div className="features-grid">
+          <div className="feature-card">
+            <div className="feature-icon icon-green"><Trophy size={32} /></div>
+            <h3>Gamificação Real</h3>
+            <p>Seus exercícios viram XP. Suba de nível na vida real e no app simultaneamente.</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon icon-purple"><Swords size={32} /></div>
+            <h3>Batalhas de Chefes</h3>
+            <p>Use seus exercícios para causar dano. A preguiça é seu maior inimigo.</p>
+          </div>
+          <div className="feature-card">
+            <div className="feature-icon icon-blue"><UserPlus size={32} /></div>
+            <h3>Comunidade Guilda</h3>
+            <p>Entre em clãs, participe de raids em grupo e conquiste territórios.</p>
+          </div>
+        </div>
+      </section>
 
-            {/* Login Modal */}
-            {showLogin && (
-                <div className="modal-overlay">
-                    <div className="modal-content glass-panel slide-up">
-                        <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
-                        <h2>Bem-vindo de volta</h2>
-                        <p className="modal-subtitle">Continue sua jornada lendária</p>
+      {/* Login Modal */}
+      {showLogin && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-panel slide-up">
+            <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
+            <h2>Bem-vindo de volta</h2>
+            <p className="modal-subtitle">Continue sua jornada lendária</p>
 
-                        <form onSubmit={handleLogin} className="auth-form">
-                            <div className="form-group">
-                                <label>Email</label>
-                                <input
-                                    type="email"
-                                    placeholder="seu@email.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Senha</label>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="btn-primary full-width">
-                                Entrar no Jogo
-                            </button>
-                        </form>
-                        <p className="switch-auth">
-                            Não tem conta? <a onClick={() => { setShowLogin(false); setShowSignup(true) }}>Criar agora</a>
-                        </p>
-                    </div>
-                </div>
-            )}
+            <form onSubmit={handleLogin} className="auth-form">
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Senha</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn-primary full-width">
+                Entrar no Jogo
+              </button>
+            </form>
+            <p className="switch-auth">
+              Não tem conta? <a onClick={() => { setShowLogin(false); setShowSignup(true) }}>Criar agora</a>
+            </p>
+          </div>
+        </div>
+      )}
 
-            {/* Signup Modal */}
-            {showSignup && (
-                <div className="modal-overlay">
-                    <div className="modal-content glass-panel slide-up">
-                        <button className="close-btn" onClick={() => setShowSignup(false)}>×</button>
-                        <h2>Crie sua Lenda</h2>
-                        <p className="modal-subtitle">Seu primeiro passo para a glória</p>
+      {/* Signup Modal */}
+      {showSignup && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-panel slide-up">
+            <button className="close-btn" onClick={() => setShowSignup(false)}>×</button>
+            <h2>Crie sua Lenda</h2>
+            <p className="modal-subtitle">Seu primeiro passo para a glória</p>
 
-                        <form onSubmit={handleSignup} className="auth-form">
-                            <div className="form-group">
-                                <label>Nome do Herói</label>
-                                <input
-                                    type="text"
-                                    placeholder="Como quer ser chamado?"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Email</label>
-                                <input
-                                    type="email"
-                                    placeholder="seu@email.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Senha</label>
-                                <input
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <button type="submit" className="btn-primary full-width">
-                                Iniciar Aventura
-                            </button>
-                        </form>
-                        <p className="switch-auth">
-                            Já tem conta? <a onClick={() => { setShowSignup(false); setShowLogin(true) }}>Fazer login</a>
-                        </p>
-                    </div>
-                </div>
-            )}
+            <form onSubmit={handleSignup} className="auth-form">
+              <div className="form-group">
+                <label>Nome do Herói</label>
+                <input
+                  type="text"
+                  placeholder="Como quer ser chamado?"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Senha</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <button type="submit" className="btn-primary full-width">
+                Iniciar Aventura
+              </button>
+            </form>
+            <p className="switch-auth">
+              Já tem conta? <a onClick={() => { setShowSignup(false); setShowLogin(true) }}>Fazer login</a>
+            </p>
+          </div>
+        </div>
+      )}
 
-            {/* Internal Styles */}
-            <style>{`
+      <InstallPWA />
+
+      {/* Internal Styles */}
+      <style>{`
         .landing-container {
           min-height: 100vh;
+          height: auto;
           background-color: #030304;
           background-image: 
             radial-gradient(circle at 10% 20%, rgba(0, 255, 136, 0.05), transparent 40%),
             radial-gradient(circle at 90% 80%, rgba(123, 47, 255, 0.08), transparent 40%);
           color: #fff;
           font-family: var(--font-main, sans-serif);
+          overflow-y: auto !important;
           overflow-x: hidden;
+          position: relative;
         }
 
         /* Nav */
@@ -250,7 +268,7 @@ const Home = () => {
           right: 0;
           z-index: 50;
           backdrop-filter: blur(10px);
-          background: rgba(3, 3, 4, 0.5);
+          background: rgba(3, 3, 4, 0.8);
           border-bottom: 1px solid rgba(255,255,255,0.05);
         }
 
@@ -310,6 +328,7 @@ const Home = () => {
           grid-template-columns: 1fr 1fr;
           gap: 60px;
           align-items: center;
+          min-height: 100vh;
         }
 
         .hero-title {
@@ -616,22 +635,63 @@ const Home = () => {
         }
 
         @media (max-width: 768px) {
+          .landing-container {
+             overflow-y: auto;
+             height: auto;
+             position: relative;
+          }
+
+          .landing-nav {
+            padding: 16px 20px;
+            background: rgba(3, 3, 4, 0.9);
+          }
+
           .hero-section {
             grid-template-columns: 1fr;
-            padding-top: 120px;
+            padding: 100px 20px 60px;
             text-align: center;
+            gap: 40px;
+            min-height: auto;
           }
           
+          .hero-title {
+            font-size: 42px;
+          }
+
+          .hero-subtitle {
+            font-size: 16px;
+            margin: 0 auto 32px;
+          }
+
           .hero-buttons {
+            justify-content: center;
+            flex-direction: column;
+            width: 100%;
+          }
+
+          .hero-buttons button {
+            width: 100%;
             justify-content: center;
           }
           
           .hero-stats {
             justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+          }
+
+          .hero-visual {
+            transform: scale(0.9);
+            margin-top: -20px;
+          }
+
+          .features-section {
+            padding: 60px 20px 100px;
           }
           
           .features-grid {
             grid-template-columns: 1fr;
+            gap: 20px;
           }
           
           .hidden-mobile {
@@ -639,8 +699,8 @@ const Home = () => {
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default Home;
