@@ -31,13 +31,16 @@
 
 html {
   scroll-behavior: smooth;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
   font-family: var(--font-main);
   background-color: var(--bg-app);
   color: var(--text-main);
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
   -webkit-font-smoothing: antialiased;
   background-image:
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(123, 47, 255, 0.15), transparent),
@@ -48,6 +51,11 @@ body {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
 button {

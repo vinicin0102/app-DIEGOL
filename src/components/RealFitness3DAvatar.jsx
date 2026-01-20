@@ -197,100 +197,127 @@ const Medal3D = ({ tier, position = [0.5, 0.6, 0.3], rotation = [0.2, 0, 0], sca
     );
 };
 
-// === AVATAR 3D DO READY PLAYER ME ===
+// === AVATAR 3D DO READY PLAYER ME COM POSE DINÂMICA ===
 const AvatarModel = ({ avatarUrl }) => {
     const groupRef = useRef();
-
-    // Referências persistentes para os ossos
-    const bonesRef = useRef({});
-
-    // Encontrar ossos uma única vez quando a cena carregar
-    useEffect(() => {
-        if (!groupRef.current) return;
-
-        const bones = {};
-        groupRef.current.traverse((child) => {
-            if (child.isBone) {
-                const n = child.name.toLowerCase();
-                // Ignorar ossos de torção ou ajuste que podem confundir o alvo
-                if (n.includes('twist') || n.includes('adj')) return;
-
-                // Mapeamento mais robusto
-                if (n.includes('left')) {
-                    if (n.includes('forearm') || n.includes('lowerarm')) bones.leftForeArm = child;
-                    else if (n.includes('arm') || n.includes('upperarm') || n.includes('shoulder')) {
-                        // Cuidado para não pegar clavícula (shoulder) se quisermos braço. 
-                        // Geralmente 'Arm' ou 'UpArm' é o correto. 'Shoulder' é clavícula.
-                        if (!n.includes('shoulder')) bones.leftArm = child;
-                    }
-                    else if (n.includes('hand')) bones.leftHand = child;
-                }
-
-                if (n.includes('right')) {
-                    if (n.includes('forearm') || n.includes('lowerarm')) bones.rightForeArm = child;
-                    else if (n.includes('arm') || n.includes('upperarm')) {
-                        if (!n.includes('shoulder')) bones.rightArm = child;
-                    }
-                    else if (n.includes('hand')) bones.rightHand = child;
-                }
-            }
-        });
-        bonesRef.current = bones;
-        console.log("Ossos encontrados:", Object.keys(bones)); // Debug para o usuário se necessário
-    }, [avatarUrl]);
-
-    // Aplicar pose a cada quadro
-    useFrame((state) => {
-        if (groupRef.current) {
-            // Rotação leve do corpo
-            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
-        }
-
-        const { leftArm, leftForeArm, leftHand, rightArm, rightForeArm, rightHand } = bonesRef.current;
-
-        // POSE DE BRAÇOS CRUZADOS (JOGADOR DE FUTEBOL / BOSS)
-        // Ajuste fino dos ângulos de Euler (em radianos)
-
-        if (leftArm) {
-            // Braço esquerdo desce e vai um pouco para frente
-            leftArm.rotation.set(-1.3, 0.6, -0.3);
-        }
-        if (leftForeArm) {
-            // Antebraço dobra totalmente para dentro
-            leftForeArm.rotation.set(-0.2, 0, 2.0); // Z rotaciona o antebraço pra dentro
-            // Dependendo do eixo do bone, pode ser X ou Z. Geralmente Z ou X em rigs T-Pose.
-            // Vamos testar uma combinação que force o cruzamento
-            // Em RPM T-Pose standard: Eixo X dobra o cotovelo? Não, geralmente Z ou Y.
-            // Tentativa de override direto se rotação anterior falhou
-        }
-        if (leftHand) {
-            leftHand.rotation.set(0, -0.5, 0); // Relaxa mão
-        }
-
-        if (rightArm) {
-            // Braço direito desce e vai para frente
-            rightArm.rotation.set(-1.3, -0.6, 0.3);
-        }
-        if (rightForeArm) {
-            // Antebraço direito dobra pra dentro
-            // Note: Right side rotations are often inverted simply by sign, but axes alignment matters
-            rightForeArm.rotation.set(-0.2, 0, -2.0); // Z negativo pra dobrar pro outro lado
-        }
-        if (rightHand) {
-            rightHand.rotation.set(0, 0.5, 0);
-        }
-    });
+    const skeletonRef = useRef(null);
+    const poseApplied = useRef(false);
 
     const AvatarGLB = () => {
         const { scene } = useGLTF(avatarUrl);
-        // Clonar e aplicar escala
+
+        // Clonar a cena
         const clonedScene = useMemo(() => {
             const clone = scene.clone();
             return clone;
         }, [scene]);
 
+        // Aplicar pose quando o modelo carregar
+        useEffect(() => {
+            if (poseApplied.current) return;
+
+            clonedScene.traverse((child) => {
+                // Encontrar o Skeleton ou SkinnedMesh
+                if (child.isSkinnedMesh && child.skeleton) {
+                    skeletonRef.current = child.skeleton;
+                }
+
+                // Aplicar rotações diretamente nos bones
+                if (child.isBone) {
+                    const name = child.name.toLowerCase();
+
+                    // === POSE NATURAL RELAXADA (braços ao lado do corpo) ===
+
+                    // Ignorar bones de twist/roll
+                    if (name.includes('twist') || name.includes('roll')) return;
+
+                    // COLUNA - Postura ereta e natural
+                    if (name === 'spine' || name.includes('spine1')) {
+                        child.rotation.x = -0.03; // Postura natural
+                    }
+                    if (name.includes('spine2')) {
+                        child.rotation.x = -0.02;
+                    }
+
+                    // PESCOÇO E CABEÇA - Olhar natural para frente
+                    if (name === 'neck' || name.includes('neck')) {
+                        child.rotation.x = 0;
+                    }
+                    if (name === 'head' || name.includes('head')) {
+                        child.rotation.x = 0;
+                    }
+
+                    // BRAÇO ESQUERDO - Relaxado ao lado do corpo
+                    if (name === 'leftarm' || name === 'leftshoulder' || name.includes('leftupperarm')) {
+                        child.rotation.x = 0.1;   // Levemente para frente
+                        child.rotation.y = 0;
+                        child.rotation.z = 1.1;   // Baixa o braço (da T-pose para o lado)
+                    }
+                    if (name === 'leftforearm' || name.includes('leftlowerarm')) {
+                        child.rotation.x = 0;
+                        child.rotation.y = 0;
+                        child.rotation.z = 0.15;  // Leve dobra natural do cotovelo
+                    }
+                    if (name === 'lefthand' && !name.includes('thumb') && !name.includes('index') && !name.includes('middle') && !name.includes('ring') && !name.includes('pinky')) {
+                        child.rotation.x = 0;
+                        child.rotation.y = 0;
+                        child.rotation.z = 0;
+                    }
+
+                    // BRAÇO DIREITO - Relaxado ao lado do corpo (espelhado)
+                    if (name === 'rightarm' || name === 'rightshoulder' || name.includes('rightupperarm')) {
+                        child.rotation.x = 0.1;   // Levemente para frente
+                        child.rotation.y = 0;
+                        child.rotation.z = -1.1;  // Baixa o braço (espelhado)
+                    }
+                    if (name === 'rightforearm' || name.includes('rightlowerarm')) {
+                        child.rotation.x = 0;
+                        child.rotation.y = 0;
+                        child.rotation.z = -0.15; // Leve dobra natural do cotovelo (espelhado)
+                    }
+                    if (name === 'righthand' && !name.includes('thumb') && !name.includes('index') && !name.includes('middle') && !name.includes('ring') && !name.includes('pinky')) {
+                        child.rotation.x = 0;
+                        child.rotation.y = 0;
+                        child.rotation.z = 0;
+                    }
+
+                    // DEDOS - Mãos relaxadas naturalmente
+                    if (name.includes('thumb') || name.includes('index') || name.includes('middle') || name.includes('ring') || name.includes('pinky')) {
+                        if (name.includes('proximal') || name.includes('1')) {
+                            child.rotation.z = name.includes('left') ? 0.15 : -0.15;
+                        }
+                        if (name.includes('intermediate') || name.includes('medial') || name.includes('2')) {
+                            child.rotation.z = name.includes('left') ? 0.1 : -0.1;
+                        }
+                        if (name.includes('distal') || name.includes('3')) {
+                            child.rotation.z = name.includes('left') ? 0.08 : -0.08;
+                        }
+                    }
+
+                    // PERNAS - Postura normal, pés paralelos
+                    if (name === 'leftupleg' || name.includes('leftthigh')) {
+                        child.rotation.z = 0.02;  // Muito leve abertura
+                    }
+                    if (name === 'rightupleg' || name.includes('rightthigh')) {
+                        child.rotation.z = -0.02; // Muito leve abertura (espelhado)
+                    }
+                }
+            });
+
+            poseApplied.current = true;
+            console.log("Pose natural relaxada aplicada com sucesso!");
+        }, [clonedScene]);
+
         return <primitive object={clonedScene} scale={1.2} position={[0, 0, 0]} />;
     };
+
+    // Animação sutil de respiração e rotação
+    useFrame((state) => {
+        if (groupRef.current) {
+            // Rotação suave mostrando o avatar
+            groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
+        }
+    });
 
     if (!avatarUrl) return null;
 
