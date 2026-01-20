@@ -703,4 +703,5 @@ const Home = () => {
   );
 };
 
+// Mobile optimizations applied
 export default Home;
