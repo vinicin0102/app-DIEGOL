@@ -27,7 +27,7 @@ const Login = () => {
             } else {
                 const { error } = await signIn(email, password);
                 if (error) throw error;
-                navigate('/');
+                navigate('/app');
             }
         } catch (err) {
             setError(err.message);

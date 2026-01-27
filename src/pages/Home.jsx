@@ -6,7 +6,7 @@ import InstallPWA from '../components/InstallPWA';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { login } = useGame();
+  const { login, signUp } = useGame();
 
   const [showLogin, setShowLogin] = useState(false);
   const [showSignup, setShowSignup] = useState(false);
@@ -15,18 +15,43 @@ const Home = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    login(email, password);
-    navigate('/app');
+    setLoading(true);
+    setError('');
+    const { error } = await login(email, password);
+    setLoading(false);
+
+    if (error) {
+      setError('Erro ao entrar. Verifique suas credenciais.');
+      console.error(error);
+    } else {
+      // Successful login will trigger auth state change and redirect via App.jsx
+      // But we can also push to /app to be sure
+      navigate('/app');
+    }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
-    // For now, signup just logs in
-    login(email, password);
-    navigate('/app');
+    setLoading(true);
+    setError('');
+
+    // Use signUp from context
+    const { error } = await signUp(email, password, name);
+    setLoading(false);
+
+    if (error) {
+      setError('Erro ao criar conta: ' + error.message);
+    } else {
+      alert('Conta criada! Verifique seu email se necessário.');
+      // Usually Supabase auto-logs in unless email confirm is on.
+      // If auto-login, we navigate.
+      navigate('/app');
+    }
   };
 
   // Unlock scroll on mount
@@ -177,8 +202,9 @@ const Home = () => {
                   required
                 />
               </div>
-              <button type="submit" className="btn-primary full-width">
-                Entrar no Jogo
+              {error && <p style={{ color: 'red', fontSize: '14px', marginBottom: '10px' }}>{error}</p>}
+              <button type="submit" className="btn-primary full-width" disabled={loading}>
+                {loading ? 'Entrando...' : 'Entrar no Jogo'}
               </button>
             </form>
             <p className="switch-auth">
