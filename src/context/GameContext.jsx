@@ -169,6 +169,11 @@ export const GameProvider = ({ children }) => {
 
     const signOut = () => supabase.auth.signOut();
 
+    // Compatibility aliases
+    const isAuthenticated = !!session;
+    const login = signIn;
+    const logout = signOut;
+
 
     // --- State Modifiers (Wrapped to Sync) ---
 
@@ -359,6 +364,9 @@ export const GameProvider = ({ children }) => {
         <GameContext.Provider value={{
             user,
             setUser,
+            isAuthenticated,
+            login,
+            logout,
             challenges,
             addChallenge,
             updateChallenge,

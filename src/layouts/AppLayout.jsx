@@ -11,11 +11,11 @@ const AppLayout = () => {
   const { user, session } = useGame();
 
   const navItems = [
-    { path: '/', icon: Home, label: 'Início' },
-    { path: '/challenges', icon: Trophy, label: 'Desafios' },
-    { path: '/community', icon: Users, label: 'Comunidade' },
-    { path: '/profile', icon: User, label: 'Perfil' },
-    { path: '/admin', icon: ShieldCheck, label: 'Admin' },
+    { path: '/app', icon: Home, label: 'Início' },
+    { path: '/app/challenges', icon: Trophy, label: 'Desafios' },
+    { path: '/app/community', icon: Users, label: 'Comunidade' },
+    { path: '/app/profile', icon: User, label: 'Perfil' },
+    { path: '/app/admin', icon: ShieldCheck, label: 'Admin' },
   ];
 
   return (
@@ -31,7 +31,7 @@ const AppLayout = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+              className={`nav-item ${location.pathname === item.path || (item.path === '/app' && location.pathname === '/app/') ? 'active' : ''}`}
             >
               <item.icon size={20} />
               <span>{item.label}</span>
