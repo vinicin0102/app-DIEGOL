@@ -6,6 +6,7 @@ import Challenges from './pages/Challenges';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
+import Login from './pages/Login';
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
         <Route path="community" element={<Community />} />
         <Route path="profile" element={<Profile />} />
         <Route path="admin" element={<Admin />} />
+        <Route path="login" element={<Login />} />
       </Route>
     </Routes>
   );

@@ -1,11 +1,14 @@
 import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useGame } from '../context/GameContext';
 import { Home, Trophy, Users, User, ShieldCheck } from 'lucide-react';
 import InstallPWA from '../components/InstallPWA';
 import './AppLayout.css';
 
 const AppLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, session } = useGame();
 
   const navItems = [
     { path: '/', icon: Home, label: 'Início' },
@@ -20,7 +23,7 @@ const AppLayout = () => {
       <aside className="sidebar">
         <div className="brand">
           <div className="logo-mark"></div>
-          <span className="brand-text">FITQUEST</span>
+          <span className="brand-text">VENCEDORES</span>
         </div>
 
         <nav className="nav-menu">
@@ -36,11 +39,13 @@ const AppLayout = () => {
           ))}
         </nav>
 
-        <div className="user-profile-preview">
-          <div className="avatar"></div>
+        <div className="user-profile-preview" onClick={() => !session && navigate('/login')} style={{ cursor: 'pointer' }}>
+          <div className="avatar" style={{ background: session ? `url(${user.photo})` : '#444' }}>
+            {!user.photo && user.avatar && user.avatar.helmet && user.avatar.helmet.emoji}
+          </div>
           <div className="user-info">
-            <h4>Aluno Exemplo</h4>
-            <span>Nível 12</span>
+            <h4>{user.name}</h4>
+            <span>{session ? `Nível ${user.level}` : 'Clique para entrar'}</span>
           </div>
         </div>
       </aside>
