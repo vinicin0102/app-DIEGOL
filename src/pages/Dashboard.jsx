@@ -3,7 +3,7 @@ import { Activity, Flame, Trophy, BrainCircuit, ChevronRight, Sparkles, Target, 
 import { useGame } from '../context/GameContext';
 import AIAnalysis from '../components/AIAnalysis';
 import { useNavigate } from 'react-router-dom';
-import { RealFitness3DDisplay, RealFitness3DBuilder, getFitnessTier } from '../components/RealFitness3DAvatar';
+import AvatarSelector, { AVATARS } from '../components/AvatarSelector';
 import RadarChart from '../components/RadarChart';
 
 const Dashboard = () => {
@@ -11,19 +11,23 @@ const Dashboard = () => {
     const navigate = useNavigate();
     const [showAI, setShowAI] = useState(false);
 
-    // === AVATAR & STATS LOGIC ===
+    // === AVATAR LOGIC ===
     const [showAvatarBuilder, setShowAvatarBuilder] = useState(false);
-    const [avatar3DUrl, setAvatar3DUrl] = useState('');
+    const [selectedAvatar, setSelectedAvatar] = useState(null);
 
     useEffect(() => {
-        const savedUrl = localStorage.getItem('realFitness3DAvatarUrl');
-        if (savedUrl) {
-            setAvatar3DUrl(savedUrl);
+        const savedAvatarId = localStorage.getItem('selectedAvatarId');
+        if (savedAvatarId) {
+            const avatar = AVATARS.find(a => a.id === savedAvatarId);
+            if (avatar) {
+                setSelectedAvatar(avatar);
+            }
         }
     }, []);
 
-    const handleSaveAvatar = (newUrl) => {
-        setAvatar3DUrl(newUrl);
+    const handleSelectAvatar = (avatar) => {
+        setSelectedAvatar(avatar);
+        localStorage.setItem('selectedAvatarId', avatar.id);
     };
 
     // Calculate Stats
@@ -46,7 +50,15 @@ const Dashboard = () => {
         (Object.values(radarStats).reduce((a, b) => a + b, 0)) / 5
     );
 
-    const currentTier = getFitnessTier(user.level, bossesDefeatedCount);
+    // Simple tier calculation based on level
+    const getTier = (level) => {
+        if (level >= 40) return { name: 'Lendário', color: '#FFD700', glowColor: 'rgba(255, 215, 0, 0.4)' };
+        if (level >= 30) return { name: 'Épico', color: '#9B59B6', glowColor: 'rgba(155, 89, 182, 0.4)' };
+        if (level >= 20) return { name: 'Raro', color: '#3498DB', glowColor: 'rgba(52, 152, 219, 0.4)' };
+        if (level >= 10) return { name: 'Comum', color: '#2ECC71', glowColor: 'rgba(46, 204, 113, 0.4)' };
+        return { name: 'Novato', color: '#95A5A6', glowColor: 'rgba(149, 165, 166, 0.4)' };
+    };
+    const currentTier = getTier(user.level);
     const accentColor = currentTier.color;
 
     // === DASHBOARD LOGIC ===
@@ -85,14 +97,12 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container page-enter" style={{ paddingBottom: '80px' }}>
-            {/* === REAL 3D AVATAR BUILDER MODAL === */}
-            <RealFitness3DBuilder
+            {/* === AVATAR SELECTOR MODAL === */}
+            <AvatarSelector
                 isOpen={showAvatarBuilder}
                 onClose={() => setShowAvatarBuilder(false)}
-                onSave={handleSaveAvatar}
-                currentAvatarUrl={avatar3DUrl}
-                userLevel={user.level}
-                bossesDefeated={bossesDefeatedCount}
+                onSelect={handleSelectAvatar}
+                currentAvatarId={selectedAvatar?.id}
             />
 
             {/* === HEADER === */}
@@ -137,7 +147,7 @@ const Dashboard = () => {
                     gap: '40px',
                     alignItems: 'center'
                 }}>
-                    {/* LEFT - AVATAR 3D REAL */}
+                    {/* LEFT - AVATAR IMAGE */}
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -149,23 +159,57 @@ const Dashboard = () => {
                             style={{
                                 cursor: 'pointer',
                                 position: 'relative',
-                                transition: 'transform 0.3s ease'
+                                transition: 'transform 0.3s ease',
+                                width: '320px',
+                                height: '320px'
                             }}
                             onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
                             onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         >
-                            <RealFitness3DDisplay
-                                avatarUrl={avatar3DUrl}
-                                userLevel={user.level}
-                                bossesDefeated={bossesDefeatedCount}
-                                size={380}
-                                onClickCreate={() => setShowAvatarBuilder(true)}
-                            />
+                            {/* Avatar Container */}
+                            <div style={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '24px',
+                                overflow: 'hidden',
+                                border: `3px solid ${accentColor}`,
+                                boxShadow: `0 10px 40px ${currentTier.glowColor}, 0 0 60px ${currentTier.glowColor}`,
+                                background: 'linear-gradient(145deg, #1a1a2e, #0f0f23)'
+                            }}>
+                                {selectedAvatar ? (
+                                    <img
+                                        src={selectedAvatar.image}
+                                        alt={selectedAvatar.name}
+                                        style={{
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover'
+                                        }}
+                                    />
+                                ) : (
+                                    <div style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '16px',
+                                        background: 'linear-gradient(145deg, rgba(255,215,0,0.1), rgba(255,165,0,0.05))'
+                                    }}>
+                                        <Sparkles size={48} color="#FFD700" />
+                                        <span style={{ color: '#FFD700', fontSize: '16px', fontWeight: '600' }}>
+                                            Escolher Avatar
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
 
+                            {/* Edit Button */}
                             <div style={{
                                 position: 'absolute',
-                                bottom: '50px',
-                                right: '10px',
+                                bottom: '15px',
+                                right: '15px',
                                 width: '44px',
                                 height: '44px',
                                 borderRadius: '50%',
