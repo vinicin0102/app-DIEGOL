@@ -5,6 +5,8 @@ import { X, Check, User, Sparkles } from 'lucide-react';
 import warriorMale1 from '../assets/avatars/warrior_male_1.png';
 import warriorMale2 from '../assets/avatars/warrior_male_2.png';
 import warriorMale3 from '../assets/avatars/warrior_male_3.png';
+import warriorMale4 from '../assets/avatars/warrior_male_4.png';
+import warriorMale5 from '../assets/avatars/warrior_male_5.png';
 
 // Import avatar images - Females
 import warriorFemale1 from '../assets/avatars/warrior_female_1.png';
@@ -42,6 +44,24 @@ const AVATARS = [
         gender: 'male',
         skinTone: 'medium',
         hairColor: 'blonde'
+    },
+    {
+        id: 'warrior_male_4',
+        name: 'Samurai Carmesim',
+        description: 'Armadura oriental vermelha',
+        image: warriorMale4,
+        gender: 'male',
+        skinTone: 'light',
+        hairColor: 'black'
+    },
+    {
+        id: 'warrior_male_5',
+        name: 'Cavaleiro das Ruínas',
+        description: 'Armadura prateada e roxa',
+        image: warriorMale5,
+        gender: 'male',
+        skinTone: 'medium',
+        hairColor: 'dark'
     },
     // === FEMALE WARRIORS ===
     {
@@ -317,7 +337,7 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                     textAlign: 'center'
                 }}>
                     <p style={{ margin: 0, fontSize: '13px', color: '#2ECC71' }}>
-                        ⚔️ 8 guerreiros disponíveis: 3 masculinos e 5 femininas de diferentes etnias!
+                        ⚔️ 10 guerreiros disponíveis: 5 masculinos e 5 femininas de diferentes etnias!
                     </p>
                 </div>
 

@@ -2561,3 +2561,143 @@ input[type="range"]::-moz-range-thumb {
     filter: blur(20px);
   }
 }
+
+/* === AVATAR ANIMATIONS === */
+@keyframes avatar-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes avatar-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 165, 0, 0.3);
+  }
+}
+
+@keyframes avatar-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes card-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes border-glow {
+  0%, 100% {
+    border-color: rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    border-color: rgba(255, 215, 0, 1);
+  }
+}
+
+/* Boss sprite animations */
+@keyframes boss-idle {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.02) translateY(-3px);
+  }
+}
+
+@keyframes boss-attack {
+  0% {
+    transform: scale(1) translateX(0);
+  }
+  25% {
+    transform: scale(1.15) translateX(10px);
+  }
+  50% {
+    transform: scale(1.1) translateX(-5px);
+  }
+  100% {
+    transform: scale(1) translateX(0);
+  }
+}
+
+@keyframes boss-defeated {
+  0% {
+    filter: grayscale(0) brightness(1);
+    transform: scale(1);
+  }
+  100% {
+    filter: grayscale(100%) brightness(0.5);
+    transform: scale(0.95);
+  }
+}
+
+/* Avatar card hover effects */
+.avatar-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.avatar-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.avatar-card.selected {
+  animation: avatar-glow 2s ease-in-out infinite;
+}
+
+/* Boss card animations */
+.boss-card {
+  transition: all 0.3s ease;
+}
+
+.boss-card:hover .boss-sprite-container {
+  animation: avatar-pulse 1s ease-in-out infinite;
+}
+
+/* Warrior sprite container */
+.boss-sprite-container {
+  transition: all 0.3s ease;
+}
+
+.boss-sprite-container.attacking img {
+  animation: boss-attack 0.5s ease-in-out;
+}
+
+.boss-sprite-container.defeated img {
+  animation: boss-defeated 0.5s ease-out forwards;
+}
+
+/* Golden shimmer effect */
+.golden-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 215, 0, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: card-shimmer 3s ease-in-out infinite;
+}
+
+/* Floating animation for special elements */
+.float-animation {
+  animation: avatar-float 3s ease-in-out infinite;
+}
+
+/* Pulse glow for important buttons */
+.pulse-glow {
+  animation: avatar-glow 2s ease-in-out infinite;
+}
