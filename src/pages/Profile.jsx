@@ -108,7 +108,7 @@ const Profile = () => {
                 <div className="glass-panel" style={{
                     padding: '32px',
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', // Reduzido min-width para caber em mobile pequeno
                     gap: '40px',
                     alignItems: 'center'
                 }}>
@@ -117,7 +117,8 @@ const Profile = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        position: 'relative'
+                        position: 'relative',
+                        width: '100%' // Garante largura total no mobile
                     }}>
                         {/* Avatar Image Container */}
                         <div
@@ -126,13 +127,15 @@ const Profile = () => {
                             style={{
                                 cursor: 'pointer',
                                 position: 'relative',
-                                width: '300px',
-                                height: '300px',
+                                width: '100%', // Responsivo
+                                maxWidth: '300px', // Limite máximo
+                                aspectRatio: '1', // Mantém quadrado
                                 borderRadius: '24px',
                                 border: `3px solid ${currentTier.color}`,
                                 boxShadow: `0 0 30px ${currentTier.glowColor}`,
                                 overflow: 'hidden',
-                                animation: 'avatar-float 6s ease-in-out infinite'
+                                animation: 'avatar-float 6s ease-in-out infinite',
+                                margin: '0 auto' // Centralizar
                             }}
                         >
                             <img
