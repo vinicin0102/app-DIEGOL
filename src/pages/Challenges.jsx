@@ -3,6 +3,14 @@ import { Lock, Unlock, Zap, Trophy, Sword, Shield, Heart, Skull, Crown, Star, Fl
 import { useGame } from '../context/GameContext';
 import { Calendar, Check, X, ArrowRight } from 'lucide-react';
 
+// Boss images
+import megalodonImg from '../assets/bosses/megalodon.png';
+import sabertoothImg from '../assets/bosses/sabertooth.png';
+import icedragonImg from '../assets/bosses/icedragon.png';
+import krakenImg from '../assets/bosses/kraken.png';
+import phoenixImg from '../assets/bosses/phoenix.png';
+import cerberusImg from '../assets/bosses/cerberus.png';
+
 // ========== BOSS SPRITES COMPONENTS ==========
 
 // Megalodon - Tubarão Gigante
@@ -596,17 +604,44 @@ const CerberusSprite = ({ isAttacking, isDefeated }) => (
 
 // Componente para renderizar o sprite correto baseado no tipo
 const BossSprite = ({ bossType, isAttacking, isDefeated }) => {
-    const sprites = {
-        megalodon: MegalodonSprite,
-        sabertooth: SaberToothSprite,
-        icedragon: IceDragonSprite,
-        kraken: KrakenSprite,
-        phoenix: DarkPhoenixSprite,
-        cerberus: CerberusSprite
+    const bossImages = {
+        megalodon: megalodonImg,
+        sabertooth: sabertoothImg,
+        icedragon: icedragonImg,
+        kraken: krakenImg,
+        phoenix: phoenixImg,
+        cerberus: cerberusImg
     };
 
-    const SpriteComponent = sprites[bossType] || MegalodonSprite;
-    return <SpriteComponent isAttacking={isAttacking} isDefeated={isDefeated} />;
+    const imageSrc = bossImages[bossType] || megalodonImg;
+
+    return (
+        <div
+            className={`boss-sprite-container ${isAttacking ? 'attacking' : ''} ${isDefeated ? 'defeated' : ''}`}
+            style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative'
+            }}
+        >
+            <img
+                src={imageSrc}
+                alt={bossType}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    filter: isDefeated ? 'grayscale(100%) brightness(0.5)' : 'none',
+                    transform: isAttacking ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'all 0.3s ease',
+                    animation: isAttacking ? 'boss-attack 0.3s ease-in-out' : 'boss-idle 3s ease-in-out infinite'
+                }}
+            />
+        </div>
+    );
 };
 
 // Boss data com BOSSES ÉPICOS DE JOGOS
