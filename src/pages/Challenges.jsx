@@ -626,7 +626,78 @@ const BOSSES = [
         price: 0,
         challengeDuration: 30,
         element: 'ÁGUA',
-        attack: 'Onda de Preguiça'
+        attack: 'Onda de Preguiça',
+        guide: {
+            title: 'FASE 1 — O DESPERTAR (Versão Iniciante)',
+            duration: '30 dias',
+            objective: 'Criar disciplina básica, constância e identidade vencedora',
+            bossName: 'O Procrastinador',
+            bossDescription: '(Inimigos: distração, desculpas, dopamina barata)',
+            importantNote: 'Você não precisa ser perfeito. Pode falhar alguns dias. O que importa é atingir o XP mínimo da fase.',
+            winCondition: [
+                'Completar os 30 dias',
+                'Concluir 4 desafios obrigatórios',
+                'Alcançar 70% do XP total da fase'
+            ],
+            mandatoryChallenges: [
+                {
+                    title: '1 — CORPO EM MOVIMENTO',
+                    name: 'Corpo em Movimento',
+                    icon: '🦾',
+                    mission: 'Treinar mínimo 3x por semana (20+ min). Vale caminhada, corrida, academia, funcional ou treino em casa.',
+                    proof: 'Foto pós-treino ou check-in simples no app.',
+                    extra: '+XP se treinar 4x na semana ou chamar alguém.'
+                },
+                {
+                    title: '2 — CORPO LIMPO',
+                    name: 'Corpo Limpo',
+                    icon: '🥗',
+                    mission: 'Reduzir açúcar refinado e refrigerante. Se escorregar um dia, segue o jogo.',
+                    proof: 'Foto de 1 refeição limpa por dia ou check-in.',
+                    extra: '+XP se completar a semana sem recaídas.'
+                },
+                {
+                    title: '3 — MENTE FORTE',
+                    name: 'Mente Forte',
+                    icon: '🧠',
+                    mission: 'Ler 5 páginas por dia de livro de desenvolvimento ou disciplina.',
+                    proof: 'Foto do livro + 1 insight curto.',
+                    extra: '+XP se não pular nenhum dia.'
+                },
+                {
+                    title: '4 — EVOLUÇÃO REAL',
+                    name: 'Evolução Real',
+                    icon: '⚙️',
+                    mission: 'Estudar 20 minutos por dia algo que gere crescimento pessoal/profissional.',
+                    proof: 'Print do estudo + o que aprendeu.',
+                    extra: '+XP se aplicar algo na prática.'
+                }
+            ],
+            optionalChallenges: [
+                {
+                    title: '📖 CONEXÃO',
+                    name: 'Conexão',
+                    icon: '✨',
+                    mission: 'Escolha UM: Leitura espiritual, Oração/Meditação 10 min ou Encontro religioso.',
+                    proof: 'Foto ou check-in.'
+                },
+                {
+                    title: '📵 DOMÍNIO DIGITAL',
+                    name: 'Domínio Digital',
+                    icon: '📵',
+                    mission: 'Reduzir redes sociais para até 2h por dia.',
+                    proof: 'Print do tempo de uso.',
+                    extra: '+XP se ficar abaixo de 1h ou substituir por estudo.'
+                }
+            ],
+            rewards: [
+                'Acesso à Fase 2',
+                'Badge "Fundador do Despertar"',
+                'Nome no Hall dos Vencedores',
+                'Prioridade em desafios futuros',
+                'Acesso a grupo fechado'
+            ]
+        }
     },
     {
         id: 2,
@@ -826,6 +897,161 @@ const DayEditModal = ({ isOpen, onClose, dayData, onToggle, dayIndex }) => {
     );
 };
 
+const ChallengeGuideModal = ({ isOpen, onClose, guide }) => {
+    if (!isOpen || !guide) return null;
+
+    return (
+        <div style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 100,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.9)',
+            backdropFilter: 'blur(8px)',
+            animation: 'fadeIn 0.3s ease',
+            padding: '20px'
+        }} onClick={onClose}>
+            <div
+                className="glass-panel"
+                onClick={e => e.stopPropagation()}
+                style={{
+                    width: '100%',
+                    maxWidth: '600px',
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
+                    padding: '32px',
+                    border: '1px solid var(--primary)',
+                    boxShadow: '0 0 50px rgba(0, 255, 136, 0.15)',
+                    position: 'relative'
+                }}
+            >
+                <button
+                    onClick={onClose}
+                    style={{ position: 'absolute', top: '24px', right: '24px', background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
+                >
+                    <X size={24} />
+                </button>
+
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <div style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '6px 12px',
+                        background: 'rgba(255, 51, 102, 0.2)',
+                        border: '1px solid var(--accent)',
+                        borderRadius: '20px',
+                        color: 'var(--accent)',
+                        fontWeight: 'bold',
+                        fontSize: '12px',
+                        marginBottom: '16px'
+                    }}>
+                        <Flame size={14} /> FASE 1
+                    </div>
+                    <h2 style={{ fontSize: '28px', fontWeight: '900', marginBottom: '8px', background: 'linear-gradient(to right, #fff, #aaa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        {guide.title}
+                    </h2>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '16px' }}>{guide.duration} • {guide.objective}</p>
+                </div>
+
+                <div style={{ marginBottom: '32px', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px', fontWeight: '700', marginBottom: '12px', color: '#fff' }}>
+                        <Skull size={20} color="var(--accent)" /> Chefão: {guide.bossName}
+                    </h3>
+                    <p style={{ color: '#aaa', marginBottom: '16px', fontStyle: 'italic' }}>{guide.bossDescription}</p>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--primary)' }}>CÓDIGO DE VITÓRIA:</h4>
+                        {guide.winCondition.map((cond, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#ddd' }}>
+                                <Check size={14} color="var(--primary)" /> {cond}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {guide.importantNote && (
+                    <div style={{ marginBottom: '32px', padding: '16px', background: 'rgba(255, 193, 7, 0.1)', borderRadius: '12px', borderLeft: '4px solid #FFC107', display: 'flex', gap: '12px', alignItems: 'start' }}>
+                        <div style={{ marginTop: '2px' }}>💡</div>
+                        <p style={{ fontSize: '14px', color: '#FFCa28', lineHeight: '1.5' }}>{guide.importantNote}</p>
+                    </div>
+                )}
+
+                <div style={{ marginBottom: '32px' }}>
+                    <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        🎯 Desafios Obrigatórios
+                    </h3>
+                    <div style={{ display: 'grid', gap: '16px' }}>
+                        {guide.mandatoryChallenges.map((challenge, i) => (
+                            <div key={i} style={{ padding: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                    <div style={{ fontSize: '24px' }}>{challenge.icon}</div>
+                                    <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#fff' }}>{challenge.title}</h4>
+                                </div>
+                                <div style={{ paddingLeft: '4px', borderLeft: '2px solid var(--primary)', marginLeft: '10px' }}>
+                                    <div style={{ marginLeft: '16px' }}>
+                                        <p style={{ fontSize: '14px', color: '#ddd', marginBottom: '8px' }}><strong style={{ color: '#fff' }}>Missão:</strong> {challenge.mission}</p>
+                                        <p style={{ fontSize: '14px', color: '#ddd', marginBottom: '8px' }}><strong style={{ color: '#fff' }}>Prova:</strong> {challenge.proof}</p>
+                                        {challenge.extra && <p style={{ fontSize: '13px', color: 'var(--primary)' }}>⚡ {challenge.extra}</p>}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {guide.optionalChallenges && (
+                    <div style={{ marginBottom: '32px' }}>
+                        <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: '#aaa' }}>
+                            ✨ Opcionais (XP Extra)
+                        </h3>
+                        <div style={{ display: 'grid', gap: '16px' }}>
+                            {guide.optionalChallenges.map((challenge, i) => (
+                                <div key={i} style={{ padding: '20px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                                        <div style={{ fontSize: '24px' }}>{challenge.icon}</div>
+                                        <h4 style={{ fontSize: '16px', fontWeight: '700', color: '#ddd' }}>{challenge.title}</h4>
+                                    </div>
+                                    <div style={{ paddingLeft: '4px', borderLeft: '2px solid #aaa', marginLeft: '10px' }}>
+                                        <div style={{ marginLeft: '16px' }}>
+                                            <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '8px' }}><strong style={{ color: '#ddd' }}>Missão:</strong> {challenge.mission}</p>
+                                            <p style={{ fontSize: '14px', color: '#aaa', marginBottom: '8px' }}><strong style={{ color: '#ddd' }}>Prova:</strong> {challenge.proof}</p>
+                                            {challenge.extra && <p style={{ fontSize: '13px', color: 'var(--primary)' }}>⚡ {challenge.extra}</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div style={{ textAlign: 'center', padding: '30px', background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(255, 215, 0, 0.1) 100%)', borderRadius: '20px', border: '1px solid rgba(255, 215, 0, 0.2)' }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#FFD700', marginBottom: '16px' }}>🏆 RECOMPENSA AO VENCER</h3>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+                        {guide.rewards.map((reward, i) => (
+                            <span key={i} style={{ padding: '8px 16px', background: 'rgba(0,0,0,0.4)', borderRadius: '20px', fontSize: '13px', border: '1px solid rgba(255, 215, 0, 0.3)', color: '#fff' }}>
+                                {reward}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+
+                <div style={{ marginTop: '32px' }}>
+                    <button
+                        className="btn-primary"
+                        onClick={onClose}
+                        style={{ width: '100%', padding: '16px', fontSize: '16px' }}
+                    >
+                        Entendi, Aceito o Desafio!
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Challenges = () => {
     const { user, setUser } = useGame();
 
@@ -855,6 +1081,10 @@ const Challenges = () => {
 
     // Estado para o calendar modal
     const [openDayModal, setOpenDayModal] = useState({ bossId: null, dayIndex: null });
+
+    // Estado para o modal de guia/detalhes
+    const [guideModalOpen, setGuideModalOpen] = useState(false);
+    const [activeGuide, setActiveGuide] = useState(null);
 
     // Carregar progresso do localStorage e Inicializar Calendários
     useEffect(() => {
@@ -1799,6 +2029,34 @@ const Challenges = () => {
                                         <p style={{ fontSize: '15px', fontWeight: '600' }}>
                                             {boss.challenge}
                                         </p>
+
+                                        {boss.guide && (
+                                            <button
+                                                onClick={() => {
+                                                    setActiveGuide(boss.guide);
+                                                    setGuideModalOpen(true);
+                                                }}
+                                                style={{
+                                                    marginTop: '12px',
+                                                    width: '100%',
+                                                    padding: '10px',
+                                                    background: 'rgba(255,255,255,0.05)',
+                                                    border: '1px solid var(--border)',
+                                                    borderRadius: '8px',
+                                                    color: '#fff',
+                                                    fontSize: '13px',
+                                                    fontWeight: '600',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: '8px',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                📜 Ver Detalhes da Missão
+                                            </button>
+                                        )}
                                     </div>
                                 )}
 
@@ -1964,10 +2222,10 @@ const Challenges = () => {
                                         <div style={{ marginTop: '20px' }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                                 <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-muted)' }}>
-                                                    📅 CALENDÁRIO DE 21 DIAS
+                                                    📅 CALENDÁRIO DE {boss.challengeDuration || 21} DIAS
                                                 </span>
                                                 <span style={{ fontSize: '11px', color: boss.color }}>
-                                                    {boss.calendar ? boss.calendar.filter(d => d.verified).length : 0}/21 Dias
+                                                    {boss.calendar ? boss.calendar.filter(d => d.verified).length : 0}/{boss.challengeDuration || 21} Dias
                                                 </span>
                                             </div>
 
@@ -2042,7 +2300,12 @@ const Challenges = () => {
                     );
                 })}
             </div>
-        </div >
+            <ChallengeGuideModal
+                isOpen={guideModalOpen}
+                onClose={() => setGuideModalOpen(false)}
+                guide={activeGuide}
+            />
+        </div>
     );
 };
 
