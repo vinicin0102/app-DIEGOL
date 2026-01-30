@@ -121,6 +121,19 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
         }
     }, [currentAvatarId]);
 
+    // Ocultar navbar mobile quando modal estiver aberto
+    useEffect(() => {
+        if (isOpen) {
+            document.body.classList.add('hide-mobile-nav');
+        } else {
+            document.body.classList.remove('hide-mobile-nav');
+        }
+
+        return () => {
+            document.body.classList.remove('hide-mobile-nav');
+        };
+    }, [isOpen]);
+
     if (!isOpen) return null;
 
     const filteredAvatars = filter === 'all'

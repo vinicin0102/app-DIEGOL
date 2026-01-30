@@ -2701,3 +2701,6 @@ input[type="range"]::-moz-range-thumb {
 .pulse-glow {
   animation: avatar-glow 2s ease-in-out infinite;
 }
+body.hide-mobile-nav .mobile-nav {
+    display: none !important;
+}
