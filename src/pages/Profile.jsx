@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { Trophy, Award, Flame, Zap, Medal, Star, Target, Settings, Dumbbell, Crown, Sparkles, Heart, TrendingUp, Info, Edit3, Camera, Activity } from 'lucide-react';
-import { RealFitness3DDisplay, RealFitness3DBuilder, getFitnessTier, FITNESS_TIERS } from '../components/RealFitness3DAvatar';
+import { Trophy, Award, Flame, Zap, Medal, Star, Target, Settings, Dumbbell, Crown, Sparkles, Heart, TrendingUp, Info, Edit3, Camera, Activity, User } from 'lucide-react';
+import AvatarSelector, { AVATARS } from '../components/AvatarSelector';
 
 import RadarChart from '../components/RadarChart';
+
+// Simplified Tier Logic (same as Dashboard)
+const getTier = (level) => {
+    if (level >= 50) return { name: 'LENDÁRIO', color: '#FFD700', glowColor: 'rgba(255, 215, 0, 0.8)', emoji: '👑' };
+    if (level >= 30) return { name: 'ELITE', color: '#FF4500', glowColor: 'rgba(255, 69, 0, 0.8)', emoji: '⚔️' };
+    if (level >= 15) return { name: 'VETERANO', color: '#9B59B6', glowColor: 'rgba(155, 89, 182, 0.8)', emoji: '🛡️' };
+    if (level >= 5) return { name: 'GUERREIRO', color: '#3498DB', glowColor: 'rgba(52, 152, 219, 0.8)', emoji: '🗡️' };
+    return { name: 'NOVATO', color: '#2ECC71', glowColor: 'rgba(46, 204, 113, 0.8)', emoji: '🌱' };
+};
 
 const Profile = () => {
     const { user } = useGame();
@@ -47,37 +56,43 @@ const Profile = () => {
     const xpProgress = (user.xp % 1000) / 10;
 
     // Calcular tier fitness
-    const currentTier = getFitnessTier(user.level, bossesDefeatedCount);
+    const currentTier = getTier(user.level);
 
-    // Estado para URL do avatar 3D real
-    const [avatar3DUrl, setAvatar3DUrl] = useState('');
+    // Estado para o Avatar Selecionado (ID do avatar)
+    const [selectedAvatar, setSelectedAvatar] = useState(null);
 
-    // Carregar URL do avatar do localStorage
+    // Carregar Avatar do localStorage
     useEffect(() => {
-        const savedUrl = localStorage.getItem('realFitness3DAvatarUrl');
-        if (savedUrl) {
-            setAvatar3DUrl(savedUrl);
+        const savedAvatarId = localStorage.getItem('userSelectedAvatarId');
+        if (savedAvatarId) {
+            setSelectedAvatar(savedAvatarId);
+        } else {
+            // Default para o primeiro avatar
+            setSelectedAvatar(AVATARS[0].id);
         }
     }, []);
 
-    // Handler para salvar o avatar 3D
-    const handleSaveAvatar = (newUrl) => {
-        setAvatar3DUrl(newUrl);
+    // Handler para salvar o avatar
+    const handleSaveAvatar = (avatar) => {
+        setSelectedAvatar(avatar.id);
+        localStorage.setItem('userSelectedAvatarId', avatar.id);
+        setShowAvatarBuilder(false);
     };
+
+    // Encontrar o objeto do avatar selecionado
+    const currentAvatarObj = AVATARS.find(a => a.id === selectedAvatar) || AVATARS[0];
 
     // Cor de destaque baseada no tier atual
     const accentColor = currentTier.color;
 
     return (
         <div className="page-enter" style={{ paddingBottom: '100px' }}>
-            {/* === REAL 3D AVATAR BUILDER MODAL === */}
-            <RealFitness3DBuilder
+            {/* === AVATAR SELECTOR MODAL === */}
+            <AvatarSelector
                 isOpen={showAvatarBuilder}
                 onClose={() => setShowAvatarBuilder(false)}
-                onSave={handleSaveAvatar}
-                currentAvatarUrl={avatar3DUrl}
-                userLevel={user.level}
-                bossesDefeated={bossesDefeatedCount}
+                onSelect={handleSaveAvatar}
+                currentAvatarId={selectedAvatar}
             />
 
             {/* === HEADER === */}
@@ -97,46 +112,76 @@ const Profile = () => {
                     gap: '40px',
                     alignItems: 'center'
                 }}>
-                    {/* LEFT - AVATAR 3D REAL */}
+                    {/* LEFT - AVATAR DISPLAY */}
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         position: 'relative'
                     }}>
-                        {/* Avatar 3D Real com Equipamentos Fitness */}
+                        {/* Avatar Image Container */}
                         <div
                             onClick={() => setShowAvatarBuilder(true)}
+                            className="avatar-card" // Reusing animation class
                             style={{
                                 cursor: 'pointer',
                                 position: 'relative',
-                                transition: 'transform 0.3s ease'
+                                width: '300px',
+                                height: '300px',
+                                borderRadius: '24px',
+                                border: `3px solid ${currentTier.color}`,
+                                boxShadow: `0 0 30px ${currentTier.glowColor}`,
+                                overflow: 'hidden',
+                                animation: 'avatar-float 6s ease-in-out infinite'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         >
-                            <RealFitness3DDisplay
-                                avatarUrl={avatar3DUrl}
-                                userLevel={user.level}
-                                bossesDefeated={bossesDefeatedCount}
-                                size={380}
-                                onClickCreate={() => setShowAvatarBuilder(true)}
+                            <img
+                                src={currentAvatarObj.image}
+                                alt={currentAvatarObj.name}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover'
+                                }}
                             />
+
+                            {/* Overlay info */}
+                            <div style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                background: 'linear-gradient(to top, rgba(0,0,0,0.9), transparent)',
+                                padding: '20px',
+                                paddingTop: '40px',
+                                textAlign: 'center'
+                            }}>
+                                <span style={{
+                                    color: '#fff',
+                                    fontWeight: '700',
+                                    fontSize: '18px',
+                                    display: 'block'
+                                }}>
+                                    {currentAvatarObj.name}
+                                </span>
+                            </div>
 
                             {/* Edit button overlay */}
                             <div style={{
                                 position: 'absolute',
-                                bottom: '50px',
-                                right: '10px',
-                                width: '44px',
-                                height: '44px',
+                                top: '16px',
+                                right: '16px',
+                                width: '40px',
+                                height: '40px',
                                 borderRadius: '50%',
-                                background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor}88)`,
+                                background: 'rgba(0,0,0,0.6)',
+                                backdropFilter: 'blur(4px)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow: `0 4px 20px ${currentTier.glowColor}`,
-                                border: '2px solid rgba(255,255,255,0.3)'
+                                border: '1px solid rgba(255,255,255,0.2)',
+                                transition: 'all 0.2s',
+                                zIndex: 10
                             }}>
                                 <Edit3 size={18} color="#fff" />
                             </div>
@@ -145,99 +190,95 @@ const Profile = () => {
                         {/* Player Info Card */}
                         <div style={{
                             textAlign: 'center',
-                            marginTop: '20px',
-                            padding: '20px 28px',
-                            background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)`,
-                            borderRadius: '20px',
+                            marginTop: '24px',
+                            padding: '24px',
+                            background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}05)`,
+                            borderRadius: '24px',
                             border: `1px solid ${accentColor}33`,
                             width: '100%',
-                            maxWidth: '300px'
+                            maxWidth: '320px',
+                            position: 'relative',
+                            overflow: 'hidden'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '16px' }}>
-                                <Crown size={18} color={accentColor} />
-                                <span style={{ fontSize: '16px', fontWeight: '800', color: '#fff', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
-                                    {user.name}
-                                </span>
-                            </div>
-
-                            {/* Nível Fitness Atual */}
+                            {/* Decorative background glow */}
                             <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                marginBottom: '16px',
-                                padding: '8px 16px',
-                                background: `${accentColor}22`,
-                                borderRadius: '100px',
-                                border: `1px solid ${accentColor}44`
-                            }}>
-                                <Dumbbell size={14} color={accentColor} />
-                                <span style={{ fontSize: '12px', fontWeight: '700', color: accentColor }}>
-                                    {currentTier.emoji} Nível {currentTier.name}
-                                </span>
-                                <Activity size={14} color={accentColor} />
-                            </div>
+                                position: 'absolute',
+                                top: '-50%',
+                                left: '-50%',
+                                width: '200%',
+                                height: '200%',
+                                background: `radial-gradient(circle at 50% 50%, ${accentColor}10, transparent 70%)`,
+                                pointerEvents: 'none'
+                            }} />
 
-                            {/* Estado Geral Bar */}
-                            <div style={{ marginBottom: '14px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>Estado Geral</span>
-                                    <span style={{ fontSize: '11px', fontWeight: '800', color: accentColor }}>{energyLevel}%</span>
+                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '16px' }}>
+                                    <Crown size={20} color={accentColor} fill={accentColor + '44'} />
+                                    <span style={{ fontSize: '20px', fontWeight: '900', color: '#fff', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                        {user.name}
+                                    </span>
                                 </div>
-                                <div style={{ height: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '100px', overflow: 'hidden' }}>
-                                    <div style={{
-                                        height: '100%',
-                                        width: `${energyLevel}%`,
-                                        background: `linear-gradient(90deg, ${accentColor}, #00FF88)`,
-                                        borderRadius: '100px',
-                                        boxShadow: `0 0 15px ${accentColor}66`,
-                                        transition: 'width 1s ease'
-                                    }} />
-                                </div>
-                            </div>
 
-                            {/* Energia Segmentos */}
-                            <div>
-                                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center', justifyContent: 'center' }}>
-                                    <Zap size={14} color={accentColor} />
-                                    <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>Energia</span>
+                                {/* Nível Fitness Atual */}
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '10px',
+                                    marginBottom: '20px',
+                                    padding: '10px 20px',
+                                    background: 'rgba(0,0,0,0.4)',
+                                    borderRadius: '100px',
+                                    border: `1px solid ${accentColor}44`,
+                                    boxShadow: `0 4px 15px rgba(0,0,0,0.2)`
+                                }}>
+                                    <span style={{ fontSize: '24px' }}>{currentTier.emoji}</span>
+                                    <span style={{ fontSize: '14px', fontWeight: '800', color: accentColor, letterSpacing: '0.5px' }}>
+                                        NÍVEL {currentTier.name}
+                                    </span>
                                 </div>
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                    {[...Array(10)].map((_, i) => (
-                                        <div key={i} style={{
-                                            flex: 1,
-                                            height: '8px',
-                                            borderRadius: '4px',
-                                            background: i < Math.floor(energyLevel / 10)
-                                                ? `linear-gradient(180deg, ${accentColor}, ${accentColor}88)`
-                                                : 'rgba(255,255,255,0.08)',
-                                            boxShadow: i < Math.floor(energyLevel / 10) ? `0 0 8px ${accentColor}66` : 'none',
-                                            transition: 'all 0.3s ease',
-                                            transitionDelay: `${i * 0.05}s`
+
+                                {/* Estado Geral Bar */}
+                                <div style={{ marginBottom: '16px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                        <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-muted)' }}>Vigor Total</span>
+                                        <span style={{ fontSize: '12px', fontWeight: '800', color: accentColor }}>{energyLevel}%</span>
+                                    </div>
+                                    <div style={{ height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', overflow: 'hidden' }}>
+                                        <div style={{
+                                            height: '100%',
+                                            width: `${energyLevel}%`,
+                                            background: `linear-gradient(90deg, ${accentColor}, #ffffff)`,
+                                            borderRadius: '100px',
+                                            boxShadow: `0 0 10px ${accentColor}`,
+                                            transition: 'width 1.5s cubic-bezier(0.4, 0, 0.2, 1)'
                                         }} />
-                                    ))}
+                                    </div>
                                 </div>
+
+                                <button
+                                    onClick={() => setShowAvatarBuilder(true)}
+                                    className="btn-primary"
+                                    style={{
+                                        width: '100%',
+                                        marginTop: '10px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '10px',
+                                        padding: '14px',
+                                        fontSize: '14px',
+                                        fontWeight: '700',
+                                        background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
+                                        border: 'none',
+                                        boxShadow: `0 4px 15px ${accentColor}44`
+                                    }}
+                                >
+                                    <User size={18} />
+                                    Trocar Guerreiro
+                                </button>
                             </div>
                         </div>
-
-                        {/* Customize Button */}
-                        <button
-                            onClick={() => setShowAvatarBuilder(true)}
-                            className="btn-primary"
-                            style={{
-                                marginTop: '20px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                padding: '14px 28px',
-                                fontSize: '14px',
-                                background: `linear-gradient(135deg, ${accentColor}, #00FF88)`
-                            }}
-                        >
-                            <Dumbbell size={18} />
-                            Personalizar Atleta
-                        </button>
                     </div>
 
                     {/* RIGHT - RADAR CHART */}
