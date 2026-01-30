@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Desafio dos Campeões',
-        short_name: 'Desafio',
-        description: 'Transforme seu corpo e sua mente com o Desafio dos Campeões',
+        name: 'Desafio dos Vencedores',
+        short_name: 'Vencedores',
+        description: 'O jogo definitivo para transformar seu corpo e mente. Desafio dos Vencedores.',
         theme_color: '#00FF88',
         background_color: '#030304',
         display: 'standalone',
