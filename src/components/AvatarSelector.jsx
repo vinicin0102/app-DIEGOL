@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, User, Sparkles } from 'lucide-react';
 
-// Import avatar images
+// Import avatar images - Males
 import warriorMale1 from '../assets/avatars/warrior_male_1.png';
 import warriorMale2 from '../assets/avatars/warrior_male_2.png';
 import warriorMale3 from '../assets/avatars/warrior_male_3.png';
+
+// Import avatar images - Females
 import warriorFemale1 from '../assets/avatars/warrior_female_1.png';
+import warriorFemale2 from '../assets/avatars/warrior_female_2.png';
+import warriorFemale3 from '../assets/avatars/warrior_female_3.png';
+import warriorFemale4 from '../assets/avatars/warrior_female_4.png';
+import warriorFemale5 from '../assets/avatars/warrior_female_5.png';
 
 // Avatar options
 const AVATARS = [
+    // === MALE WARRIORS ===
     {
         id: 'warrior_male_1',
         name: 'Guerreiro das Sombras',
@@ -36,14 +43,51 @@ const AVATARS = [
         skinTone: 'medium',
         hairColor: 'blonde'
     },
+    // === FEMALE WARRIORS ===
     {
         id: 'warrior_female_1',
         name: 'Guerreira Arcana',
-        description: 'Armadura com cristais roxos',
+        description: 'Armadura roxa mística',
         image: warriorFemale1,
         gender: 'female',
         skinTone: 'light',
         hairColor: 'red'
+    },
+    {
+        id: 'warrior_female_2',
+        name: 'Rainha do Fogo',
+        description: 'Armadura dourada flamejante',
+        image: warriorFemale2,
+        gender: 'female',
+        skinTone: 'dark',
+        hairColor: 'braids'
+    },
+    {
+        id: 'warrior_female_3',
+        name: 'Caçadora de Dragões',
+        description: 'Armadura negra e carmesim',
+        image: warriorFemale3,
+        gender: 'female',
+        skinTone: 'medium',
+        hairColor: 'brown'
+    },
+    {
+        id: 'warrior_female_4',
+        name: 'Samurai de Gelo',
+        description: 'Armadura cristalina azul',
+        image: warriorFemale4,
+        gender: 'female',
+        skinTone: 'light',
+        hairColor: 'black'
+    },
+    {
+        id: 'warrior_female_5',
+        name: 'Guardiã da Floresta',
+        description: 'Armadura esmeralda natural',
+        image: warriorFemale5,
+        gender: 'female',
+        skinTone: 'medium',
+        hairColor: 'curly'
     }
 ];
 
@@ -265,15 +309,15 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                     ))}
                 </div>
 
-                {/* Coming Soon notice */}
+                {/* Avatar count */}
                 <div style={{
                     padding: '16px 28px',
-                    background: 'rgba(100, 100, 255, 0.1)',
-                    borderTop: '1px solid rgba(100, 100, 255, 0.2)',
+                    background: 'rgba(46, 204, 113, 0.1)',
+                    borderTop: '1px solid rgba(46, 204, 113, 0.2)',
                     textAlign: 'center'
                 }}>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#88f' }}>
-                        ✨ Mais avatares em breve! Guerreiras de diferentes etnias e estilos.
+                    <p style={{ margin: 0, fontSize: '13px', color: '#2ECC71' }}>
+                        ⚔️ 8 guerreiros disponíveis: 3 masculinos e 5 femininas de diferentes etnias!
                     </p>
                 </div>
 
