@@ -613,20 +613,20 @@ const BossSprite = ({ bossType, isAttacking, isDefeated }) => {
 const BOSSES = [
     {
         id: 1,
-        name: 'Megalodon Abissal',
+        name: 'O Procrastinador',
         spriteType: 'megalodon',
         maxHealth: 100,
         color: '#1E4258',
         glowColor: 'rgba(30, 66, 88, 0.6)',
-        story: 'Das profundezas do oceano primordial, o Megalodon Abissal emerge! Com 18 metros de pura destruição, seus dentes podem esmagar navios. Ele representa a PREGUIÇA que te afoga em águas paradas.',
-        challenge: 'Complete 7 dias consecutivos de treino',
-        reward: { xp: 500, badge: '🦈 Caçador de Abismos' },
+        story: 'Ele usa distrações, desculpas e dopamina barata para te impedir de começar. A única forma de vencê-lo é com CONSTÂNCIA.',
+        challenge: 'FASE 1 — O DESPERTAR: 30 dias de disciplina básica.',
+        reward: { xp: 1000, badge: '🏅 Fundador do Despertar' },
         difficulty: 'INICIANTE',
         locked: false,
         price: 0,
-        challengeDuration: 7,
+        challengeDuration: 30,
         element: 'ÁGUA',
-        attack: 'Mordida Trituradora'
+        attack: 'Onda de Preguiça'
     },
     {
         id: 2,
@@ -711,13 +711,13 @@ const BOSSES = [
 ];
 
 // Função Helper para gerar o calendário
-const generateCalendar = () => Array.from({ length: 21 }, (_, i) => ({
+const generateCalendar = (days = 30) => Array.from({ length: days }, (_, i) => ({
     day: i + 1,
-    spiritual: false, // Oração/Meditação
-    corporal: false,  // Treino/Dieta
-    mental: false,    // Leitura/Estudo
+    spiritual: false,
+    corporal: false,
+    mental: false,
     verified: false,
-    locked: i !== 0 // Opcional: trava dias futuros? Por enquanto deixa livre ou trava. Vamos deixar livre para o user marcar.
+    locked: false // Desbloqueado para dar liberdade
 }));
 
 const DayEditModal = ({ isOpen, onClose, dayData, onToggle, dayIndex }) => {
@@ -757,9 +757,9 @@ const DayEditModal = ({ isOpen, onClose, dayData, onToggle, dayIndex }) => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                     {[
-                        { key: 'spiritual', label: 'Espiritual', icon: '🙏', desc: 'Oração ou Meditação' },
-                        { key: 'corporal', label: 'Corporal', icon: '💪', desc: 'Treino e Dieta' },
-                        { key: 'mental', label: 'Mental', icon: '🧠', desc: 'Leitura ou Estudo' }
+                        { key: 'corporal', label: 'Corpo (Movimento & Limpo)', icon: '💪', desc: 'Treino 20min + Dieta Limpa' },
+                        { key: 'mental', label: 'Mente (Leitura & Estudo)', icon: '🧠', desc: '5 pág. Leitura + 20min Estudo' },
+                        { key: 'spiritual', label: 'Extras (Conexão & Digital)', icon: '✨', desc: 'Espiritual + Redução de Telas' }
                     ].map(item => (
                         <div
                             key={item.key}
@@ -869,16 +869,26 @@ const Challenges = () => {
         if (savedBosses) {
             let parsedBosses = JSON.parse(savedBosses);
             // Migração: Adicionar calendário se não existir
-            parsedBosses = parsedBosses.map(b => ({
-                ...b,
-                calendar: b.calendar || generateCalendar()
-            }));
+            parsedBosses = parsedBosses.map(b => {
+                const targetDuration = b.challengeDuration || 30; // Default agora é 30
+                let currentCalendar = b.calendar || [];
+
+                if (currentCalendar.length !== targetDuration) {
+                    // Regenerar calendar mantendo 30 dias se o tamanho mudou
+                    currentCalendar = generateCalendar(targetDuration);
+                }
+
+                return {
+                    ...b,
+                    calendar: currentCalendar
+                };
+            });
             setActiveBosses(parsedBosses);
         } else {
             // Inicializar com estrutura de calendário
             setActiveBosses(BOSSES.map(b => ({
                 ...b,
-                calendar: generateCalendar()
+                calendar: generateCalendar(b.challengeDuration || 30)
             })));
         }
 
