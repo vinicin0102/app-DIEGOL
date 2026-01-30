@@ -228,78 +228,82 @@ const AvatarModel = ({ avatarUrl }) => {
 
                     // === POSE NATURAL RELAXADA (braços ao lado do corpo) ===
 
+                    // === POSE DE BRAÇOS CRUZADOS (FORTE/CONFIANTE) ===
+
                     // Ignorar bones de twist/roll
                     if (name.includes('twist') || name.includes('roll')) return;
 
-                    // COLUNA - Postura ereta e natural
+                    // COLUNA - Postura ereta e levemente inclinada para trás (confiança)
                     if (name === 'spine' || name.includes('spine1')) {
-                        child.rotation.x = -0.03; // Postura natural
+                        child.rotation.x = -0.05;
                     }
                     if (name.includes('spine2')) {
-                        child.rotation.x = -0.02;
+                        child.rotation.x = -0.05;
                     }
 
-                    // PESCOÇO E CABEÇA - Olhar natural para frente
+                    // PESCOÇO E CABEÇA - Olhar firme para frente
                     if (name === 'neck' || name.includes('neck')) {
-                        child.rotation.x = 0;
+                        child.rotation.x = 0.05; // Correção leve
                     }
                     if (name === 'head' || name.includes('head')) {
-                        child.rotation.x = 0;
+                        child.rotation.x = -0.05; // Correção leve
                     }
 
-                    // BRAÇO ESQUERDO - Relaxado ao lado do corpo
+                    // BRAÇO ESQUERDO (Por baixo)
                     if (name === 'leftarm' || name === 'leftshoulder' || name.includes('leftupperarm')) {
-                        child.rotation.x = 0.1;   // Levemente para frente
-                        child.rotation.y = 0;
-                        child.rotation.z = 1.1;   // Baixa o braço (da T-pose para o lado)
+                        child.rotation.x = 0.7;   // Cotovelo para frente
+                        child.rotation.y = -0.6;  // Rotação interna para cruzar
+                        child.rotation.z = 1.35;  // Braço junto ao corpo
                     }
                     if (name === 'leftforearm' || name.includes('leftlowerarm')) {
                         child.rotation.x = 0;
                         child.rotation.y = 0;
-                        child.rotation.z = 0.15;  // Leve dobra natural do cotovelo
+                        child.rotation.z = 2.1;   // Dobra forte do cotovelo para cruzar o peito
                     }
-                    if (name === 'lefthand' && !name.includes('thumb') && !name.includes('index') && !name.includes('middle') && !name.includes('ring') && !name.includes('pinky')) {
-                        child.rotation.x = 0;
-                        child.rotation.y = 0;
+                    if (name === 'lefthand' && !name.includes('thumb') && !name.includes('index')) {
+                        child.rotation.x = -0.2;
+                        child.rotation.y = -0.3;  // Mão relaxada sobre o braço oposto
                         child.rotation.z = 0;
                     }
 
-                    // BRAÇO DIREITO - Relaxado ao lado do corpo (espelhado)
+                    // BRAÇO DIREITO (Por cima)
                     if (name === 'rightarm' || name === 'rightshoulder' || name.includes('rightupperarm')) {
-                        child.rotation.x = 0.1;   // Levemente para frente
-                        child.rotation.y = 0;
-                        child.rotation.z = -1.1;  // Baixa o braço (espelhado)
+                        child.rotation.x = 0.8;   // Levemente mais à frente para passar por cima
+                        child.rotation.y = 0.6;   // Rotação interna
+                        child.rotation.z = -1.30; // Junto ao corpo
                     }
                     if (name === 'rightforearm' || name.includes('rightlowerarm')) {
                         child.rotation.x = 0;
                         child.rotation.y = 0;
-                        child.rotation.z = -0.15; // Leve dobra natural do cotovelo (espelhado)
+                        child.rotation.z = -2.15; // Dobra forte
                     }
-                    if (name === 'righthand' && !name.includes('thumb') && !name.includes('index') && !name.includes('middle') && !name.includes('ring') && !name.includes('pinky')) {
-                        child.rotation.x = 0;
-                        child.rotation.y = 0;
+                    if (name === 'righthand' && !name.includes('thumb') && !name.includes('index')) {
+                        child.rotation.x = -0.2;
+                        child.rotation.y = 0.3;   // Mão relaxada sobre o braço oposto
                         child.rotation.z = 0;
                     }
 
-                    // DEDOS - Mãos relaxadas naturalmente
+                    // DEDOS - Levemente fechados/relaxados
                     if (name.includes('thumb') || name.includes('index') || name.includes('middle') || name.includes('ring') || name.includes('pinky')) {
                         if (name.includes('proximal') || name.includes('1')) {
-                            child.rotation.z = name.includes('left') ? 0.15 : -0.15;
+                            child.rotation.z = name.includes('left') ? 0.3 : -0.3; // Mais fechado
                         }
                         if (name.includes('intermediate') || name.includes('medial') || name.includes('2')) {
-                            child.rotation.z = name.includes('left') ? 0.1 : -0.1;
+                            child.rotation.z = name.includes('left') ? 0.4 : -0.4;
                         }
                         if (name.includes('distal') || name.includes('3')) {
-                            child.rotation.z = name.includes('left') ? 0.08 : -0.08;
+                            child.rotation.z = name.includes('left') ? 0.4 : -0.4;
                         }
                     }
 
-                    // PERNAS - Postura normal, pés paralelos
+                    // PERNAS - Postura de poder (levemente afastadas)
                     if (name === 'leftupleg' || name.includes('leftthigh')) {
-                        child.rotation.z = 0.02;  // Muito leve abertura
+                        child.rotation.z = 0.05;  // Base mais firme
+                        child.rotation.x = -0.05;
                     }
                     if (name === 'rightupleg' || name.includes('rightthigh')) {
-                        child.rotation.z = -0.02; // Muito leve abertura (espelhado)
+                        child.rotation.z = -0.05; // Base mais firme
+                        child.rotation.x = -0.05;
                     }
                 }
             });

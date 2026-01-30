@@ -23,6 +23,68 @@ const Admin = () => {
         { id: 'stats', label: 'Estatísticas', icon: BarChart3 },
     ];
 
+    const [isAdminAuth, setIsAdminAuth] = useState(false);
+    const [passwordInput, setPasswordInput] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    if (!isAdminAuth) {
+        return (
+            <div className="page-enter" style={{
+                height: '80vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'column'
+            }}>
+                <div className="glass-panel" style={{ padding: '40px', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+                    <Lock size={48} color="var(--accent)" style={{ marginBottom: '20px' }} />
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Acesso Restrito</h2>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Digite a senha de administrador para continuar.</p>
+
+                    <input
+                        type="password"
+                        placeholder="Senha de acesso"
+                        value={passwordInput}
+                        onChange={(e) => {
+                            setPasswordInput(e.target.value);
+                            setErrorMsg('');
+                        }}
+                        style={{
+                            width: '100%',
+                            padding: '16px',
+                            borderRadius: '12px',
+                            background: 'rgba(0,0,0,0.3)',
+                            border: '1px solid var(--border)',
+                            color: '#fff',
+                            marginBottom: '16px',
+                            textAlign: 'center',
+                            fontSize: '16px'
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                if (passwordInput === 'admin123') setIsAdminAuth(true);
+                                else setErrorMsg('Senha incorreta! Tente novamente.');
+                            }
+                        }}
+                    />
+
+                    {errorMsg && <p style={{ color: 'var(--accent)', fontSize: '14px', marginBottom: '16px' }}>{errorMsg}</p>}
+
+                    <button
+                        className="btn-primary"
+                        style={{ width: '100%' }}
+                        onClick={() => {
+                            if (passwordInput === 'admin123') setIsAdminAuth(true);
+                            else setErrorMsg('Senha incorreta! Tente novamente.');
+                        }}
+                    >
+                        Desbloquear Painel
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="page-enter" style={{ paddingBottom: '100px' }}>
             {/* === HEADER === */}

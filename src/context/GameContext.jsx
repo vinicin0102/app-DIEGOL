@@ -183,30 +183,30 @@ export const GameProvider = ({ children }) => {
     };
 
     const addChallenge = (challenge) => {
-        setChallenges([...challenges, { ...challenge, id: Date.now() }]);
+        setChallenges(prev => [...prev, { ...challenge, id: Date.now() }]);
     };
 
     const updateChallenge = (id, updated) => {
-        setChallenges(challenges.map(c => c.id === id ? { ...c, ...updated } : c));
+        setChallenges(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
     };
 
     const deleteChallenge = (id) => {
-        setChallenges(challenges.filter(c => c.id !== id));
-    }
+        setChallenges(prev => prev.filter(c => c.id !== id));
+    };
 
     const addPost = (post) => {
-        setPosts([{
+        setPosts(prev => [{
             ...post,
             id: Date.now(),
             likes: 0,
             time: 'Agora',
             userLevel: user.level,
             userBadge: user.badges.length > 0 ? user.badges[user.badges.length - 1].icon : '🌟'
-        }, ...posts]);
+        }, ...prev]);
     };
 
     const likePost = (postId) => {
-        setPosts(posts.map(p =>
+        setPosts(prev => prev.map(p =>
             p.id === postId ? { ...p, likes: p.likes + 1 } : p
         ));
     };

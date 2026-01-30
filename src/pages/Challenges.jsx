@@ -624,6 +624,7 @@ const BOSSES = [
         difficulty: 'INICIANTE',
         locked: false,
         price: 0,
+        challengeDuration: 7,
         element: 'ÁGUA',
         attack: 'Mordida Trituradora'
     },
@@ -941,16 +942,10 @@ const Challenges = () => {
 
                 // Se acabou de completar o dia (verified true e antes não era), causar dano ao boss
                 if (day.verified && !wasVerified) {
-                    // Dano equivalente a 1/21 da vida total (arredondado pra cima)
-                    // Mas vamos dar um dano mais impactante visualmente
-                    const damagePerDay = Math.ceil(boss.maxHealth / 21);
-                    // Disparar efeito de dano (não podemos chamar handleProgressUpdate diretamente aqui por causa do state update loop, 
-                    // mas podemos simular ou chamar num useEffect, mas aqui vamos simplificar atualizando a vida direto junto)
-
-                    // Nota: Para manter a animação e efeitos, o ideal seria chamar a função separada, 
-                    // mas como estamos dentro do setState, vamos apenas marcar que precisa de update
-                    // Ou melhor, vamos retornar o objeto atualizado e disparar o efeito visual separadamente se possível.
-                    // Para simplificar: Atualiza a vida aqui mesmo.
+                    // Dano baseado na duração do desafio (padrão 21 dias se não especificado)
+                    const duration = boss.challengeDuration || 21;
+                    // Dano exato para derrotar o boss no final do desafio
+                    const damagePerDay = Math.ceil(boss.maxHealth / duration);
 
                     const newHealth = Math.max(0, (boss.currentHealth ?? boss.maxHealth) - damagePerDay);
 
