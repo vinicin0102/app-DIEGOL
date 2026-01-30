@@ -1256,6 +1256,8 @@ const Challenges = () => {
                                     description: `Derrotou ${boss.name}`
                                 }]
                             }));
+                            // Desbloquear o próximo desafio
+                            unlockNextBoss(boss.id);
                         }, 800);
                     }
 
@@ -1333,9 +1335,21 @@ const Challenges = () => {
                                 description: `Derrotou ${boss.name}`
                             }]
                         }));
+                        // Desbloquear o próximo desafio
+                        unlockNextBoss(boss.id);
                     }, 600);
                 }
                 return { ...boss, currentHealth: newHealth, defeated: newHealth === 0 };
+            }
+            return boss;
+        }));
+    };
+
+    const unlockNextBoss = (currentBossId) => {
+        setActiveBosses(prev => prev.map(boss => {
+            // Desbloqueia o próximo boss (id atual + 1)
+            if (boss.id === currentBossId + 1) {
+                return { ...boss, locked: false };
             }
             return boss;
         }));
