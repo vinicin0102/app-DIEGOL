@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Lock, Unlock, Zap, Trophy, Sword, Shield, Heart, Skull, Crown, Star, Flame, Target, ChevronRight, Play, ShoppingCart } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { Calendar, Check, X, ArrowRight } from 'lucide-react';
+import Boss3DScene from '../components/Boss3D';
 
 // ========== BOSS SPRITES COMPONENTS ==========
 
@@ -1900,11 +1901,25 @@ const Challenges = () => {
                                             position: 'relative',
                                             zIndex: 1
                                         }}>
-                                            <BossSprite
-                                                bossType={boss.spriteType}
-                                                isAttacking={attackAnimation && attackingBossId === boss.id}
-                                                isDefeated={false}
-                                            />
+                                            <Suspense fallback={
+                                                <div style={{
+                                                    width: '100%',
+                                                    height: '200px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    color: '#666'
+                                                }}>
+                                                    Carregando 3D...
+                                                </div>
+                                            }>
+                                                <Boss3DScene
+                                                    bossType={boss.spriteType}
+                                                    isAttacking={attackAnimation && attackingBossId === boss.id}
+                                                    isDefeated={isDefeated}
+                                                    locked={boss.locked}
+                                                />
+                                            </Suspense>
 
                                             {/* Damage Numbers */}
                                             {attackingBossId === boss.id && damageNumbers.map(dmg => (
