@@ -146,7 +146,7 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999,
-            padding: '20px',
+            padding: '10px', // Reduzido padding para mobile
             backdropFilter: 'blur(10px)'
         }}>
             <div style={{
@@ -154,24 +154,27 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                 borderRadius: '24px',
                 maxWidth: '800px',
                 width: '100%',
-                maxHeight: '90vh',
+                maxHeight: '95vh', // Aumentado um pouco
+                display: 'flex', // Mudança chave: Flex column
+                flexDirection: 'column',
                 overflow: 'hidden',
                 border: '2px solid rgba(255, 215, 0, 0.3)',
                 boxShadow: '0 25px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.15)'
             }}>
                 {/* Header */}
                 <div style={{
-                    padding: '24px 28px',
+                    padding: '20px 24px',
                     borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    background: 'linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%)'
+                    background: 'linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%)',
+                    flexShrink: 0 // Não deixa encolher
                 }}>
                     <div>
                         <h2 style={{
                             margin: 0,
-                            fontSize: '28px',
+                            fontSize: '24px', // Levemente menor para mobile
                             fontWeight: '800',
                             background: 'linear-gradient(135deg, #FFD700, #FFA500)',
                             WebkitBackgroundClip: 'text',
@@ -180,11 +183,11 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                             alignItems: 'center',
                             gap: '12px'
                         }}>
-                            <Sparkles size={28} color="#FFD700" />
-                            Escolha seu Guerreiro
+                            <Sparkles size={24} color="#FFD700" />
+                            Seu Guerreiro
                         </h2>
-                        <p style={{ margin: '8px 0 0', color: '#888', fontSize: '14px' }}>
-                            Selecione o avatar que irá representá-lo na batalha contra os bosses
+                        <p style={{ margin: '4px 0 0', color: '#888', fontSize: '13px' }}>
+                            Quem você será na batalha?
                         </p>
                     </div>
                     <button
@@ -193,7 +196,7 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                             background: 'rgba(255, 255, 255, 0.1)',
                             border: 'none',
                             borderRadius: '12px',
-                            padding: '12px',
+                            padding: '10px',
                             cursor: 'pointer',
                             color: '#fff',
                             display: 'flex',
@@ -202,28 +205,30 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                             transition: 'all 0.2s'
                         }}
                     >
-                        <X size={24} />
+                        <X size={20} />
                     </button>
                 </div>
 
                 {/* Filters */}
                 <div style={{
-                    padding: '16px 28px',
+                    padding: '12px 24px',
                     display: 'flex',
-                    gap: '12px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                    gap: '8px',
+                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                    overflowX: 'auto', // Scroll horizontal se precisar
+                    flexShrink: 0
                 }}>
                     {[
                         { id: 'all', label: '👥 Todos' },
-                        { id: 'male', label: '👨 Masculino' },
-                        { id: 'female', label: '👩 Feminino' }
+                        { id: 'male', label: '👨 Homens' },
+                        { id: 'female', label: '👩 Mulheres' }
                     ].map(f => (
                         <button
                             key={f.id}
                             onClick={() => setFilter(f.id)}
                             style={{
-                                padding: '10px 20px',
-                                borderRadius: '20px',
+                                padding: '8px 16px',
+                                borderRadius: '16px',
                                 border: 'none',
                                 background: filter === f.id
                                     ? 'linear-gradient(135deg, #FFD700, #FFA500)'
@@ -232,7 +237,8 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                                 fontWeight: filter === f.id ? '700' : '500',
                                 cursor: 'pointer',
                                 transition: 'all 0.2s',
-                                fontSize: '14px'
+                                fontSize: '13px',
+                                whiteSpace: 'nowrap'
                             }}
                         >
                             {f.label}
@@ -240,14 +246,15 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                     ))}
                 </div>
 
-                {/* Avatar Grid */}
+                {/* Avatar Grid - Scrollable Area */}
                 <div style={{
-                    padding: '24px 28px',
+                    padding: '20px 24px',
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-                    gap: '20px',
-                    maxHeight: '400px',
-                    overflowY: 'auto'
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', // Cards um pouco menores
+                    gap: '16px',
+                    overflowY: 'auto',
+                    flex: 1, // Ocupa o espaço restante
+                    minHeight: 0 // Importante para flexbox scroll funcionar
                 }}>
                     {filteredAvatars.map(avatar => (
                         <div
@@ -258,7 +265,7 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                                     ? 'linear-gradient(145deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1))'
                                     : 'rgba(255, 255, 255, 0.05)',
                                 borderRadius: '16px',
-                                padding: '12px',
+                                padding: '10px',
                                 cursor: 'pointer',
                                 border: selectedAvatar === avatar.id
                                     ? '3px solid #FFD700'
@@ -276,14 +283,15 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                                     right: '-8px',
                                     background: 'linear-gradient(135deg, #FFD700, #FFA500)',
                                     borderRadius: '50%',
-                                    width: '28px',
-                                    height: '28px',
+                                    width: '24px',
+                                    height: '24px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.5)'
+                                    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.5)',
+                                    zIndex: 10
                                 }}>
-                                    <Check size={16} color="#000" strokeWidth={3} />
+                                    <Check size={14} color="#000" strokeWidth={3} />
                                 </div>
                             )}
 
@@ -293,7 +301,7 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                                 aspectRatio: '1',
                                 borderRadius: '12px',
                                 overflow: 'hidden',
-                                marginBottom: '12px',
+                                marginBottom: '10px',
                                 border: '2px solid rgba(255, 255, 255, 0.1)'
                             }}>
                                 <img
@@ -310,10 +318,11 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                             {/* Avatar Info */}
                             <h4 style={{
                                 margin: '0 0 4px',
-                                fontSize: '14px',
+                                fontSize: '13px',
                                 fontWeight: '700',
                                 color: '#fff',
-                                textAlign: 'center'
+                                textAlign: 'center',
+                                lineHeight: '1.2'
                             }}>
                                 {avatar.name}
                             </h4>
@@ -321,7 +330,8 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                                 margin: 0,
                                 fontSize: '11px',
                                 color: '#888',
-                                textAlign: 'center'
+                                textAlign: 'center',
+                                lineHeight: '1.2'
                             }}>
                                 {avatar.description}
                             </p>
@@ -329,38 +339,42 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                     ))}
                 </div>
 
-                {/* Avatar count */}
+                {/* Avatar count - Footer Info */}
                 <div style={{
-                    padding: '16px 28px',
+                    padding: '12px 24px',
                     background: 'rgba(46, 204, 113, 0.1)',
                     borderTop: '1px solid rgba(46, 204, 113, 0.2)',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    flexShrink: 0
                 }}>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#2ECC71' }}>
-                        ⚔️ 10 guerreiros disponíveis: 5 masculinos e 5 femininas de diferentes etnias!
+                    <p style={{ margin: 0, fontSize: '12px', color: '#2ECC71' }}>
+                        ⚔️ 10 guerreiros disponíveis!
                     </p>
                 </div>
 
-                {/* Footer */}
+                {/* Footer Actions */}
                 <div style={{
-                    padding: '20px 28px',
+                    padding: '16px 24px',
                     borderTop: '1px solid rgba(255, 255, 255, 0.1)',
                     display: 'flex',
                     justifyContent: 'flex-end',
-                    gap: '12px'
+                    gap: '12px',
+                    background: '#13131a', // Fundo sólido para garantir leitura
+                    flexShrink: 0
                 }}>
                     <button
                         onClick={onClose}
                         style={{
-                            padding: '14px 28px',
+                            padding: '12px 20px',
                             borderRadius: '12px',
                             border: '1px solid rgba(255, 255, 255, 0.2)',
                             background: 'transparent',
                             color: '#fff',
-                            fontSize: '15px',
+                            fontSize: '14px',
                             fontWeight: '600',
                             cursor: 'pointer',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
+                            flex: 1 // Botões crescem iguais no mobile
                         }}
                     >
                         Cancelar
@@ -369,24 +383,27 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
                         onClick={handleSelect}
                         disabled={!selectedAvatar}
                         style={{
-                            padding: '14px 32px',
+                            padding: '12px 20px',
                             borderRadius: '12px',
                             border: 'none',
                             background: selectedAvatar
                                 ? 'linear-gradient(135deg, #FFD700, #FFA500)'
                                 : 'rgba(255, 255, 255, 0.1)',
                             color: selectedAvatar ? '#000' : '#666',
-                            fontSize: '15px',
+                            fontSize: '14px',
                             fontWeight: '700',
                             cursor: selectedAvatar ? 'pointer' : 'not-allowed',
                             transition: 'all 0.2s',
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '8px'
+                            justifyContent: 'center', // Centralizar texto/ícone
+                            gap: '8px',
+                            flex: 2, // Botão de confirmar maior
+                            boxShadow: selectedAvatar ? '0 4px 15px rgba(255, 215, 0, 0.3)' : 'none'
                         }}
                     >
                         <User size={18} />
-                        Confirmar Avatar
+                        Confirmar
                     </button>
                 </div>
             </div>
