@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
-import Dashboard from './pages/Dashboard';
+// import Dashboard from './pages/Dashboard'; // Removido
 import Challenges from './pages/Challenges';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
@@ -23,7 +23,7 @@ const App = () => {
 
       {/* Protected Routes */}
       <Route path="/app" element={isAuthenticated ? <AppLayout /> : <Navigate to="/" />}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<Navigate to="profile" replace />} />
         <Route path="challenges" element={<Challenges />} />
         <Route path="community" element={<Community />} />
         <Route path="profile" element={<Profile />} />

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Home, Trophy, Users, User, ShieldCheck } from 'lucide-react';
+import { Trophy, Users, User, ShieldCheck } from 'lucide-react';
 import InstallPWA from '../components/InstallPWA';
 import './AppLayout.css';
 
@@ -11,10 +11,9 @@ const AppLayout = () => {
   const { user, session } = useGame();
 
   const navItems = [
-    { path: '/app', icon: Home, label: 'Início' },
+    { path: '/app/profile', icon: User, label: 'Perfil' },
     { path: '/app/challenges', icon: Trophy, label: 'Desafios' },
     { path: '/app/community', icon: Users, label: 'Comunidade' },
-    { path: '/app/profile', icon: User, label: 'Perfil' },
     { path: '/app/admin', icon: ShieldCheck, label: 'Admin' },
   ];
 
