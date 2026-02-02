@@ -1,10 +1,116 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
-import { Heart, MessageSquare, Share2, Send, Image, Smile, TrendingUp, Users, Award } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+import { Heart, MessageSquare, Share2, Send, Image, Smile, TrendingUp, Users, Award, MessageCircle, X, ChevronDown, ChevronUp, Zap } from 'lucide-react';
 
 const Community = () => {
-    const { posts, addPost, user } = useGame();
+    const { posts, addPost, user, likePost, session } = useGame();
     const [newPostContent, setNewPostContent] = useState('');
+    const [showChat, setShowChat] = useState(false);
+    const [chatMessages, setChatMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+    const [expandedComments, setExpandedComments] = useState({});
+    const [commentInputs, setCommentInputs] = useState({});
+    const [postComments, setPostComments] = useState({});
+    const [onlineUsers, setOnlineUsers] = useState(0);
+    const [likedPosts, setLikedPosts] = useState(new Set());
+    const chatEndRef = useRef(null);
+    const chatContainerRef = useRef(null);
+
+    // Scroll to bottom of chat when new messages arrive
+    useEffect(() => {
+        if (chatEndRef.current && showChat) {
+            chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [chatMessages, showChat]);
+
+    // Subscribe to real-time chat messages
+    useEffect(() => {
+        // Load initial chat messages
+        const loadChatMessages = async () => {
+            const { data } = await supabase
+                .from('chat_messages')
+                .select('*')
+                .order('created_at', { ascending: true })
+                .limit(100);
+
+            if (data) {
+                setChatMessages(data);
+            }
+        };
+
+        loadChatMessages();
+
+        // Real-time subscription
+        const channel = supabase
+            .channel('public:chat_messages')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'chat_messages'
+            }, (payload) => {
+                setChatMessages(prev => [...prev, payload.new]);
+            })
+            .subscribe();
+
+        // Simulated online users (increase from base)
+        const baseOnline = Math.floor(Math.random() * 50) + 30;
+        setOnlineUsers(baseOnline);
+
+        const interval = setInterval(() => {
+            setOnlineUsers(prev => {
+                const change = Math.floor(Math.random() * 11) - 5; // -5 to +5
+                return Math.max(10, prev + change);
+            });
+        }, 10000);
+
+        return () => {
+            supabase.removeChannel(channel);
+            clearInterval(interval);
+        };
+    }, []);
+
+    // Load comments for posts
+    useEffect(() => {
+        const loadComments = async () => {
+            const { data } = await supabase
+                .from('comments')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (data) {
+                const commentsByPost = {};
+                data.forEach(comment => {
+                    if (!commentsByPost[comment.post_id]) {
+                        commentsByPost[comment.post_id] = [];
+                    }
+                    commentsByPost[comment.post_id].push(comment);
+                });
+                setPostComments(commentsByPost);
+            }
+        };
+
+        loadComments();
+
+        // Real-time subscription for comments
+        const channel = supabase
+            .channel('public:comments')
+            .on('postgres_changes', {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'comments'
+            }, (payload) => {
+                setPostComments(prev => ({
+                    ...prev,
+                    [payload.new.post_id]: [...(prev[payload.new.post_id] || []), payload.new]
+                }));
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
 
     const handlePost = () => {
         if (!newPostContent.trim()) return;
@@ -13,6 +119,71 @@ const Community = () => {
             content: newPostContent,
         });
         setNewPostContent('');
+    };
+
+    const handleSendChatMessage = async () => {
+        if (!newMessage.trim()) return;
+
+        const messageData = {
+            content: newMessage,
+            user_name: user.name || 'Atleta Anônimo',
+            user_level: user.level || 1,
+            created_at: new Date().toISOString()
+        };
+
+        // If connected to Supabase
+        if (session) {
+            await supabase.from('chat_messages').insert([{
+                ...messageData,
+                user_id: session.user.id
+            }]);
+        } else {
+            // Local mode
+            setChatMessages(prev => [...prev, { ...messageData, id: Date.now() }]);
+        }
+
+        setNewMessage('');
+    };
+
+    const handleToggleComments = (postId) => {
+        setExpandedComments(prev => ({
+            ...prev,
+            [postId]: !prev[postId]
+        }));
+    };
+
+    const handleAddComment = async (postId) => {
+        const content = commentInputs[postId];
+        if (!content?.trim()) return;
+
+        const commentData = {
+            post_id: postId,
+            content: content,
+            user_name: user.name || 'Atleta Anônimo',
+            user_level: user.level || 1,
+            created_at: new Date().toISOString()
+        };
+
+        if (session) {
+            await supabase.from('comments').insert([{
+                ...commentData,
+                user_id: session.user.id
+            }]);
+        } else {
+            // Local mode
+            setPostComments(prev => ({
+                ...prev,
+                [postId]: [...(prev[postId] || []), { ...commentData, id: Date.now() }]
+            }));
+        }
+
+        setCommentInputs(prev => ({ ...prev, [postId]: '' }));
+    };
+
+    const handleLike = (postId) => {
+        if (likedPosts.has(postId)) return;
+        likePost(postId);
+        setLikedPosts(prev => new Set([...prev, postId]));
     };
 
     return (
@@ -30,20 +201,224 @@ const Community = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
                     <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
                         <Users size={24} color="var(--primary)" style={{ marginBottom: '8px' }} />
-                        <h4 style={{ fontSize: '24px', fontWeight: '800' }}>1,234</h4>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Atletas Online</span>
+                        <h4 style={{ fontSize: '24px', fontWeight: '800' }}>{onlineUsers}</h4>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                            <span style={{
+                                display: 'inline-block',
+                                width: '8px',
+                                height: '8px',
+                                background: '#00FF88',
+                                borderRadius: '50%',
+                                marginRight: '6px',
+                                animation: 'pulse 2s infinite'
+                            }}></span>
+                            Online Agora
+                        </span>
                     </div>
                     <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
                         <TrendingUp size={24} color="var(--secondary)" style={{ marginBottom: '8px' }} />
-                        <h4 style={{ fontSize: '24px', fontWeight: '800' }}>567</h4>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Desafios Hoje</span>
+                        <h4 style={{ fontSize: '24px', fontWeight: '800' }}>{posts.length}</h4>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Posts Hoje</span>
                     </div>
                     <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
-                        <Award size={24} color="#FFD700" style={{ marginBottom: '8px' }} />
-                        <h4 style={{ fontSize: '24px', fontWeight: '800' }}>89</h4>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Medalhas Ganhas</span>
+                        <MessageCircle size={24} color="#00D4FF" style={{ marginBottom: '8px' }} />
+                        <h4 style={{ fontSize: '24px', fontWeight: '800' }}>{chatMessages.length}</h4>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Mensagens</span>
                     </div>
                 </div>
+
+                {/* === LIVE CHAT BUTTON === */}
+                <div
+                    onClick={() => setShowChat(!showChat)}
+                    className="glass-panel"
+                    style={{
+                        padding: '16px 24px',
+                        marginBottom: '24px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: showChat ? 'linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(123, 47, 255, 0.2))' : undefined,
+                        border: showChat ? '1px solid rgba(0, 212, 255, 0.3)' : undefined,
+                        transition: 'all 0.3s ease'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '12px',
+                            background: 'linear-gradient(135deg, #00D4FF, #7B2FFF)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <Zap size={20} color="#fff" />
+                        </div>
+                        <div>
+                            <h4 style={{ fontWeight: '700', marginBottom: '2px' }}>💬 Chat ao Vivo da Guilda</h4>
+                            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                {onlineUsers} atletas conversando agora
+                            </span>
+                        </div>
+                    </div>
+                    {showChat ? <ChevronUp size={20} color="var(--text-muted)" /> : <ChevronDown size={20} color="var(--text-muted)" />}
+                </div>
+
+                {/* === LIVE CHAT PANEL === */}
+                {showChat && (
+                    <div
+                        className="glass-panel"
+                        style={{
+                            marginBottom: '32px',
+                            overflow: 'hidden',
+                            animation: 'slide-up 0.3s ease-out'
+                        }}
+                    >
+                        <div style={{
+                            padding: '16px 20px',
+                            borderBottom: '1px solid var(--border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{
+                                    display: 'inline-block',
+                                    width: '10px',
+                                    height: '10px',
+                                    background: '#00FF88',
+                                    borderRadius: '50%',
+                                    animation: 'pulse 2s infinite',
+                                    boxShadow: '0 0 10px #00FF88'
+                                }}></span>
+                                <span style={{ fontWeight: '600', color: '#00FF88' }}>AO VIVO</span>
+                            </div>
+                            <button
+                                onClick={() => setShowChat(false)}
+                                style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: 'var(--text-muted)'
+                                }}
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Chat Messages */}
+                        <div
+                            ref={chatContainerRef}
+                            style={{
+                                height: '300px',
+                                overflowY: 'auto',
+                                padding: '16px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px'
+                            }}
+                        >
+                            {chatMessages.length === 0 ? (
+                                <div style={{
+                                    textAlign: 'center',
+                                    color: 'var(--text-muted)',
+                                    padding: '40px'
+                                }}>
+                                    <MessageCircle size={40} style={{ opacity: 0.3, marginBottom: '12px' }} />
+                                    <p>Seja o primeiro a mandar uma mensagem!</p>
+                                    <p style={{ fontSize: '14px', marginTop: '8px' }}>Comece conversando com outros atletas 💪</p>
+                                </div>
+                            ) : (
+                                chatMessages.map((msg, index) => (
+                                    <div
+                                        key={msg.id || index}
+                                        style={{
+                                            display: 'flex',
+                                            gap: '10px',
+                                            animation: 'slide-up 0.2s ease-out'
+                                        }}
+                                    >
+                                        <div style={{
+                                            width: '32px',
+                                            height: '32px',
+                                            borderRadius: '50%',
+                                            background: 'linear-gradient(135deg, #333, #222)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '14px',
+                                            flexShrink: 0,
+                                            border: '1px solid rgba(255,255,255,0.1)'
+                                        }}>
+                                            👤
+                                        </div>
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                <span style={{ fontWeight: '600', fontSize: '14px' }}>{msg.user_name}</span>
+                                                <span className="badge badge-primary" style={{ fontSize: '10px', padding: '2px 6px' }}>
+                                                    LVL {msg.user_level || 1}
+                                                </span>
+                                            </div>
+                                            <p style={{
+                                                fontSize: '14px',
+                                                color: '#eee',
+                                                lineHeight: '1.5',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                padding: '10px 14px',
+                                                borderRadius: '0 12px 12px 12px'
+                                            }}>
+                                                {msg.content}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                            <div ref={chatEndRef} />
+                        </div>
+
+                        {/* Chat Input */}
+                        <div style={{
+                            padding: '16px',
+                            borderTop: '1px solid var(--border)',
+                            display: 'flex',
+                            gap: '12px'
+                        }}>
+                            <input
+                                type="text"
+                                placeholder="Digite sua mensagem..."
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && handleSendChatMessage()}
+                                style={{
+                                    flex: 1,
+                                    background: 'rgba(0,0,0,0.3)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: '12px',
+                                    padding: '14px 16px',
+                                    color: '#fff',
+                                    fontSize: '14px',
+                                    outline: 'none'
+                                }}
+                            />
+                            <button
+                                onClick={handleSendChatMessage}
+                                style={{
+                                    background: 'linear-gradient(135deg, #00D4FF, #7B2FFF)',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    padding: '14px 20px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                <Send size={18} color="#fff" />
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* === POST INPUT === */}
                 <div className="glass-panel" style={{ padding: '24px', marginBottom: '32px' }}>
@@ -122,133 +497,203 @@ const Community = () => {
 
                 {/* === FEED === */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    {posts.map((post, index) => (
-                        <div
-                            key={post.id}
-                            className="glass-panel"
-                            style={{
-                                padding: '24px',
-                                animation: 'slide-up 0.4s ease-out',
-                                animationDelay: `${index * 0.1}s`,
-                                animationFillMode: 'both'
-                            }}
-                        >
-                            {/* Post Header */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                    {posts.map((post, index) => {
+                        const comments = postComments[post.id] || [];
+                        const isExpanded = expandedComments[post.id];
+                        const isLiked = likedPosts.has(post.id);
+
+                        return (
+                            <div
+                                key={post.id}
+                                className="glass-panel"
+                                style={{
+                                    padding: '24px',
+                                    animation: 'slide-up 0.4s ease-out',
+                                    animationDelay: `${index * 0.1}s`,
+                                    animationFillMode: 'both'
+                                }}
+                            >
+                                {/* Post Header */}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
+                                    <div style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '50%',
+                                        background: 'linear-gradient(135deg, #333, #222)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '20px',
+                                        border: '2px solid rgba(255,255,255,0.1)'
+                                    }}>
+                                        👤
+                                    </div>
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{ fontWeight: '700', fontSize: '15px', marginBottom: '2px' }}>{post.user}</h4>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{post.time}</span>
+                                    </div>
+                                    <span className="badge badge-primary" style={{ fontSize: '10px' }}>
+                                        {post.badge || '🌟'}
+                                    </span>
+                                </div>
+
+                                {/* Post Content */}
+                                <p style={{ fontSize: '16px', lineHeight: '1.7', marginBottom: '20px', color: '#eee' }}>
+                                    {post.content}
+                                </p>
+
+                                {/* Post Actions */}
                                 <div style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '50%',
-                                    background: 'linear-gradient(135deg, #333, #222)',
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    fontSize: '20px',
-                                    border: '2px solid rgba(255,255,255,0.1)'
-                                }}>
-                                    👤
-                                </div>
-                                <div style={{ flex: 1 }}>
-                                    <h4 style={{ fontWeight: '700', fontSize: '15px', marginBottom: '2px' }}>{post.user}</h4>
-                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{post.time}</span>
-                                </div>
-                                <span className="badge badge-primary" style={{ fontSize: '10px' }}>
-                                    LVL 12
-                                </span>
-                            </div>
-
-                            {/* Post Content */}
-                            <p style={{ fontSize: '16px', lineHeight: '1.7', marginBottom: '20px', color: '#eee' }}>
-                                {post.content}
-                            </p>
-
-                            {/* Mock Result Image */}
-                            <div style={{
-                                width: '100%',
-                                height: '240px',
-                                background: 'linear-gradient(135deg, rgba(123, 47, 255, 0.1), rgba(0, 255, 136, 0.05))',
-                                borderRadius: '16px',
-                                marginBottom: '20px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                border: '1px solid var(--border)',
-                                position: 'relative',
-                                overflow: 'hidden'
-                            }}>
-                                <div style={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    background: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.02) 50%, transparent 60%)',
-                                    backgroundSize: '200% 200%',
-                                    animation: 'shimmer 3s ease-in-out infinite'
-                                }}></div>
-                                <div style={{ textAlign: 'center', color: '#666' }}>
-                                    <Image size={40} style={{ marginBottom: '8px', opacity: 0.5 }} />
-                                    <p style={{ fontStyle: 'italic', fontSize: '14px' }}>Foto do Resultado</p>
-                                </div>
-                            </div>
-
-                            {/* Post Actions */}
-                            <div style={{
-                                display: 'flex',
-                                gap: '8px',
-                                borderTop: '1px solid var(--border)',
-                                paddingTop: '16px'
-                            }}>
-                                <button style={{
-                                    flex: 1,
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid var(--border)',
-                                    borderRadius: '12px',
-                                    padding: '12px',
-                                    color: 'var(--text-muted)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
                                     gap: '8px',
-                                    fontWeight: '600',
-                                    fontSize: '13px',
-                                    transition: 'all 0.3s ease'
+                                    borderTop: '1px solid var(--border)',
+                                    paddingTop: '16px'
                                 }}>
-                                    <Heart size={18} /> {post.likes}
-                                </button>
-                                <button style={{
-                                    flex: 1,
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid var(--border)',
-                                    borderRadius: '12px',
-                                    padding: '12px',
-                                    color: 'var(--text-muted)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    gap: '8px',
-                                    fontWeight: '600',
-                                    fontSize: '13px',
-                                    transition: 'all 0.3s ease'
-                                }}>
-                                    <MessageSquare size={18} /> Comentar
-                                </button>
-                                <button style={{
-                                    background: 'rgba(255,255,255,0.03)',
-                                    border: '1px solid var(--border)',
-                                    borderRadius: '12px',
-                                    padding: '12px 16px',
-                                    color: 'var(--text-muted)',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'all 0.3s ease'
-                                }}>
-                                    <Share2 size={18} />
-                                </button>
+                                    <button
+                                        onClick={() => handleLike(post.id)}
+                                        style={{
+                                            flex: 1,
+                                            background: isLiked ? 'rgba(255, 75, 75, 0.15)' : 'rgba(255,255,255,0.03)',
+                                            border: isLiked ? '1px solid rgba(255, 75, 75, 0.3)' : '1px solid var(--border)',
+                                            borderRadius: '12px',
+                                            padding: '12px',
+                                            color: isLiked ? '#FF4B4B' : 'var(--text-muted)',
+                                            cursor: isLiked ? 'default' : 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            fontWeight: '600',
+                                            fontSize: '13px',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        <Heart size={18} fill={isLiked ? '#FF4B4B' : 'none'} /> {post.likes || 0}
+                                    </button>
+                                    <button
+                                        onClick={() => handleToggleComments(post.id)}
+                                        style={{
+                                            flex: 1,
+                                            background: isExpanded ? 'rgba(0, 212, 255, 0.15)' : 'rgba(255,255,255,0.03)',
+                                            border: isExpanded ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid var(--border)',
+                                            borderRadius: '12px',
+                                            padding: '12px',
+                                            color: isExpanded ? '#00D4FF' : 'var(--text-muted)',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            fontWeight: '600',
+                                            fontSize: '13px',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        <MessageSquare size={18} /> {comments.length} Comentários
+                                    </button>
+                                    <button style={{
+                                        background: 'rgba(255,255,255,0.03)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '12px',
+                                        padding: '12px 16px',
+                                        color: 'var(--text-muted)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.3s ease'
+                                    }}>
+                                        <Share2 size={18} />
+                                    </button>
+                                </div>
+
+                                {/* Comments Section */}
+                                {isExpanded && (
+                                    <div style={{
+                                        marginTop: '16px',
+                                        paddingTop: '16px',
+                                        borderTop: '1px solid var(--border)',
+                                        animation: 'slide-up 0.3s ease-out'
+                                    }}>
+                                        {/* Existing Comments */}
+                                        {comments.length > 0 && (
+                                            <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                                {comments.map((comment, cIndex) => (
+                                                    <div
+                                                        key={comment.id || cIndex}
+                                                        style={{
+                                                            display: 'flex',
+                                                            gap: '10px',
+                                                            padding: '12px',
+                                                            background: 'rgba(0,0,0,0.2)',
+                                                            borderRadius: '12px'
+                                                        }}
+                                                    >
+                                                        <div style={{
+                                                            width: '32px',
+                                                            height: '32px',
+                                                            borderRadius: '50%',
+                                                            background: 'linear-gradient(135deg, #444, #333)',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            fontSize: '14px',
+                                                            flexShrink: 0
+                                                        }}>
+                                                            👤
+                                                        </div>
+                                                        <div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                                                                <span style={{ fontWeight: '600', fontSize: '13px' }}>{comment.user_name}</span>
+                                                                <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>LVL {comment.user_level || 1}</span>
+                                                            </div>
+                                                            <p style={{ fontSize: '14px', color: '#ddd', lineHeight: '1.5' }}>{comment.content}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Add Comment */}
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <input
+                                                type="text"
+                                                placeholder="Escreva um comentário..."
+                                                value={commentInputs[post.id] || ''}
+                                                onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                                onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                                                style={{
+                                                    flex: 1,
+                                                    background: 'rgba(0,0,0,0.3)',
+                                                    border: '1px solid var(--border)',
+                                                    borderRadius: '12px',
+                                                    padding: '12px 16px',
+                                                    color: '#fff',
+                                                    fontSize: '14px',
+                                                    outline: 'none'
+                                                }}
+                                            />
+                                            <button
+                                                onClick={() => handleAddComment(post.id)}
+                                                style={{
+                                                    background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+                                                    border: 'none',
+                                                    borderRadius: '12px',
+                                                    padding: '12px 16px',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center'
+                                                }}
+                                            >
+                                                <Send size={16} color="#fff" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>
