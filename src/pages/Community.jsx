@@ -2,6 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { supabase } from '../lib/supabaseClient';
 import { Heart, MessageSquare, Share2, Send, Image, Smile, TrendingUp, Users, Award, MessageCircle, X, ChevronDown, ChevronUp, Zap, Camera, Paperclip, Loader } from 'lucide-react';
+import { AVATARS } from '../components/AvatarSelector';
+
+// Helper para obter avatar do localStorage
+const getUserAvatar = () => {
+    const savedAvatarId = localStorage.getItem('userSelectedAvatarId');
+    if (savedAvatarId) {
+        const avatar = AVATARS.find(a => a.id === savedAvatarId);
+        return avatar || AVATARS[0];
+    }
+    return AVATARS[0];
+};
 
 const Community = () => {
     const { posts, addPost, user, likePost, session } = useGame();
@@ -18,10 +29,16 @@ const Community = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [showImageOptions, setShowImageOptions] = useState(false);
+    const [currentUserAvatar, setCurrentUserAvatar] = useState(null);
     const chatEndRef = useRef(null);
     const chatContainerRef = useRef(null);
     const fileInputRef = useRef(null);
     const cameraInputRef = useRef(null);
+
+    // Carregar avatar do usuário
+    useEffect(() => {
+        setCurrentUserAvatar(getUserAvatar());
+    }, []);
 
     // Scroll to bottom of chat when new messages arrive
     useEffect(() => {
@@ -34,14 +51,22 @@ const Community = () => {
     useEffect(() => {
         // Load initial chat messages
         const loadChatMessages = async () => {
-            const { data } = await supabase
-                .from('chat_messages')
-                .select('*')
-                .order('created_at', { ascending: true })
-                .limit(100);
+            try {
+                const { data } = await supabase
+                    .from('chat_messages')
+                    .select('*')
+                    .order('created_at', { ascending: true })
+                    .limit(100);
 
-            if (data) {
-                setChatMessages(data);
+                if (data) {
+                    setChatMessages(data);
+                }
+            } catch (error) {
+                // Modo offline - carregar do localStorage
+                const saved = localStorage.getItem('chatMessages');
+                if (saved) {
+                    setChatMessages(JSON.parse(saved));
+                }
             }
         };
 
@@ -79,20 +104,28 @@ const Community = () => {
     // Load comments for posts
     useEffect(() => {
         const loadComments = async () => {
-            const { data } = await supabase
-                .from('comments')
-                .select('*')
-                .order('created_at', { ascending: true });
+            try {
+                const { data } = await supabase
+                    .from('comments')
+                    .select('*')
+                    .order('created_at', { ascending: true });
 
-            if (data) {
-                const commentsByPost = {};
-                data.forEach(comment => {
-                    if (!commentsByPost[comment.post_id]) {
-                        commentsByPost[comment.post_id] = [];
-                    }
-                    commentsByPost[comment.post_id].push(comment);
-                });
-                setPostComments(commentsByPost);
+                if (data) {
+                    const commentsByPost = {};
+                    data.forEach(comment => {
+                        if (!commentsByPost[comment.post_id]) {
+                            commentsByPost[comment.post_id] = [];
+                        }
+                        commentsByPost[comment.post_id].push(comment);
+                    });
+                    setPostComments(commentsByPost);
+                }
+            } catch (error) {
+                // Modo offline
+                const saved = localStorage.getItem('postComments');
+                if (saved) {
+                    setPostComments(JSON.parse(saved));
+                }
             }
         };
 
@@ -118,6 +151,13 @@ const Community = () => {
         };
     }, []);
 
+    // Salvar mensagens localmente quando mudar
+    useEffect(() => {
+        if (chatMessages.length > 0) {
+            localStorage.setItem('chatMessages', JSON.stringify(chatMessages.slice(-100)));
+        }
+    }, [chatMessages]);
+
     // Handle file selection
     const handleFileSelect = (e) => {
         const file = e.target.files[0];
@@ -136,7 +176,7 @@ const Community = () => {
 
             setSelectedImage(file);
 
-            // Create preview
+            // Create preview (base64)
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result);
@@ -146,30 +186,34 @@ const Community = () => {
         }
     };
 
-    // Upload image to Supabase Storage
+    // Upload image - tries Supabase Storage first, falls back to base64
     const uploadImage = async (file) => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `chat-images/${fileName}`;
+        // Primeiro, tenta usar o Supabase Storage
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `chat-images/${fileName}`;
 
-        const { data, error } = await supabase.storage
-            .from('community')
-            .upload(filePath, file, {
-                cacheControl: '3600',
-                upsert: false
-            });
+            const { data, error } = await supabase.storage
+                .from('community')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
-        if (error) {
-            console.error('Error uploading image:', error);
-            throw error;
+            if (!error && data) {
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('community')
+                    .getPublicUrl(filePath);
+                return publicUrl;
+            }
+        } catch (error) {
+            console.log('Storage not available, using base64');
         }
 
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from('community')
-            .getPublicUrl(filePath);
-
-        return publicUrl;
+        // Fallback: usar base64 (funciona sem Storage configurado)
+        return imagePreview;
     };
 
     // Clear selected image
@@ -202,20 +246,27 @@ const Community = () => {
                 imageUrl = await uploadImage(selectedImage);
             }
 
+            const avatar = getUserAvatar();
             const messageData = {
                 content: newMessage || '',
                 user_name: user.name || 'Atleta Anônimo',
                 user_level: user.level || 1,
+                user_avatar_id: avatar.id,
                 image_url: imageUrl,
                 created_at: new Date().toISOString()
             };
 
             // If connected to Supabase
             if (session) {
-                await supabase.from('chat_messages').insert([{
-                    ...messageData,
-                    user_id: session.user.id
-                }]);
+                try {
+                    await supabase.from('chat_messages').insert([{
+                        ...messageData,
+                        user_id: session.user.id
+                    }]);
+                } catch (error) {
+                    // Fallback local
+                    setChatMessages(prev => [...prev, { ...messageData, id: Date.now() }]);
+                }
             } else {
                 // Local mode
                 setChatMessages(prev => [...prev, { ...messageData, id: Date.now() }]);
@@ -242,19 +293,29 @@ const Community = () => {
         const content = commentInputs[postId];
         if (!content?.trim()) return;
 
+        const avatar = getUserAvatar();
         const commentData = {
             post_id: postId,
             content: content,
             user_name: user.name || 'Atleta Anônimo',
             user_level: user.level || 1,
+            user_avatar_id: avatar.id,
             created_at: new Date().toISOString()
         };
 
         if (session) {
-            await supabase.from('comments').insert([{
-                ...commentData,
-                user_id: session.user.id
-            }]);
+            try {
+                await supabase.from('comments').insert([{
+                    ...commentData,
+                    user_id: session.user.id
+                }]);
+            } catch (error) {
+                // Local mode fallback
+                setPostComments(prev => ({
+                    ...prev,
+                    [postId]: [...(prev[postId] || []), { ...commentData, id: Date.now() }]
+                }));
+            }
         } else {
             // Local mode
             setPostComments(prev => ({
@@ -270,6 +331,33 @@ const Community = () => {
         if (likedPosts.has(postId)) return;
         likePost(postId);
         setLikedPosts(prev => new Set([...prev, postId]));
+    };
+
+    // Componente de Avatar do Usuário
+    const UserAvatarImage = ({ avatarId, size = 32 }) => {
+        const avatar = avatarId ? AVATARS.find(a => a.id === avatarId) : getUserAvatar();
+        const avatarData = avatar || AVATARS[0];
+
+        return (
+            <div style={{
+                width: `${size}px`,
+                height: `${size}px`,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                border: '2px solid rgba(255,255,255,0.2)',
+                flexShrink: 0
+            }}>
+                <img
+                    src={avatarData.image}
+                    alt={avatarData.name}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                    }}
+                />
+            </div>
+        );
     };
 
     return (
@@ -425,20 +513,7 @@ const Community = () => {
                                             animation: 'slide-up 0.2s ease-out'
                                         }}
                                     >
-                                        <div style={{
-                                            width: '32px',
-                                            height: '32px',
-                                            borderRadius: '50%',
-                                            background: 'linear-gradient(135deg, #333, #222)',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: '14px',
-                                            flexShrink: 0,
-                                            border: '1px solid rgba(255,255,255,0.1)'
-                                        }}>
-                                            👤
-                                        </div>
+                                        <UserAvatarImage avatarId={msg.user_avatar_id} size={32} />
                                         <div style={{ flex: 1 }}>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                                 <span style={{ fontWeight: '600', fontSize: '14px' }}>{msg.user_name}</span>
@@ -696,20 +771,7 @@ const Community = () => {
                 {/* === POST INPUT === */}
                 <div className="glass-panel" style={{ padding: '24px', marginBottom: '32px' }}>
                     <div style={{ display: 'flex', gap: '16px' }}>
-                        <div style={{
-                            width: '52px',
-                            height: '52px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, var(--secondary), var(--accent))',
-                            flexShrink: 0,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '24px',
-                            boxShadow: '0 4px 15px rgba(123, 47, 255, 0.3)'
-                        }}>
-                            👤
-                        </div>
+                        <UserAvatarImage size={52} />
                         <div style={{ flex: 1 }}>
                             <textarea
                                 placeholder="Compartilhe sua conquista de hoje... 💪"
@@ -788,19 +850,7 @@ const Community = () => {
                             >
                                 {/* Post Header */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px' }}>
-                                    <div style={{
-                                        width: '48px',
-                                        height: '48px',
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, #333, #222)',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '20px',
-                                        border: '2px solid rgba(255,255,255,0.1)'
-                                    }}>
-                                        👤
-                                    </div>
+                                    <UserAvatarImage avatarId={post.user_avatar_id} size={48} />
                                     <div style={{ flex: 1 }}>
                                         <h4 style={{ fontWeight: '700', fontSize: '15px', marginBottom: '2px' }}>{post.user}</h4>
                                         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{post.time}</span>
@@ -902,19 +952,7 @@ const Community = () => {
                                                             borderRadius: '12px'
                                                         }}
                                                     >
-                                                        <div style={{
-                                                            width: '32px',
-                                                            height: '32px',
-                                                            borderRadius: '50%',
-                                                            background: 'linear-gradient(135deg, #444, #333)',
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            fontSize: '14px',
-                                                            flexShrink: 0
-                                                        }}>
-                                                            👤
-                                                        </div>
+                                                        <UserAvatarImage avatarId={comment.user_avatar_id} size={32} />
                                                         <div>
                                                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                                                                 <span style={{ fontWeight: '600', fontSize: '13px' }}>{comment.user_name}</span>
