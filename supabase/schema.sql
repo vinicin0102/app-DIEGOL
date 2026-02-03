@@ -104,7 +104,8 @@ create table if not exists public.chat_messages (
   user_id uuid references public.profiles(id),
   user_name text not null default 'Atleta Anônimo',
   user_level int default 1,
-  content text not null,
+  content text,
+  image_url text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 

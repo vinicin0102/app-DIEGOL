@@ -9,6 +9,7 @@ A página de **Comunidade** agora possui as seguintes funcionalidades de bate-pa
 - Mensagens aparecem instantaneamente para todos os usuários
 - Mostra nome e nível de cada atleta
 - Interface moderna com scroll automático
+- **📷 ENVIO DE IMAGENS** (Câmera, Galeria ou Arquivo)
 
 ### 💬 Comentários em Posts
 - Cada post agora tem uma seção de comentários expansível
@@ -27,17 +28,16 @@ A página de **Comunidade** agora possui as seguintes funcionalidades de bate-pa
 
 ---
 
-## 🔧 Para ativar o banco de dados
+## 🔧 PASSO 1: Criar as tabelas de Chat e Comentários
 
-Você precisa executar o SQL no painel do Supabase para criar as tabelas de chat e comentários.
+Você precisa executar o SQL no painel do Supabase para criar as tabelas.
 
-### Passo 1: Acesse o Supabase
+### Acesse o Supabase
 1. Vá para [https://supabase.com/dashboard](https://supabase.com/dashboard)
 2. Selecione seu projeto
 3. Clique em **SQL Editor** no menu lateral
 
-### Passo 2: Execute o SQL
-Cole e execute este SQL:
+### Execute este SQL:
 
 ```sql
 -- ==================================
@@ -48,7 +48,8 @@ create table if not exists public.chat_messages (
   user_id uuid references public.profiles(id),
   user_name text not null default 'Atleta Anônimo',
   user_level int default 1,
-  content text not null,
+  content text,
+  image_url text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
@@ -81,8 +82,62 @@ create policy "Authenticated users can insert comments." on public.comments for 
 create policy "Users can delete own comments." on public.comments for delete using (auth.uid() = user_id);
 ```
 
-### Passo 3: Ativar Realtime (Opcional para updates automáticos)
-No painel do Supabase:
+---
+
+## 🔧 PASSO 2: Criar o Storage para Imagens
+
+Para que os alunos possam enviar imagens no chat, você precisa criar um bucket de storage:
+
+1. No painel do Supabase, vá para **Storage** no menu lateral
+2. Clique em **New bucket**
+3. Configure:
+   - **Nome**: `community`
+   - **Public bucket**: ✅ ATIVADO (marque esta opção)
+4. Clique em **Create bucket**
+
+### Configurar políticas do Storage
+
+Após criar o bucket, clique nele e vá em **Policies**. Adicione as seguintes políticas:
+
+**Política 1 - Permitir upload (INSERT)**
+- Operation: INSERT
+- Policy name: `Allow authenticated uploads`
+- Target roles: authenticated
+- WITH CHECK expression: `true`
+
+**Política 2 - Permitir visualização (SELECT)**
+- Operation: SELECT
+- Policy name: `Allow public viewing`
+- Target roles: (deixe vazio para todos)
+- USING expression: `true`
+
+### OU execute este SQL no SQL Editor:
+
+```sql
+-- Storage bucket policies
+insert into storage.buckets (id, name, public) 
+values ('community', 'community', true)
+on conflict (id) do nothing;
+
+create policy "Anyone can view community images"
+on storage.objects for select
+using ( bucket_id = 'community' );
+
+create policy "Authenticated users can upload images"
+on storage.objects for insert
+with check ( bucket_id = 'community' AND auth.role() = 'authenticated' );
+
+create policy "Users can delete own images"
+on storage.objects for delete
+using ( bucket_id = 'community' AND auth.uid() = owner );
+```
+
+---
+
+## 🔧 PASSO 3: Ativar Realtime (Opcional)
+
+Para que mensagens apareçam em tempo real para todos:
+
 1. Vá para **Database** > **Replication**
 2. Em **Supabase Realtime**, ative as tabelas:
    - `chat_messages`
@@ -91,13 +146,20 @@ No painel do Supabase:
 
 ---
 
-## 🎮 Como usar
+## 🎮 Como usar o Chat com Imagens
 
-1. **Acessar a Comunidade**: Navegue para `/app/community`
-2. **Chat ao Vivo**: Clique no botão "Chat ao Vivo da Guilda" para abrir/fechar o chat
-3. **Enviar Mensagem**: Digite sua mensagem e pressione Enter ou clique em Enviar
-4. **Comentar em Posts**: Clique em "Comentários" em qualquer post para expandir e adicionar comentários
-5. **Curtir Posts**: Clique no botão de coração para curtir
+1. **Abrir o Chat**: Clique no botão "💬 Chat ao Vivo da Guilda"
+2. **Enviar Imagem**: Clique no botão 📷 ao lado do campo de mensagem
+3. **Escolher opção**:
+   - 📷 **Câmera**: Tire uma foto ao vivo
+   - 🖼️ **Galeria**: Escolha uma imagem da galeria
+   - 📎 **Arquivo**: Selecione um arquivo de imagem
+4. **Preview**: Veja a prévia da imagem antes de enviar
+5. **Enviar**: Clique no botão de enviar ou pressione Enter
+
+### Limitações:
+- Máximo 5MB por imagem
+- Apenas formatos de imagem (JPG, PNG, GIF, etc.)
 
 ---
 
@@ -105,4 +167,4 @@ No painel do Supabase:
 
 **http://localhost:5173/app/community**
 
-Abra no navegador para testar!
+Abra no navegador para testar! 🚀

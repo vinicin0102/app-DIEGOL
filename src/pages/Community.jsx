@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 import { supabase } from '../lib/supabaseClient';
-import { Heart, MessageSquare, Share2, Send, Image, Smile, TrendingUp, Users, Award, MessageCircle, X, ChevronDown, ChevronUp, Zap } from 'lucide-react';
+import { Heart, MessageSquare, Share2, Send, Image, Smile, TrendingUp, Users, Award, MessageCircle, X, ChevronDown, ChevronUp, Zap, Camera, Paperclip, Loader } from 'lucide-react';
 
 const Community = () => {
     const { posts, addPost, user, likePost, session } = useGame();
@@ -14,8 +14,14 @@ const Community = () => {
     const [postComments, setPostComments] = useState({});
     const [onlineUsers, setOnlineUsers] = useState(0);
     const [likedPosts, setLikedPosts] = useState(new Set());
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [showImageOptions, setShowImageOptions] = useState(false);
     const chatEndRef = useRef(null);
     const chatContainerRef = useRef(null);
+    const fileInputRef = useRef(null);
+    const cameraInputRef = useRef(null);
 
     // Scroll to bottom of chat when new messages arrive
     useEffect(() => {
@@ -112,6 +118,68 @@ const Community = () => {
         };
     }, []);
 
+    // Handle file selection
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // Verify it's an image
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecione apenas imagens!');
+                return;
+            }
+
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('A imagem deve ter no máximo 5MB!');
+                return;
+            }
+
+            setSelectedImage(file);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+            setShowImageOptions(false);
+        }
+    };
+
+    // Upload image to Supabase Storage
+    const uploadImage = async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `chat-images/${fileName}`;
+
+        const { data, error } = await supabase.storage
+            .from('community')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (error) {
+            console.error('Error uploading image:', error);
+            throw error;
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+            .from('community')
+            .getPublicUrl(filePath);
+
+        return publicUrl;
+    };
+
+    // Clear selected image
+    const clearSelectedImage = () => {
+        setSelectedImage(null);
+        setImagePreview(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (cameraInputRef.current) cameraInputRef.current.value = '';
+    };
+
     const handlePost = () => {
         if (!newPostContent.trim()) return;
         addPost({
@@ -122,27 +190,45 @@ const Community = () => {
     };
 
     const handleSendChatMessage = async () => {
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() && !selectedImage) return;
 
-        const messageData = {
-            content: newMessage,
-            user_name: user.name || 'Atleta Anônimo',
-            user_level: user.level || 1,
-            created_at: new Date().toISOString()
-        };
+        setUploadingImage(true);
 
-        // If connected to Supabase
-        if (session) {
-            await supabase.from('chat_messages').insert([{
-                ...messageData,
-                user_id: session.user.id
-            }]);
-        } else {
-            // Local mode
-            setChatMessages(prev => [...prev, { ...messageData, id: Date.now() }]);
+        try {
+            let imageUrl = null;
+
+            // Upload image if selected
+            if (selectedImage) {
+                imageUrl = await uploadImage(selectedImage);
+            }
+
+            const messageData = {
+                content: newMessage || '',
+                user_name: user.name || 'Atleta Anônimo',
+                user_level: user.level || 1,
+                image_url: imageUrl,
+                created_at: new Date().toISOString()
+            };
+
+            // If connected to Supabase
+            if (session) {
+                await supabase.from('chat_messages').insert([{
+                    ...messageData,
+                    user_id: session.user.id
+                }]);
+            } else {
+                // Local mode
+                setChatMessages(prev => [...prev, { ...messageData, id: Date.now() }]);
+            }
+
+            setNewMessage('');
+            clearSelectedImage();
+        } catch (error) {
+            console.error('Error sending message:', error);
+            alert('Erro ao enviar mensagem. Tente novamente.');
+        } finally {
+            setUploadingImage(false);
         }
-
-        setNewMessage('');
     };
 
     const handleToggleComments = (postId) => {
@@ -311,7 +397,7 @@ const Community = () => {
                         <div
                             ref={chatContainerRef}
                             style={{
-                                height: '300px',
+                                height: '350px',
                                 overflowY: 'auto',
                                 padding: '16px',
                                 display: 'flex',
@@ -360,16 +446,36 @@ const Community = () => {
                                                     LVL {msg.user_level || 1}
                                                 </span>
                                             </div>
-                                            <p style={{
-                                                fontSize: '14px',
-                                                color: '#eee',
-                                                lineHeight: '1.5',
+                                            <div style={{
                                                 background: 'rgba(255,255,255,0.05)',
                                                 padding: '10px 14px',
                                                 borderRadius: '0 12px 12px 12px'
                                             }}>
-                                                {msg.content}
-                                            </p>
+                                                {msg.content && (
+                                                    <p style={{
+                                                        fontSize: '14px',
+                                                        color: '#eee',
+                                                        lineHeight: '1.5',
+                                                        marginBottom: msg.image_url ? '10px' : 0
+                                                    }}>
+                                                        {msg.content}
+                                                    </p>
+                                                )}
+                                                {msg.image_url && (
+                                                    <img
+                                                        src={msg.image_url}
+                                                        alt="Imagem enviada"
+                                                        style={{
+                                                            maxWidth: '100%',
+                                                            maxHeight: '200px',
+                                                            borderRadius: '8px',
+                                                            cursor: 'pointer',
+                                                            objectFit: 'cover'
+                                                        }}
+                                                        onClick={() => window.open(msg.image_url, '_blank')}
+                                                    />
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -377,45 +483,212 @@ const Community = () => {
                             <div ref={chatEndRef} />
                         </div>
 
+                        {/* Image Preview */}
+                        {imagePreview && (
+                            <div style={{
+                                padding: '12px 16px',
+                                borderTop: '1px solid var(--border)',
+                                background: 'rgba(0,0,0,0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px'
+                            }}>
+                                <div style={{ position: 'relative' }}>
+                                    <img
+                                        src={imagePreview}
+                                        alt="Preview"
+                                        style={{
+                                            width: '60px',
+                                            height: '60px',
+                                            objectFit: 'cover',
+                                            borderRadius: '8px',
+                                            border: '2px solid var(--primary)'
+                                        }}
+                                    />
+                                    <button
+                                        onClick={clearSelectedImage}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '-8px',
+                                            right: '-8px',
+                                            width: '24px',
+                                            height: '24px',
+                                            borderRadius: '50%',
+                                            background: '#FF4B4B',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <X size={14} color="#fff" />
+                                    </button>
+                                </div>
+                                <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                                    📷 Imagem pronta para enviar
+                                </span>
+                            </div>
+                        )}
+
                         {/* Chat Input */}
                         <div style={{
                             padding: '16px',
                             borderTop: '1px solid var(--border)',
                             display: 'flex',
+                            flexDirection: 'column',
                             gap: '12px'
                         }}>
-                            <input
-                                type="text"
-                                placeholder="Digite sua mensagem..."
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                onKeyPress={(e) => e.key === 'Enter' && handleSendChatMessage()}
-                                style={{
-                                    flex: 1,
-                                    background: 'rgba(0,0,0,0.3)',
-                                    border: '1px solid var(--border)',
-                                    borderRadius: '12px',
-                                    padding: '14px 16px',
-                                    color: '#fff',
-                                    fontSize: '14px',
-                                    outline: 'none'
-                                }}
-                            />
-                            <button
-                                onClick={handleSendChatMessage}
-                                style={{
-                                    background: 'linear-gradient(135deg, #00D4FF, #7B2FFF)',
-                                    border: 'none',
-                                    borderRadius: '12px',
-                                    padding: '14px 20px',
-                                    cursor: 'pointer',
+                            {/* Image Options */}
+                            {showImageOptions && (
+                                <div style={{
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                <Send size={18} color="#fff" />
-                            </button>
+                                    gap: '8px',
+                                    padding: '12px',
+                                    background: 'rgba(0,0,0,0.3)',
+                                    borderRadius: '12px',
+                                    animation: 'slide-up 0.2s ease-out'
+                                }}>
+                                    <button
+                                        onClick={() => cameraInputRef.current?.click()}
+                                        style={{
+                                            flex: 1,
+                                            padding: '12px',
+                                            background: 'linear-gradient(135deg, #00D4FF, #00A8CC)',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            color: '#fff',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            fontWeight: '600',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        <Camera size={18} /> Câmera
+                                    </button>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        style={{
+                                            flex: 1,
+                                            padding: '12px',
+                                            background: 'linear-gradient(135deg, #7B2FFF, #9B4DFF)',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            color: '#fff',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            fontWeight: '600',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        <Image size={18} /> Galeria
+                                    </button>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        style={{
+                                            flex: 1,
+                                            padding: '12px',
+                                            background: 'linear-gradient(135deg, #00FF88, #00CC6A)',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            color: '#000',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            fontWeight: '600',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        <Paperclip size={18} /> Arquivo
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Hidden Inputs */}
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={handleFileSelect}
+                            />
+                            <input
+                                type="file"
+                                ref={cameraInputRef}
+                                accept="image/*"
+                                capture="environment"
+                                style={{ display: 'none' }}
+                                onChange={handleFileSelect}
+                            />
+
+                            {/* Input Row */}
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    onClick={() => setShowImageOptions(!showImageOptions)}
+                                    style={{
+                                        width: '48px',
+                                        height: '48px',
+                                        borderRadius: '12px',
+                                        background: showImageOptions ? 'linear-gradient(135deg, #00D4FF, #7B2FFF)' : 'rgba(255,255,255,0.05)',
+                                        border: '1px solid var(--border)',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    <Image size={20} color={showImageOptions ? '#fff' : 'var(--text-muted)'} />
+                                </button>
+                                <input
+                                    type="text"
+                                    placeholder="Digite sua mensagem..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && !uploadingImage && handleSendChatMessage()}
+                                    disabled={uploadingImage}
+                                    style={{
+                                        flex: 1,
+                                        background: 'rgba(0,0,0,0.3)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '12px',
+                                        padding: '14px 16px',
+                                        color: '#fff',
+                                        fontSize: '14px',
+                                        outline: 'none',
+                                        opacity: uploadingImage ? 0.6 : 1
+                                    }}
+                                />
+                                <button
+                                    onClick={handleSendChatMessage}
+                                    disabled={uploadingImage || (!newMessage.trim() && !selectedImage)}
+                                    style={{
+                                        background: uploadingImage ? 'rgba(123, 47, 255, 0.5)' : 'linear-gradient(135deg, #00D4FF, #7B2FFF)',
+                                        border: 'none',
+                                        borderRadius: '12px',
+                                        padding: '14px 20px',
+                                        cursor: uploadingImage ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        opacity: (!newMessage.trim() && !selectedImage) ? 0.5 : 1
+                                    }}
+                                >
+                                    {uploadingImage ? (
+                                        <Loader size={18} color="#fff" style={{ animation: 'spin 1s linear infinite' }} />
+                                    ) : (
+                                        <Send size={18} color="#fff" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -696,6 +969,14 @@ const Community = () => {
                     })}
                 </div>
             </div>
+
+            {/* CSS for spin animation */}
+            <style>{`
+                @keyframes spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 };
