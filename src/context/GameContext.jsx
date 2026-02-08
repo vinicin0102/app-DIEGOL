@@ -316,6 +316,7 @@ export const GameProvider = ({ children }) => {
         if (session) {
             const { data, error } = await supabase.from('posts').insert([{
                 content: post.content,
+                image_url: post.image_url || null,
                 user_id: session.user.id,
                 user_name: user.name,
                 user_badge: user.badges.length > 0 ? user.badges[user.badges.length - 1].icon : '🌟',
@@ -337,6 +338,7 @@ export const GameProvider = ({ children }) => {
                 id: Date.now(),
                 likes: 0,
                 time: 'Agora',
+                image_url: post.image_url || null,
                 userLevel: user.level,
                 userBadge: user.badges.length > 0 ? user.badges[user.badges.length - 1].icon : '🌟'
             }, ...prev]);

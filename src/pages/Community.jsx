@@ -30,10 +30,18 @@ const Community = () => {
     const [imagePreview, setImagePreview] = useState(null);
     const [showImageOptions, setShowImageOptions] = useState(false);
     const [currentUserAvatar, setCurrentUserAvatar] = useState(null);
+    // State for post images
+    const [postImage, setPostImage] = useState(null);
+    const [postImagePreview, setPostImagePreview] = useState(null);
+    const [showPostImageOptions, setShowPostImageOptions] = useState(false);
+    const [uploadingPostImage, setUploadingPostImage] = useState(false);
     const chatEndRef = useRef(null);
     const chatContainerRef = useRef(null);
     const fileInputRef = useRef(null);
     const cameraInputRef = useRef(null);
+    // Refs for post image uploads
+    const postFileInputRef = useRef(null);
+    const postCameraInputRef = useRef(null);
 
     // Carregar avatar do usuário
     useEffect(() => {
@@ -216,7 +224,7 @@ const Community = () => {
         return imagePreview;
     };
 
-    // Clear selected image
+    // Clear selected image (for chat)
     const clearSelectedImage = () => {
         setSelectedImage(null);
         setImagePreview(null);
@@ -224,13 +232,88 @@ const Community = () => {
         if (cameraInputRef.current) cameraInputRef.current.value = '';
     };
 
-    const handlePost = () => {
-        if (!newPostContent.trim()) return;
-        addPost({
-            user: user.name,
-            content: newPostContent,
-        });
-        setNewPostContent('');
+    // Handle post file selection
+    const handlePostFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Por favor, selecione apenas imagens!');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('A imagem deve ter no máximo 5MB!');
+                return;
+            }
+            setPostImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPostImagePreview(reader.result);
+            };
+            reader.readAsDataURL(file);
+            setShowPostImageOptions(false);
+        }
+    };
+
+    // Clear post image
+    const clearPostImage = () => {
+        setPostImage(null);
+        setPostImagePreview(null);
+        if (postFileInputRef.current) postFileInputRef.current.value = '';
+        if (postCameraInputRef.current) postCameraInputRef.current.value = '';
+    };
+
+    // Upload image for post (similar to chat upload)
+    const uploadPostImage = async (file) => {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `post-images/${fileName}`;
+
+            const { data, error } = await supabase.storage
+                .from('community')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (!error && data) {
+                const { data: { publicUrl } } = supabase.storage
+                    .from('community')
+                    .getPublicUrl(filePath);
+                return publicUrl;
+            }
+        } catch (error) {
+            console.log('Storage not available for post, using base64');
+        }
+        return postImagePreview;
+    };
+
+    const handlePost = async () => {
+        if (!newPostContent.trim() && !postImage) return;
+
+        setUploadingPostImage(true);
+
+        try {
+            let imageUrl = null;
+
+            if (postImage) {
+                imageUrl = await uploadPostImage(postImage);
+            }
+
+            addPost({
+                user: user.name,
+                content: newPostContent,
+                image_url: imageUrl,
+            });
+
+            setNewPostContent('');
+            clearPostImage();
+        } catch (error) {
+            console.error('Error creating post:', error);
+            alert('Erro ao criar post. Tente novamente.');
+        } finally {
+            setUploadingPostImage(false);
+        }
     };
 
     const handleSendChatMessage = async () => {
@@ -809,21 +892,146 @@ const Community = () => {
                                 value={newPostContent}
                                 onChange={(e) => setNewPostContent(e.target.value)}
                             />
+
+                            {/* Post Image Preview */}
+                            {postImagePreview && (
+                                <div style={{
+                                    marginTop: '12px',
+                                    position: 'relative',
+                                    display: 'inline-block'
+                                }}>
+                                    <img
+                                        src={postImagePreview}
+                                        alt="Preview"
+                                        style={{
+                                            maxWidth: '200px',
+                                            maxHeight: '150px',
+                                            borderRadius: '12px',
+                                            objectFit: 'cover',
+                                            border: '2px solid var(--primary)'
+                                        }}
+                                    />
+                                    <button
+                                        onClick={clearPostImage}
+                                        style={{
+                                            position: 'absolute',
+                                            top: '-10px',
+                                            right: '-10px',
+                                            width: '28px',
+                                            height: '28px',
+                                            borderRadius: '50%',
+                                            background: '#FF4B4B',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
+                                        <X size={16} color="#fff" />
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Hidden file inputs for posts */}
+                            <input
+                                type="file"
+                                ref={postFileInputRef}
+                                accept="image/*"
+                                onChange={handlePostFileSelect}
+                                style={{ display: 'none' }}
+                            />
+                            <input
+                                type="file"
+                                ref={postCameraInputRef}
+                                accept="image/*"
+                                capture="environment"
+                                onChange={handlePostFileSelect}
+                                style={{ display: 'none' }}
+                            />
+
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <button style={{
-                                        width: '40px', height: '40px',
-                                        borderRadius: '10px',
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid var(--border)',
-                                        color: 'var(--text-muted)',
-                                        cursor: 'pointer',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}>
+                                <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+                                    <button
+                                        onClick={() => setShowPostImageOptions(!showPostImageOptions)}
+                                        style={{
+                                            width: '40px', height: '40px',
+                                            borderRadius: '10px',
+                                            background: postImagePreview ? 'rgba(0, 212, 255, 0.2)' : 'rgba(255,255,255,0.05)',
+                                            border: postImagePreview ? '1px solid rgba(0, 212, 255, 0.5)' : '1px solid var(--border)',
+                                            color: postImagePreview ? '#00D4FF' : 'var(--text-muted)',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center'
+                                        }}
+                                    >
                                         <Image size={18} />
                                     </button>
+
+                                    {/* Image options dropdown */}
+                                    {showPostImageOptions && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            bottom: '50px',
+                                            left: 0,
+                                            background: 'rgba(30,30,40,0.98)',
+                                            borderRadius: '12px',
+                                            border: '1px solid var(--border)',
+                                            padding: '8px',
+                                            zIndex: 100,
+                                            minWidth: '150px',
+                                            boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                                        }}>
+                                            <button
+                                                onClick={() => {
+                                                    postCameraInputRef.current?.click();
+                                                    setShowPostImageOptions(false);
+                                                }}
+                                                style={{
+                                                    width: '100%',
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    padding: '10px 12px',
+                                                    color: '#fff',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '10px',
+                                                    borderRadius: '8px'
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                                                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                            >
+                                                <Camera size={18} color="#00D4FF" />
+                                                📷 Tirar Foto
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    postFileInputRef.current?.click();
+                                                    setShowPostImageOptions(false);
+                                                }}
+                                                style={{
+                                                    width: '100%',
+                                                    background: 'transparent',
+                                                    border: 'none',
+                                                    padding: '10px 12px',
+                                                    color: '#fff',
+                                                    cursor: 'pointer',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '10px',
+                                                    borderRadius: '8px'
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                                                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                                            >
+                                                <Paperclip size={18} color="#7B2FFF" />
+                                                📁 Da Galeria
+                                            </button>
+                                        </div>
+                                    )}
+
                                     <button style={{
                                         width: '40px', height: '40px',
                                         borderRadius: '10px',
@@ -838,9 +1046,19 @@ const Community = () => {
                                         <Smile size={18} />
                                     </button>
                                 </div>
-                                <button className="btn-primary" style={{ padding: '12px 28px' }} onClick={handlePost}>
+                                <button
+                                    className="btn-primary"
+                                    style={{ padding: '12px 28px', opacity: uploadingPostImage ? 0.7 : 1 }}
+                                    onClick={handlePost}
+                                    disabled={uploadingPostImage}
+                                >
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <Send size={16} /> Publicar
+                                        {uploadingPostImage ? (
+                                            <Loader size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                                        ) : (
+                                            <Send size={16} />
+                                        )}
+                                        {uploadingPostImage ? 'Publicando...' : 'Publicar'}
                                     </div>
                                 </button>
                             </div>
@@ -879,9 +1097,27 @@ const Community = () => {
                                 </div>
 
                                 {/* Post Content */}
-                                <p style={{ fontSize: '16px', lineHeight: '1.7', marginBottom: '20px', color: '#eee' }}>
+                                <p style={{ fontSize: '16px', lineHeight: '1.7', marginBottom: post.image_url ? '12px' : '20px', color: '#eee' }}>
                                     {post.content}
                                 </p>
+
+                                {/* Post Image */}
+                                {post.image_url && (
+                                    <div style={{ marginBottom: '16px' }}>
+                                        <img
+                                            src={post.image_url}
+                                            alt="Post image"
+                                            style={{
+                                                width: '100%',
+                                                maxHeight: '400px',
+                                                objectFit: 'cover',
+                                                borderRadius: '12px',
+                                                cursor: 'pointer'
+                                            }}
+                                            onClick={() => window.open(post.image_url, '_blank')}
+                                        />
+                                    </div>
+                                )}
 
                                 {/* Post Actions */}
                                 <div style={{
