@@ -1217,48 +1217,60 @@ const Challenges = () => {
 
                 // Se acabou de completar o dia (verified true e antes não era), causar dano ao boss
                 if (day.verified && !wasVerified) {
-                    // Dano baseado na duração do desafio (padrão 21 dias se não especificado)
-                    const duration = boss.challengeDuration || 21;
-                    // Dano exato para derrotar o boss no final do desafio
+                    // Verifica se todos os dias foram cumpridos
+                    const allDaysCompleted = newCalendar.every(d => d.verified);
+
+                    // Dano baseado na duração do desafio
+                    const duration = boss.challengeDuration || newCalendar.length;
                     const damagePerDay = Math.ceil(boss.maxHealth / duration);
 
-                    const newHealth = Math.max(0, (boss.currentHealth ?? boss.maxHealth) - damagePerDay);
+                    let newHealth = Math.max(0, (boss.currentHealth ?? boss.maxHealth) - damagePerDay);
 
-                    // Side effect para animação (timeout para sair do render loop)
+                    // SE todos os dias foram completados, força a saúde a zero para garantir a vitória
+                    if (allDaysCompleted) {
+                        newHealth = 0;
+                    }
+                    // SE a saúde chegar a zero, mas nem todos os dias foram completados, mantém 1 de vida
+                    else if (newHealth === 0 && !allDaysCompleted) {
+                        newHealth = 1;
+                    }
+
+                    // Side effect para animação
                     setTimeout(() => {
-                        // Gatilho visual apenas
                         setAttackingBossId(bossId);
                         setAttackAnimation(true);
                         const offset = getRandomOffset();
                         setDamageNumbers(prevDmg => [...prevDmg, {
                             id: Date.now(),
                             value: damagePerDay,
-                            isCritical: true, // Dia completo é sempre crítico!
+                            isCritical: true,
                             offsetX: offset.x,
                             offsetY: offset.y
                         }]);
                         setTimeout(() => setAttackAnimation(false), 500);
                     }, 100);
 
-                    // Verificar morte
-                    if (newHealth === 0 && (boss.currentHealth ?? boss.maxHealth) > 0) {
-                        setTimeout(() => {
-                            setDefeatedBoss(boss);
-                            setShowVictory(true);
-                            setUser(prev => ({
-                                ...prev,
-                                xp: prev.xp + boss.reward.xp,
-                                level: Math.floor((prev.xp + boss.reward.xp) / 1000) + 1,
-                                badges: [...prev.badges, {
-                                    id: Date.now(),
-                                    name: boss.reward.badge,
-                                    icon: boss.reward.badge.split(' ')[0],
-                                    description: `Derrotou ${boss.name}`
-                                }]
-                            }));
-                            // Desbloquear o próximo desafio
-                            unlockNextBoss(boss.id);
-                        }, 800);
+                    // Verificar morte de forma definitiva
+                    if (newHealth === 0) {
+                        if (allDaysCompleted) {
+                            setTimeout(() => {
+                                setDefeatedBoss(boss);
+                                setShowVictory(true);
+                                setUser(prev => ({
+                                    ...prev,
+                                    xp: prev.xp + boss.reward.xp,
+                                    level: Math.floor((prev.xp + boss.reward.xp) / 1000) + 1,
+                                    badges: [...prev.badges, {
+                                        id: Date.now(),
+                                        name: boss.reward.badge,
+                                        icon: boss.reward.badge.split(' ')[0],
+                                        description: `Derrotou ${boss.name}`
+                                    }]
+                                }));
+                                // Desbloquear o próximo desafio
+                                unlockNextBoss(boss.id);
+                            }, 800);
+                        }
                     }
 
                     return { ...boss, calendar: newCalendar, currentHealth: newHealth, defeated: newHealth === 0 };
