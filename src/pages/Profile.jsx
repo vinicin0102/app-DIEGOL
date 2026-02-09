@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
 import { Trophy, Award, Flame, Zap, Medal, Star, Target, Settings, Dumbbell, Crown, Sparkles, Heart, TrendingUp, Info, Edit3, Camera, Activity, User } from 'lucide-react';
 import AvatarSelector, { AVATARS } from '../components/AvatarSelector';
+import NotificationSettings from '../components/NotificationSettings';
 
 import RadarChart from '../components/RadarChart';
 
@@ -293,6 +295,11 @@ const Profile = () => {
                         </p>
                     </div>
                 </div>
+            </div>
+
+            {/* === NOTIFICATION SETTINGS === */}
+            <div style={{ padding: '0 24px', marginBottom: '48px' }}>
+                <NotificationSettings user={user} />
             </div>
 
             {/* === STATS EXPLANATION (READ ONLY) === */}
