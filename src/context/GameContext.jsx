@@ -65,7 +65,18 @@ export const GameProvider = ({ children }) => {
 
     // Auth & Data Fetching Effect
     useEffect(() => {
+        let mounted = true;
+
+        // Timeout de segurança: se o Supabase não responder em 5s, libera o app
+        const safetyTimeout = setTimeout(() => {
+            if (mounted && loading) {
+                console.warn("Supabase session check timed out. Forcing app load.");
+                setLoading(false);
+            }
+        }, 5000);
+
         supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!mounted) return;
             setSession(session);
             if (session) fetchProfile(session.user.id);
             fetchChallenges();
@@ -73,21 +84,30 @@ export const GameProvider = ({ children }) => {
         }).catch(err => {
             console.error("Erro ao iniciar sessão:", err);
         }).finally(() => {
-            setLoading(false);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            if (session) {
-                fetchProfile(session.user.id);
-            } else {
-                // Reset to local/default if logged out
-                const saved = localStorage.getItem('gameUser');
-                setUser(saved ? JSON.parse(saved) : defaultUser);
+            if (mounted) {
+                clearTimeout(safetyTimeout);
+                setLoading(false);
             }
         });
 
-        return () => subscription.unsubscribe();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (mounted) {
+                setSession(session);
+                if (session) {
+                    fetchProfile(session.user.id);
+                } else {
+                    // Reset to local/default if logged out
+                    const saved = localStorage.getItem('gameUser');
+                    setUser(saved ? JSON.parse(saved) : defaultUser);
+                }
+            }
+        });
+
+        return () => {
+            mounted = false;
+            clearTimeout(safetyTimeout);
+            subscription.unsubscribe();
+        };
     }, []);
 
     const fetchProfile = async (userId) => {
@@ -153,21 +173,37 @@ export const GameProvider = ({ children }) => {
         }
     };
 
+    // Helper para timeout
+    const withTimeout = (promise, ms = 15000) => {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Tempo limite excedido. Verifique sua conexão.')), ms))
+        ]);
+    };
+
     // --- Authentication Actions ---
     const signUp = async (email, password, name) => {
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-                data: { name }
-            }
-        });
-        return { data, error };
+        try {
+            const { data, error } = await withTimeout(supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: { name }
+                }
+            }));
+            return { data, error };
+        } catch (err) {
+            return { data: null, error: err };
+        }
     };
 
     const signIn = async (email, password) => {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        return { data, error };
+        try {
+            const { data, error } = await withTimeout(supabase.auth.signInWithPassword({ email, password }));
+            return { data, error };
+        } catch (err) {
+            return { data: null, error: err };
+        }
     };
 
     const signOut = () => supabase.auth.signOut();
