@@ -70,6 +70,9 @@ export const GameProvider = ({ children }) => {
             if (session) fetchProfile(session.user.id);
             fetchChallenges();
             fetchPosts();
+        }).catch(err => {
+            console.error("Erro ao iniciar sessão:", err);
+        }).finally(() => {
             setLoading(false);
         });
 

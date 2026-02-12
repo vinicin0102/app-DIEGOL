@@ -22,16 +22,23 @@ const Home = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const { error } = await login(email, password);
-    setLoading(false);
+    console.log("Tentando login via Home...");
 
-    if (error) {
-      setError('Erro ao entrar. Verifique suas credenciais.');
-      console.error(error);
-    } else {
-      // Successful login will trigger auth state change and redirect via App.jsx
-      // But we can also push to /app to be sure
-      navigate('/app');
+    try {
+      const { error } = await login(email, password);
+
+      if (error) {
+        console.error("Erro no login:", error);
+        setError('Erro ao entrar. Verifique suas credenciais.');
+      } else {
+        console.log("Login com sucesso, navegando para /app");
+        navigate('/app');
+      }
+    } catch (err) {
+      console.error("Exceção no login:", err);
+      setError("Erro inesperado ao tentar entrar.");
+    } finally {
+      setLoading(false);
     }
   };
 

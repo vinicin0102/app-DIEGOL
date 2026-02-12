@@ -17,21 +17,30 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
+        console.log("Iniciando login/cadastro...");
 
         try {
             if (isSignUp) {
+                console.log("Tentando cadastro...");
                 const { error } = await signUp(email, password, name);
                 if (error) throw error;
                 alert('Cadastro realizado! Verifique seu email se necessário ou faça login.');
                 setIsSignUp(false);
             } else {
-                const { error } = await signIn(email, password);
-                if (error) throw error;
-                navigate('/app');
+                console.log("Tentando login...");
+                const result = await signIn(email, password);
+                console.log("Resultado do login:", result);
+                if (result.error) throw result.error;
+
+                console.log("Login OK, navegando...");
+                // Pequeno delay para garantir que o estado propague
+                setTimeout(() => navigate('/app'), 100);
             }
         } catch (err) {
-            setError(err.message);
+            console.error("Erro no login:", err);
+            setError(err.message || "Erro desconhecido ao tentar entrar");
         } finally {
+            console.log("Finalizando processo de login");
             setLoading(false);
         }
     };

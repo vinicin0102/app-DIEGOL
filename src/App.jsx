@@ -9,9 +9,28 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import { useGame } from './context/GameContext';
+import './App.css';
 
 const App = () => {
-  const { isAuthenticated } = useGame();
+  const { isAuthenticated, loading } = useGame();
+
+  React.useEffect(() => {
+    console.log("App State -> Loading:", loading, "Authenticated:", isAuthenticated);
+  }, [loading, isAuthenticated]);
+
+  // Mostrar tela de carregamento enquanto verifica sessão
+  if (loading) {
+    return (
+      <div className="app-loading-screen">
+        <div className="app-loading-spinner">
+          <div className="spinner-ring"></div>
+          <div className="spinner-ring"></div>
+          <div className="spinner-ring"></div>
+        </div>
+        <p className="app-loading-text">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <Routes>
