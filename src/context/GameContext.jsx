@@ -39,13 +39,22 @@ export const GameProvider = ({ children }) => {
     };
 
     const [user, setUser] = useState(() => {
-        const saved = localStorage.getItem('gameUser');
-        return saved ? JSON.parse(saved) : defaultUser;
+        try {
+            const saved = localStorage.getItem('gameUser');
+            return saved ? JSON.parse(saved) : defaultUser;
+        } catch (e) {
+            console.error("Erro ao carregar user do localstorage:", e);
+            return defaultUser;
+        }
     });
 
     const [challenges, setChallenges] = useState(() => {
-        const saved = localStorage.getItem('gameChallenges');
-        if (saved) return JSON.parse(saved);
+        try {
+            const saved = localStorage.getItem('gameChallenges');
+            if (saved) return JSON.parse(saved);
+        } catch (e) {
+            console.error("Erro ao carregar challenges:", e);
+        }
         return [
             { id: 1, title: 'Iniciante: Flexões', level: 1, xp: 100, locked: false, price: 0, description: 'Faça 10 flexões seguidas.' },
             { id: 2, title: 'Iniciante: Agachamentos', level: 1, xp: 150, locked: false, price: 0, description: 'Faça 20 agachamentos.' },
@@ -55,8 +64,12 @@ export const GameProvider = ({ children }) => {
     });
 
     const [posts, setPosts] = useState(() => {
-        const saved = localStorage.getItem('gamePosts');
-        if (saved) return JSON.parse(saved);
+        try {
+            const saved = localStorage.getItem('gamePosts');
+            if (saved) return JSON.parse(saved);
+        } catch (e) {
+            console.error("Erro ao carregar posts:", e);
+        }
         return [
             { id: 1, user: 'Maria Silva', content: 'Acabei de completar o desafio Iron Man! Foi insano! 🦾', likes: 24, time: '2h atrás', badge: '🏆' },
             { id: 2, user: 'João Souza', content: 'Começando a jornada hoje. Foco total! 🚀', likes: 12, time: '4h atrás', badge: '🌟' },
