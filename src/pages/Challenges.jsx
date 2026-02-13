@@ -1532,7 +1532,7 @@ const Challenges = () => {
                         </div>
 
                         {/* Peso e Altura */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', fontSize: '14px' }}>
                                     ⚖️ Peso atual (kg)
@@ -1601,7 +1601,7 @@ const Challenges = () => {
                         </div>
 
                         {/* Sexo e Idade */}
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '10px', fontWeight: '700', fontSize: '14px' }}>
                                     👤 Sexo
@@ -1853,7 +1853,7 @@ const Challenges = () => {
             </div>
 
             {/* Boss Cards Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '28px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '28px' }}>
                 {activeBosses.map((boss, index) => {
                     const currentHealth = boss.currentHealth ?? boss.maxHealth;
                     const healthPercent = (currentHealth / boss.maxHealth) * 100;

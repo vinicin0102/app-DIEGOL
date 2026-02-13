@@ -287,16 +287,20 @@
     .main-content {
         margin-left: 0;
         padding: 20px 16px;
-        padding-bottom: calc(90px + env(safe-area-inset-bottom, 0px));
+        /* Padding extra para garantir que o último item não fique atrás da nav bar */
+        padding-bottom: calc(100px + env(safe-area-inset-bottom, 20px));
         height: 100%;
         overflow-y: auto;
+        /* Permitir scroll horizontal se necessário em tabelas, mas evitar layout quebrado */
+        overflow-x: hidden;
         overscroll-behavior: contain;
-        /* Prevents bounce effect */
     }
 
     .mobile-nav {
         display: flex;
-        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 10px));
+        height: calc(60px + env(safe-area-inset-bottom, 10px));
+        box-sizing: border-box;
     }
 }
 

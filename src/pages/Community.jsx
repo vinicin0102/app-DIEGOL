@@ -473,7 +473,7 @@ const Community = () => {
                 </div>
 
                 {/* === QUICK STATS === */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '16px', marginBottom: '32px' }}>
                     <div className="glass-panel" style={{ padding: '20px', textAlign: 'center' }}>
                         <Users size={24} color="var(--primary)" style={{ marginBottom: '8px' }} />
                         <h4 style={{ fontSize: '24px', fontWeight: '800' }}>{onlineUsers}</h4>

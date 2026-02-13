@@ -378,7 +378,7 @@ const Profile = () => {
 
             {/* === STATS GRID === */}
             <div style={{ padding: '0 24px', marginBottom: '48px' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '16px' }}>
                     <div className="glass-panel" style={{ padding: '24px', textAlign: 'center' }}>
                         <div style={{
                             width: '56px', height: '56px',
@@ -428,7 +428,7 @@ const Profile = () => {
                     <h2 style={{ fontSize: '26px', fontWeight: '800' }}>Sala de Troféus</h2>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
                     {user.badges.map(badge => (
                         <div key={badge.id} className="glass-panel trophy-card">
                             <div className="trophy-icon">
