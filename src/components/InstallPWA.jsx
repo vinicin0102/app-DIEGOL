@@ -20,7 +20,7 @@ const InstallPWA = () => {
         // Detect iOS
         const userAgent = window.navigator.userAgent.toLowerCase();
         const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-        const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+        const isStandalone = window.navigator?.standalone || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
 
         if (isIosDevice && !isStandalone) {
             setIsIOS(true);

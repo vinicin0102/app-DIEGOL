@@ -8,7 +8,12 @@ import { Bell, BellOff, Clock, Check, Loader } from 'lucide-react';
 const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
 
 const NotificationSettings = ({ user }) => {
-    const [permission, setPermission] = useState(Notification.permission);
+    const [permission, setPermission] = useState(() => {
+        if (typeof Notification !== 'undefined') {
+            return Notification.permission;
+        }
+        return 'default';
+    });
     const [isSubscribed, setIsSubscribed] = useState(false);
     const [loading, setLoading] = useState(false);
     const [scheduleTime, setScheduleTime] = useState('08:00');
