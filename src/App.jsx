@@ -6,6 +6,7 @@ import Challenges from './pages/Challenges';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
+import Training from './pages/Training';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import { useGame } from './context/GameContext';
@@ -62,6 +63,7 @@ const App = () => {
       {/* Protected Routes */}
       <Route path="/app" element={isAuthenticated ? <AppLayout /> : <Navigate to="/" />}>
         <Route index element={<Navigate to="profile" replace />} />
+        <Route path="training" element={<Training />} />
         <Route path="challenges" element={<Challenges />} />
         <Route path="community" element={<Community />} />
         <Route path="profile" element={<Profile />} />
