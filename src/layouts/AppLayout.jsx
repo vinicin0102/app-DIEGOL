@@ -23,7 +23,7 @@ const AppLayout = () => {
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
       { path: '/app/challenges', icon: Trophy, label: 'Desafios' },
       { path: '/app/community', icon: Users, label: 'Comunidade' },
-      ...(isSuperAdmin ? [{ path: '/app/admin', icon: ShieldCheck, label: 'Painel Admin' }] : [])
+      { path: '/app/admin', icon: ShieldCheck, label: 'Painel Admin' }
     ];
 
 

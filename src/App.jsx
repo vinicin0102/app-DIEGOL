@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
 import Challenges from './pages/Challenges';
 import Community from './pages/Community';
@@ -56,15 +56,6 @@ const App = () => {
 
   // --- ROTEAMENTO PARA SUBDOMÍNIO ADMIN ---
   if (isHostAdmin) {
-    // Acesso ao subdomínio admin é RESTREITO ao email do dono
-    const isSuperAdmin = session?.user?.email === 'vinicius6655000@gmail.com';
-
-    if (isAuthenticated && !isSuperAdmin) {
-      // Se estiver logado mas não for o dono, manda de volta pro app principal
-      window.location.href = 'https://desafiodosvencedores.vercel.app';
-      return null;
-    }
-
     return (
       <>
         <Routes>
@@ -85,15 +76,19 @@ const App = () => {
         <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
         <Route path="/login" element={<Navigate to="/" />} />
 
-        {/* Protected Routes */}
-        <Route path="/app" element={isAuthenticated ? <AppLayout /> : <Navigate to="/" />}>
-          <Route index element={<Navigate to="profile" replace />} />
-          <Route path="training" element={<Training />} />
-          <Route path="challenges" element={<Challenges />} />
-          <Route path="community" element={<Community />} />
-          <Route path="profile" element={<Profile />} />
-          {/* Painel Admin - protegido internamente pelo componente */}
+        {/* Base App Route with Sidebar Layout */}
+        <Route path="/app" element={<AppLayout />}>
+          {/* Public Admin Access */}
           <Route path="admin" element={<Admin superMail="vinicius6655000@gmail.com" />} />
+
+          {/* Protected Content */}
+          <Route element={isAuthenticated ? <Outlet /> : <Navigate to="/" />}>
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="training" element={<Training />} />
+            <Route path="challenges" element={<Challenges />} />
+            <Route path="community" element={<Community />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

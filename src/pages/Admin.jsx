@@ -115,9 +115,8 @@ const Admin = ({ superMail }) => {
     };
 
 
-    // Verificação de Admin: Segurança Máxima via Email Hardcoded + Banco
-    const isSuperAdmin = session?.user?.email === superMail;
-    const hasAdminAccess = isSuperAdmin || (user && user.isAdmin);
+    // Verificação de Admin: Desativada para tornar o painel público
+    const hasAdminAccess = true;
 
     if (!hasAdminAccess) {
         return (
