@@ -78,42 +78,55 @@ const Admin = () => {
     };
 
     // Send instant notification
-    const sendInstantNotification = () => {
+    const sendInstantNotification = async () => {
         if (!notifTitle.trim() || !notifBody.trim()) {
             alert('Preencha o título e a mensagem!');
             return;
         }
 
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-            new Notification(notifTitle, {
-                body: notifBody,
-                icon: '/pwa-192x192.png',
-                badge: '/pwa-192x192.png',
-                vibrate: [200, 100, 200],
-                tag: 'admin-notification-' + Date.now(),
-            });
-        }
-
-        // Also broadcast to all users via Supabase Realtime
         try {
-            const channel = supabase.channel('admin_notifications');
-            channel.subscribe(status => {
-                if (status === 'SUBSCRIBED') {
-                    channel.send({
-                        type: 'broadcast',
-                        event: 'INSTANT_NOTIF',
-                        payload: { title: notifTitle, body: notifBody, sentAt: new Date().toISOString() }
-                    });
-                }
-            });
-            // Also keep BroadcastChannel for same-browser fallback
-            const bc = new BroadcastChannel('admin_notifications');
-            bc.postMessage({ type: 'INSTANT', title: notifTitle, body: notifBody, sentAt: new Date().toISOString() });
-            bc.close();
-        } catch (e) { console.error('Broadcast error:', e); }
+            // 1. Save to database (so users who open the app later will see it)
+            await supabase.from('admin_broadcasts').insert([{
+                title: notifTitle,
+                body: notifBody
+            }]);
 
-        setNotifSent(true);
-        setTimeout(() => setNotifSent(false), 3000);
+            // 2. Broadcast via Supabase Realtime (for users with app open NOW)
+            const channel = supabase.channel('global_notifications');
+            await new Promise((resolve) => {
+                channel.subscribe(status => {
+                    if (status === 'SUBSCRIBED') {
+                        channel.send({
+                            type: 'broadcast',
+                            event: 'INSTANT_NOTIF',
+                            payload: { title: notifTitle, body: notifBody, sentAt: new Date().toISOString() }
+                        });
+                        // Cleanup channel after a short delay
+                        setTimeout(() => {
+                            supabase.removeChannel(channel);
+                        }, 2000);
+                        resolve();
+                    }
+                });
+            });
+
+            // 3. Show local notification for admin too
+            if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+                new Notification(notifTitle, {
+                    body: notifBody,
+                    icon: '/pwa-192x192.png',
+                    badge: '/pwa-192x192.png',
+                    vibrate: [200, 100, 200],
+                    tag: 'admin-notification-' + Date.now(),
+                });
+            }
+
+            setNotifSent(true);
+            setTimeout(() => setNotifSent(false), 3000);
+        } catch (e) {
+            console.error('Erro ao enviar notificação:', e);
+            alert('Erro ao enviar notificação. Tente novamente.');
+        }
     };
 
     // Schedule a notification

@@ -11,6 +11,7 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 import { useGame } from './context/GameContext';
 import InstallPWA from './components/InstallPWA';
+import InAppNotification from './components/InAppNotification';
 import './App.css';
 
 const App = () => {
@@ -81,6 +82,7 @@ const App = () => {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <InstallPWA />
+      <InAppNotification />
     </>
   );
 };
