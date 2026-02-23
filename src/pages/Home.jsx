@@ -22,20 +22,16 @@ const Home = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    console.log("Tentando login via Home...");
 
     try {
       const { error } = await login(email, password);
 
       if (error) {
-        console.error("Erro no login:", error);
         setError('Erro ao entrar. Verifique suas credenciais.');
       } else {
-        console.log("Login com sucesso, navegando para /app");
         navigate('/app');
       }
     } catch (err) {
-      console.error("Exceção no login:", err);
       setError("Erro inesperado ao tentar entrar.");
     } finally {
       setLoading(false);
@@ -47,7 +43,12 @@ const Home = () => {
     setLoading(true);
     setError('');
 
-    // Use signUp from context
+    if (password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres.');
+      setLoading(false);
+      return;
+    }
+
     const { error } = await signUp(email, password, name);
     setLoading(false);
 
@@ -55,8 +56,6 @@ const Home = () => {
       setError('Erro ao criar conta: ' + error.message);
     } else {
       alert('Conta criada! Verifique seu email se necessário.');
-      // Usually Supabase auto-logs in unless email confirm is on.
-      // If auto-login, we navigate.
       navigate('/app');
     }
   };
@@ -197,6 +196,7 @@ const Home = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
               <div className="form-group">
@@ -207,6 +207,8 @@ const Home = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={6}
+                  autoComplete="current-password"
                 />
               </div>
               {error && <p style={{ color: 'red', fontSize: '14px', marginBottom: '10px' }}>{error}</p>}
@@ -238,6 +240,8 @@ const Home = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  maxLength={50}
+                  autoComplete="name"
                 />
               </div>
               <div className="form-group">
@@ -248,6 +252,7 @@ const Home = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  autoComplete="email"
                 />
               </div>
               <div className="form-group">
@@ -258,6 +263,8 @@ const Home = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength={6}
+                  autoComplete="new-password"
                 />
               </div>
               <button type="submit" className="btn-primary full-width">

@@ -26,7 +26,9 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        id: '/',
         categories: ['fitness', 'games', 'lifestyle'],
+        prefer_related_applications: false,
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -51,6 +53,20 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
+          }
+        ],
+        shortcuts: [
+          {
+            name: 'Treino',
+            short_name: 'Treinar',
+            url: '/app/training',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Perfil',
+            short_name: 'Perfil',
+            url: '/app/profile',
+            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
           }
         ]
       }

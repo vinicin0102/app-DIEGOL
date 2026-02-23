@@ -36,9 +36,7 @@ const App = () => {
 
   const { isAuthenticated, loading } = useGame();
 
-  React.useEffect(() => {
-    console.log("App State -> Loading:", loading, "Authenticated:", isAuthenticated);
-  }, [loading, isAuthenticated]);
+  // App state monitoring removed in production
 
   // Mostrar tela de carregamento enquanto verifica sessão
   if (loading) {

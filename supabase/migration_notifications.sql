@@ -28,7 +28,7 @@ create table if not exists public.scheduled_notifications (
   title text not null,
   body text not null,
   schedule_time time not null,
-  repeat text default 'daily',
+  "repeat" text default 'daily',
   is_active boolean default true,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );

@@ -17,30 +17,27 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
         setError('');
-        console.log("Iniciando login/cadastro...");
 
         try {
             if (isSignUp) {
-                console.log("Tentando cadastro...");
+                if (password.length < 6) {
+                    setError('A senha deve ter pelo menos 6 caracteres.');
+                    setLoading(false);
+                    return;
+                }
                 const { error } = await signUp(email, password, name);
                 if (error) throw error;
                 alert('Cadastro realizado! Verifique seu email se necessário ou faça login.');
                 setIsSignUp(false);
             } else {
-                console.log("Tentando login...");
                 const result = await signIn(email, password);
-                console.log("Resultado do login:", result);
                 if (result.error) throw result.error;
-
-                console.log("Login OK, navegando...");
-                // Pequeno delay para garantir que o estado propague
                 setTimeout(() => navigate('/app'), 100);
             }
         } catch (err) {
             console.error("Erro no login:", err);
             setError(err.message || "Erro desconhecido ao tentar entrar");
         } finally {
-            console.log("Finalizando processo de login");
             setLoading(false);
         }
     };
@@ -58,6 +55,8 @@ const Login = () => {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
+                            maxLength={50}
+                            autoComplete="name"
                             style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #333', background: '#222', color: '#fff' }}
                         />
                     </div>
@@ -70,6 +69,7 @@ const Login = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
+                        autoComplete="email"
                         style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #333', background: '#222', color: '#fff' }}
                     />
                 </div>
@@ -81,6 +81,8 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         required
+                        minLength={6}
+                        autoComplete={isSignUp ? "new-password" : "current-password"}
                         style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #333', background: '#222', color: '#fff' }}
                     />
                 </div>

@@ -49,8 +49,7 @@ const BossSprite = ({ bossType, isAttacking, isDefeated }) => {
                         : isDefeated ? 'none' : 'boss-idle-animation 3s ease-in-out infinite'
                 }}
             />
-            <style dangerouslySetInnerHTML={{
-                __html: `
+            <style>{`
                 @keyframes boss-idle-animation {
                     0%, 100% { transform: translateY(0) scale(1); }
                     50% { transform: translateY(-8px) scale(1.03); }
@@ -62,7 +61,7 @@ const BossSprite = ({ bossType, isAttacking, isDefeated }) => {
                     75% { transform: scale(1.1) translateX(10px); }
                     100% { transform: scale(1) translateX(0); }
                 }
-            `}} />
+            `}</style>
         </div>
     );
 };

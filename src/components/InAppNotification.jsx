@@ -100,13 +100,12 @@ const InAppNotification = () => {
                     </button>
                 </div>
             ))}
-            <style dangerouslySetInnerHTML={{
-                __html: `
+            <style>{`
                 @keyframes notif-slide-in {
                     0% { opacity: 0; transform: translateY(-30px) scale(0.95); }
                     100% { opacity: 1; transform: translateY(0) scale(1); }
                 }
-            `}} />
+            `}</style>
         </div>
     );
 };

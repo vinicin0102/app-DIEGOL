@@ -1,25 +1,48 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <link rel="apple-touch-icon" href="/pwa-192x192.png" />
-  <link rel="mask-icon" href="/vite.svg" color="#00FF88" />
-  
+  <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/pwa-192x192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="/pwa-512x512.png" />
+
   <meta name="theme-color" content="#030304" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Vencedores" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="format-detection" content="telephone=no" />
-  <meta name="description" content="O jogo definitivo para transformar seu corpo e mente. Desafio dos Vencedores." />
-  
+  <meta name="description"
+    content="O jogo definitivo para transformar seu corpo e mente. Desafio dos Vencedores - Gamifique seu treino e evolua!" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Desafio dos Vencedores - Gamifique seu Treino" />
+  <meta property="og:description"
+    content="Transforme seus treinos em um jogo épico. Suba de nível, derrote chefes e conquiste o corpo que sempre quis." />
+  <meta property="og:image" content="/pwa-512x512.png" />
+
+  <!-- PWA Splash Screens (iOS) -->
+  <meta name="apple-mobile-web-app-title" content="Vencedores" />
+
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
   <title>Desafio dos Vencedores</title>
 </head>
 
 <body>
+  <noscript>
+    <div style="text-align:center;padding:40px;color:#fff;background:#030304;min-height:100vh;">
+      <h1>Desafio dos Vencedores</h1>
+      <p>Este aplicativo requer JavaScript habilitado para funcionar.</p>
+    </div>
+  </noscript>
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
