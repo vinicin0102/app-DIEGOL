@@ -9,7 +9,7 @@ import './AppLayout.css';
 const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, session } = useGame();
+  const { user, session, signOut } = useGame();
 
   const isHostAdmin = window.location.hostname.startsWith('admin.');
   const isSuperAdmin = session?.user?.email === 'vinicius6655000@gmail.com';
@@ -100,7 +100,7 @@ const AppLayout = () => {
         </div>
 
         <button
-          onClick={() => logout()}
+          onClick={() => signOut()}
           style={{
             marginTop: '24px',
             width: '100%',

@@ -5,6 +5,7 @@ import Challenges from './pages/Challenges';
 import Community from './pages/Community';
 import Missions from './pages/Missions';
 import Calendar from './pages/Calendar';
+import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Training from './pages/Training';
 import Home from './pages/Home';
