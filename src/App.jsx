@@ -10,6 +10,7 @@ import Training from './pages/Training';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import { useGame } from './context/GameContext';
+import InstallPWA from './components/InstallPWA';
 import './App.css';
 
 const App = () => {
