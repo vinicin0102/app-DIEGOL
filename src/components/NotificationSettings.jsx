@@ -62,20 +62,71 @@ const NotificationSettings = ({ user }) => {
     const startNotificationScheduler = () => {
         // Check every 60 seconds if it's time to send
         const checkInterval = setInterval(() => {
+            if (Notification.permission !== 'granted') return;
+
             const now = new Date();
             const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const today = now.toDateString();
+            const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+
+            // 1. Check user's personal notification time
             const savedTime = localStorage.getItem('notification_time') || '08:00';
-
-            if (currentTime === savedTime && Notification.permission === 'granted') {
+            if (currentTime === savedTime) {
                 const lastSent = localStorage.getItem('last_notification_date');
-                const today = now.toDateString();
-
                 if (lastSent !== today) {
                     sendTestNotification();
                     localStorage.setItem('last_notification_date', today);
                 }
             }
+
+            // 2. Check admin-scheduled notifications
+            try {
+                const adminNotifs = JSON.parse(localStorage.getItem('admin_scheduled_notifications') || '[]');
+                adminNotifs.forEach(n => {
+                    if (!n.active) return;
+                    if (n.time !== currentTime) return;
+
+                    // Check repeat rule
+                    if (n.repeat === 'weekdays' && (dayOfWeek === 0 || dayOfWeek === 6)) return;
+
+                    const lastKey = `admin_notif_sent_${n.id}`;
+                    const lastSentForThis = localStorage.getItem(lastKey);
+                    if (lastSentForThis === today) return;
+
+                    // Send it!
+                    new Notification(n.title, {
+                        body: n.body,
+                        icon: '/pwa-192x192.png',
+                        badge: '/pwa-192x192.png',
+                        vibrate: [200, 100, 200],
+                        tag: 'admin-scheduled-' + n.id,
+                    });
+                    localStorage.setItem(lastKey, today);
+
+                    // If "once", deactivate it
+                    if (n.repeat === 'once') {
+                        const updated = adminNotifs.map(x => x.id === n.id ? { ...x, active: false } : x);
+                        localStorage.setItem('admin_scheduled_notifications', JSON.stringify(updated));
+                    }
+                });
+            } catch (e) { /* ignore parse errors */ }
         }, 60000); // Check every minute
+
+        // 3. Listen for instant admin notifications via BroadcastChannel
+        try {
+            const bc = new BroadcastChannel('admin_notifications');
+            bc.onmessage = (event) => {
+                if (event.data?.type === 'INSTANT' && Notification.permission === 'granted') {
+                    new Notification(event.data.title, {
+                        body: event.data.body,
+                        icon: '/pwa-192x192.png',
+                        badge: '/pwa-192x192.png',
+                        vibrate: [200, 100, 200],
+                        tag: 'admin-instant-' + Date.now(),
+                    });
+                }
+            };
+        } catch (e) { /* BroadcastChannel not supported */ }
 
         return () => clearInterval(checkInterval);
     };
