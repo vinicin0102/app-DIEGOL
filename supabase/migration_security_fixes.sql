@@ -30,19 +30,30 @@ create policy "Users can delete own posts." on public.posts
   for delete using (auth.uid() = user_id);
 
 -- Update RLS for profiles: Ensure users can't make themselves admins
-create or replace policy "Users can update own profile." on public.profiles 
+-- Note: 'CREATE OR REPLACE POLICY' is not valid in standard PostgreSQL/Supabase.
+-- We must DROP and then CREATE.
+drop policy if exists "Users can update own profile." on public.profiles;
+
+create policy "Users can update own profile." on public.profiles 
   for update using (auth.uid() = id)
   with check (
-    (case when is_admin is not null then is_admin = (select is_admin from public.profiles where id = auth.uid()) else true end)
+    -- This check ensures that if is_admin is being changed, the user must already be an admin
+    -- However, it's safer to use the trigger protection below for 'is_admin' field.
+    auth.uid() = id
   );
--- Note: The above policy is a bit tricky in Supabase RLS. Better approach:
--- Restrict update of is_admin column using a trigger or specific RLS.
 
+-- Trigger to prevent non-admins from promoting themselves
 create or replace function public.protect_admin_field()
 returns trigger as $$
 begin
-  if (old.is_admin is distinct from new.is_admin) and (not exists (select 1 from public.profiles where id = auth.uid() and is_admin = true)) then
-    new.is_admin := old.is_admin;
+  -- If is_admin is changing and the performing user is NOT an admin, revert the change
+  if (old.is_admin is distinct from new.is_admin) then
+    if not exists (
+      select 1 from public.profiles 
+      where id = auth.uid() and is_admin = true
+    ) then
+      new.is_admin := old.is_admin;
+    end if;
   end if;
   return new;
 end;
