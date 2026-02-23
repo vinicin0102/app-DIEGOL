@@ -92,8 +92,8 @@ const App = () => {
           <Route path="challenges" element={<Challenges />} />
           <Route path="community" element={<Community />} />
           <Route path="profile" element={<Profile />} />
-          {/* Redireciona tentativa de acesso interno para o subdomínio correto */}
-          <Route path="admin" element={<Navigate to="/" />} />
+          {/* Painel Admin - protegido internamente pelo componente */}
+          <Route path="admin" element={<Admin superMail="vinicius6655000@gmail.com" />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />
