@@ -7,8 +7,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-const Admin = () => {
-    const { challenges, addChallenge, updateChallenge, deleteChallenge, user } = useGame();
+const Admin = ({ superMail }) => {
+    const { challenges, addChallenge, updateChallenge, deleteChallenge, user, session } = useGame();
     const [activeTab, setActiveTab] = useState('challenges');
     const [showForm, setShowForm] = useState(false);
     const [newChallenge, setNewChallenge] = useState({
@@ -80,8 +80,11 @@ const Admin = () => {
         }
     };
 
-    // Verificação de Admin baseada no banco de dados (mais seguro)
-    if (!user || !user.isAdmin) {
+    // Verificação de Admin: Segurança Máxima via Email Hardcoded + Banco
+    const isSuperAdmin = session?.user?.email === superMail;
+    const hasAdminAccess = isSuperAdmin || (user && user.isAdmin);
+
+    if (!hasAdminAccess) {
         return (
             <div className="page-enter" style={{
                 height: '80vh',

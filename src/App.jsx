@@ -56,11 +56,20 @@ const App = () => {
 
   // --- ROTEAMENTO PARA SUBDOMÍNIO ADMIN ---
   if (isHostAdmin) {
+    // Acesso ao subdomínio admin é RESTREITO ao email do dono
+    const isSuperAdmin = session?.user?.email === 'vinicius6655000@gmail.com';
+
+    if (isAuthenticated && !isSuperAdmin) {
+      // Se estiver logado mas não for o dono, manda de volta pro app principal
+      window.location.href = 'https://desafiodosvencedores.vercel.app';
+      return null;
+    }
+
     return (
       <>
         <Routes>
           <Route path="/" element={isAuthenticated ? <AppLayout /> : <Home />}>
-            <Route index element={<Admin />} />
+            <Route index element={<Admin superMail="vinicius6655000@gmail.com" />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Route>
         </Routes>

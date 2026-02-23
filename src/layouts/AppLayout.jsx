@@ -11,6 +11,7 @@ const AppLayout = () => {
   const { user, session } = useGame();
 
   const isHostAdmin = window.location.hostname.startsWith('admin.');
+  const isSuperAdmin = session?.user?.email === 'vinicius6655000@gmail.com';
 
   const navItems = isHostAdmin
     ? [
@@ -22,6 +23,7 @@ const AppLayout = () => {
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
       { path: '/app/challenges', icon: Trophy, label: 'Desafios' },
       { path: '/app/community', icon: Users, label: 'Comunidade' },
+      ...(isSuperAdmin ? [{ path: '/app/admin', icon: ShieldCheck, label: 'Painel Admin' }] : [])
     ];
 
 
