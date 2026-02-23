@@ -53,31 +53,34 @@ const App = () => {
   }
 
   return (
-    <Routes>
-      {/* If authenticated, redirect to /app (Dashboard), else show Home (Landing/Login) */}
-      <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
+    <>
+      <Routes>
+        {/* If authenticated, redirect to /app (Dashboard), else show Home (Landing/Login) */}
+        <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
 
-      {/* Direct access to independent login page if needed, or use Home */}
-      <Route path="/login" element={<Login />} />
+        {/* Direct access to independent login page if needed, or use Home */}
+        <Route path="/login" element={<Login />} />
 
-      {/* Protected Routes */}
-      <Route path="/app" element={isAuthenticated ? <AppLayout /> : <Navigate to="/" />}>
-        <Route index element={<Navigate to="profile" replace />} />
-        <Route path="training" element={<Training />} />
-        <Route path="challenges" element={<Challenges />} />
-        <Route path="community" element={<Community />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="admin" element={<Admin />} />
-      </Route>
+        {/* Protected Routes */}
+        <Route path="/app" element={isAuthenticated ? <AppLayout /> : <Navigate to="/" />}>
+          <Route index element={<Navigate to="profile" replace />} />
+          <Route path="training" element={<Training />} />
+          <Route path="challenges" element={<Challenges />} />
+          <Route path="community" element={<Community />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="admin" element={<Admin />} />
+        </Route>
 
-      {/* Legacy/Fallback routes handling */}
-      <Route path="/challenges" element={<Navigate to="/app/challenges" />} />
-      <Route path="/community" element={<Navigate to="/app/community" />} />
-      <Route path="/profile" element={<Navigate to="/app/profile" />} />
-      <Route path="/admin" element={<Navigate to="/app/admin" />} />
+        {/* Legacy/Fallback routes handling */}
+        <Route path="/challenges" element={<Navigate to="/app/challenges" />} />
+        <Route path="/community" element={<Navigate to="/app/community" />} />
+        <Route path="/profile" element={<Navigate to="/app/profile" />} />
+        <Route path="/admin" element={<Navigate to="/app/admin" />} />
 
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+      <InstallPWA />
+    </>
   );
 };
 

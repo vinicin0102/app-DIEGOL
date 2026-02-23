@@ -62,7 +62,8 @@ const Admin = () => {
                         }}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') {
-                                if (passwordInput === 'admin123') setIsAdminAuth(true);
+                                const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+                                if (passwordInput === adminPass) setIsAdminAuth(true);
                                 else setErrorMsg('Senha incorreta! Tente novamente.');
                             }
                         }}
@@ -74,7 +75,8 @@ const Admin = () => {
                         className="btn-primary"
                         style={{ width: '100%' }}
                         onClick={() => {
-                            if (passwordInput === 'admin123') setIsAdminAuth(true);
+                            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+                            if (passwordInput === adminPass) setIsAdminAuth(true);
                             else setErrorMsg('Senha incorreta! Tente novamente.');
                         }}
                     >

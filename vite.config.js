@@ -19,29 +19,38 @@ export default defineConfig({
       manifest: {
         name: 'Desafio dos Vencedores',
         short_name: 'Vencedores',
-        description: 'O jogo definitivo para transformar seu corpo e mente. Desafio dos Vencedores.',
-        theme_color: '#00FF88',
+        description: 'O jogo definitivo para transformar seu corpo e mente.',
+        theme_color: '#030304',
         background_color: '#030304',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        categories: ['fitness', 'games', 'lifestyle'],
         icons: [
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png'
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }
