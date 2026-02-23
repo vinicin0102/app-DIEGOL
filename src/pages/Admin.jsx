@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
-import { Edit2, Trash2, Plus, Save, X, Users, Trophy, ChevronDown, Lock, Unlock, Settings, BarChart3 } from 'lucide-react';
+import {
+    Edit2, Trash2, Plus, Save, X, Users, Trophy,
+    ChevronDown, Lock, Unlock, Settings, BarChart3,
+    Bell, Send, Calendar, Clock, Loader
+} from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
 const Admin = () => {
     const { challenges, addChallenge, updateChallenge, deleteChallenge, user } = useGame();
@@ -9,6 +14,13 @@ const Admin = () => {
     const [newChallenge, setNewChallenge] = useState({
         title: '', level: 1, xp: 100, locked: false, price: 0, description: ''
     });
+
+    // Notification States
+    const [notifTitle, setNotifTitle] = useState('');
+    const [notifBody, setNotifBody] = useState('');
+    const [notifSent, setNotifSent] = useState(false);
+    const [sending, setSending] = useState(false);
+    const [deviceCount, setDeviceCount] = useState(0);
 
     const handleSaveNew = () => {
         if (!newChallenge.title) return;
@@ -20,8 +32,53 @@ const Admin = () => {
     const tabs = [
         { id: 'challenges', label: 'Desafios', icon: Trophy },
         { id: 'users', label: 'Alunos', icon: Users },
+        { id: 'notifications', label: 'Notificações', icon: Bell },
         { id: 'stats', label: 'Estatísticas', icon: BarChart3 },
     ];
+
+    // Contagem de dispositivos inscritos via Supabase
+    useEffect(() => {
+        const fetchDevices = async () => {
+            if (activeTab === 'notifications') {
+                const { count, error } = await supabase
+                    .from('notification_subscriptions')
+                    .select('*', { count: 'exact', head: true });
+                if (!error) setDeviceCount(count || 0);
+            }
+        };
+        fetchDevices();
+    }, [activeTab]);
+
+    const sendInstantNotification = async () => {
+        if (!notifTitle || !notifBody) return;
+        setSending(true);
+        console.log("Enviando notificação em massa via Supabase Edge Function ou similar...");
+
+        // Simulação de disparo (Em produção, isso chamaria uma Edge Function que enviaria os pushes)
+        try {
+            // Em uma implementação real, salvaríamos a mensagem em uma tabela 'mass_notifications'
+            // e um trigger ou worker dispararia os envios.
+            const { error } = await supabase.from('mass_notifications').insert([{
+                title: notifTitle,
+                body: notifBody,
+                sent_at: new Date()
+            }]);
+
+            if (error) throw error;
+
+            setNotifSent(true);
+            setTimeout(() => {
+                setNotifSent(false);
+                setNotifTitle('');
+                setNotifBody('');
+            }, 3000);
+        } catch (err) {
+            console.error("Erro ao enviar:", err);
+            alert("Erro ao disparar notificações. Verifique as Edge Functions.");
+        } finally {
+            setSending(false);
+        }
+    };
 
     // Verificação de Admin baseada no banco de dados (mais seguro)
     if (!user || !user.isAdmin) {
@@ -81,7 +138,7 @@ const Admin = () => {
             </div>
 
             {/* === TABS === */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', background: 'rgba(0,0,0,0.3)', padding: '6px', borderRadius: '16px', width: 'fit-content' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', background: 'rgba(0,0,0,0.3)', padding: '6px', borderRadius: '16px', width: 'fit-content', overflowX: 'auto', maxWidth: '100%' }}>
                 {tabs.map(tab => {
                     const Icon = tab.icon;
                     return (
@@ -100,7 +157,8 @@ const Admin = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '8px',
-                                transition: 'all 0.3s ease'
+                                transition: 'all 0.3s ease',
+                                whiteSpace: 'nowrap'
                             }}
                         >
                             <Icon size={18} /> {tab.label}
@@ -345,6 +403,7 @@ const Admin = () => {
                                 <td style={{ padding: '16px', fontWeight: '700' }}>{user.xp.toLocaleString()} XP</td>
                                 <td style={{ padding: '16px' }}><span className="badge badge-primary">Ativo</span></td>
                             </tr>
+                            {/* Static examples for UI */}
                             <tr style={{ borderBottom: '1px solid var(--border)' }}>
                                 <td style={{ padding: '16px' }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -356,19 +415,98 @@ const Admin = () => {
                                 <td style={{ padding: '16px', fontWeight: '700' }}>1,200 XP</td>
                                 <td style={{ padding: '16px' }}><span className="badge badge-primary">Ativo</span></td>
                             </tr>
-                            <tr>
-                                <td style={{ padding: '16px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #444, #333)' }}></div>
-                                        <span style={{ fontWeight: '600' }}>Maria Oliveira</span>
-                                    </div>
-                                </td>
-                                <td style={{ padding: '16px' }}><span className="level-badge">LVL 5</span></td>
-                                <td style={{ padding: '16px', fontWeight: '700' }}>650 XP</td>
-                                <td style={{ padding: '16px' }}><span className="badge badge-secondary">Inativo</span></td>
-                            </tr>
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* === NOTIFICATIONS TAB === */}
+            {activeTab === 'notifications' && (
+                <div style={{ animation: 'slideUp 0.3s ease-out' }}>
+                    <div className="glass-panel" style={{ padding: '32px', marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '32px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                <div style={{
+                                    width: '48px', height: '48px', borderRadius: '14px',
+                                    background: 'linear-gradient(135deg, var(--primary), #00DDAA)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    boxShadow: '0 0 20px var(--primary-glow)'
+                                }}>
+                                    <Send size={24} color="#000" />
+                                </div>
+                                <div>
+                                    <h3 style={{ fontSize: '22px', fontWeight: '900', letterSpacing: '-0.5px' }}>Notificações em Massa</h3>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Comunique-se com todos os seus guerreiros</p>
+                                </div>
+                            </div>
+                            <div style={{
+                                background: 'rgba(0, 255, 136, 0.1)',
+                                padding: '8px 16px',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(0, 255, 136, 0.2)',
+                                textAlign: 'center'
+                            }}>
+                                <span style={{ display: 'block', fontSize: '18px', fontWeight: '900', color: 'var(--primary)' }}>{deviceCount}</span>
+                                <span style={{ fontSize: '10px', color: 'var(--primary)', fontWeight: '700', textTransform: 'uppercase' }}>Dispositivos</span>
+                            </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '20px' }}>
+                            <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block', fontWeight: '700', textTransform: 'uppercase' }}>Título da Mensagem</label>
+                            <input
+                                placeholder="Ex: 🔋 Hora de treinar!"
+                                value={notifTitle}
+                                onChange={e => setNotifTitle(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '14px 16px',
+                                    background: 'rgba(0,0,0,0.4)',
+                                    border: '1px solid var(--border)',
+                                    color: '#fff',
+                                    borderRadius: '12px',
+                                    fontSize: '14px'
+                                }}
+                            />
+                        </div>
+
+                        <div className="form-group" style={{ marginBottom: '32px' }}>
+                            <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block', fontWeight: '700', textTransform: 'uppercase' }}>Conteúdo da Mensagem</label>
+                            <textarea
+                                placeholder="Ex: Seu corpo merece atenção hoje. Bora mover!"
+                                value={notifBody}
+                                onChange={e => setNotifBody(e.target.value)}
+                                rows={3}
+                                style={{
+                                    width: '100%',
+                                    padding: '14px 16px',
+                                    background: 'rgba(0,0,0,0.4)',
+                                    border: '1px solid var(--border)',
+                                    color: '#fff',
+                                    borderRadius: '12px',
+                                    fontSize: '14px',
+                                    resize: 'vertical'
+                                }}
+                            />
+                        </div>
+
+                        <button
+                            className="btn-primary"
+                            disabled={sending || !notifTitle || !notifBody}
+                            onClick={sendInstantNotification}
+                            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px' }}
+                        >
+                            {sending ? <Loader size={20} className="spin" /> : notifSent ? 'MENSAGEM ENVIADA!' : <><Send size={18} /> DISPARAR PARA TODOS</>}
+                        </button>
+                    </div>
+
+                    <div className="glass-panel" style={{ padding: '24px', background: 'rgba(255, 165, 0, 0.05)', border: '1px solid rgba(255, 165, 0, 0.1)' }}>
+                        <h4 style={{ color: '#FFA500', fontSize: '14px', fontWeight: '800', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Atenção: Sistema PWA
+                        </h4>
+                        <p style={{ fontSize: '12px', color: '#888', lineHeight: '1.5' }}>
+                            As notificações serão entregues a todos os usuários que habilitaram os incentivos diários em seus perfis e instalaram o aplicativo na tela inicial.
+                        </p>
+                    </div>
                 </div>
             )}
 
