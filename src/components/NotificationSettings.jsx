@@ -5,7 +5,7 @@ import { Bell, BellOff, Clock, Check, Loader } from 'lucide-react';
 
 // VAPID Public Key - Você deve gerar uma e colocar aqui
 // Use: npx web-push generate-vapid-keys no terminal
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+const VAPID_PUBLIC_KEY = 'BBhUqxcoIT9MwTKa62X3Wyo0aqzFkS5HdHdO8E8Gx2yLW9-eUKyA4sdv0ppuwtw5LxRurW-1g9snv88WW21Rs4o';
 
 const NotificationSettings = ({ user }) => {
     const [permission, setPermission] = useState(() => {
@@ -129,18 +129,29 @@ const NotificationSettings = ({ user }) => {
 
     const savePreferences = async () => {
         if (!user) return;
+        setLoading(true);
 
         try {
-            // Salvar horário preferido (simulação de tabela de preferências)
-            localStorage.setItem('notification_time', scheduleTime);
-            localStorage.setItem('incentive_type', incentiveType);
-            alert('Preferências salvas!');
+            const { error } = await supabase
+                .from('user_notification_settings')
+                .upsert({
+                    user_id: user.id,
+                    preferred_time: scheduleTime,
+                    incentive_type: incentiveType,
+                    updated_at: new Date()
+                }, { onConflict: 'user_id' });
 
-            // Aqui conectaríamos com uma tabela real 'user_notification_settings'
+            if (error) throw error;
+
+            alert('Preferências salvas com sucesso!');
         } catch (error) {
-            console.error(error);
+            console.error('Erro ao salvar preferências:', error);
+            alert('Erro ao sincronizar preferências com o servidor.');
+        } finally {
+            setLoading(false);
         }
     };
+
 
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         return (

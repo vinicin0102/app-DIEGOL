@@ -32,12 +32,24 @@ create table if not exists public.mass_notifications (
   created_by uuid references public.profiles(id)
 );
 
+-- Tabela para preferências de incentivos diários
+create table if not exists public.user_notification_settings (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  preferred_time text default '08:00',
+  incentive_type text default 'both',
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  unique(user_id)
+);
+
 -- 2. Habilitação de RLS
 alter table public.challenges enable row level security;
 alter table public.posts enable row level security;
 alter table public.profiles enable row level security;
 alter table public.notification_subscriptions enable row level security;
 alter table public.mass_notifications enable row level security;
+alter table public.user_notification_settings enable row level security;
+
 
 -- 3. Políticas de Segurança (Desafios)
 drop policy if exists "Everyone can insert challenges." on public.challenges;
@@ -67,6 +79,9 @@ create policy "Users can update own profile." on public.profiles for update usin
 
 drop policy if exists "Users can manage own subscriptions" on public.notification_subscriptions;
 create policy "Users can manage own subscriptions" on public.notification_subscriptions for all using (auth.uid() = user_id);
+
+drop policy if exists "Users can manage own settings" on public.user_notification_settings;
+create policy "Users can manage own settings" on public.user_notification_settings for all using (auth.uid() = user_id);
 
 drop policy if exists "Admins can view mass notification history" on public.mass_notifications;
 create policy "Admins can view mass notification history" on public.mass_notifications for select using (exists (select 1 from public.profiles where id = auth.uid() and is_admin = true));

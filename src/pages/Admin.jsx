@@ -52,19 +52,23 @@ const Admin = ({ superMail }) => {
     const sendInstantNotification = async () => {
         if (!notifTitle || !notifBody) return;
         setSending(true);
-        console.log("Enviando notificação em massa via Supabase Edge Function ou similar...");
 
-        // Simulação de disparo (Em produção, isso chamaria uma Edge Function que enviaria os pushes)
         try {
-            // Em uma implementação real, salvaríamos a mensagem em uma tabela 'mass_notifications'
-            // e um trigger ou worker dispararia os envios.
-            const { error } = await supabase.from('mass_notifications').insert([{
+            // 1. Chamar a Edge Function Real do Supabase
+            const { data, error: functionError } = await supabase.functions.invoke('mass-push', {
+                body: { title: notifTitle, body: notifBody }
+            });
+
+            if (functionError) throw functionError;
+
+            // 2. Registrar no histórico de mensagens
+            const { error: dbError } = await supabase.from('mass_notifications').insert([{
                 title: notifTitle,
                 body: notifBody,
                 sent_at: new Date()
             }]);
 
-            if (error) throw error;
+            if (dbError) throw dbError;
 
             setNotifSent(true);
             setTimeout(() => {
@@ -72,9 +76,11 @@ const Admin = ({ superMail }) => {
                 setNotifTitle('');
                 setNotifBody('');
             }, 3000);
+
+            alert(`Sucesso: ${data?.message || 'Notificação enviada!'}`);
         } catch (err) {
             console.error("Erro ao enviar:", err);
-            alert("Erro ao disparar notificações. Verifique as Edge Functions.");
+            alert("Erro ao disparar notificações. Certifique-se de que a Edge Function 'mass-push' está implantada no Supabase.");
         } finally {
             setSending(false);
         }
