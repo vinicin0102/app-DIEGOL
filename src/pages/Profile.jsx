@@ -26,20 +26,20 @@ const Profile = () => {
     // Baseado no progresso real do usuário no contexto
 
     // Profissional: Baseado no Nível Global (Max Lvl 50 = 100%)
-    const statProfissional = Math.min(100, (user.level / 50) * 100);
+    const statProfissional = Math.min(100, ((user.level || 0) / 50) * 100);
 
     // Físico: Baseado no XP acumulado (Max 10.000 XP = 100%)
-    const statFisico = Math.min(100, (user.xp / 10000) * 100);
+    const statFisico = Math.min(100, ((user.xp || 0) / 10000) * 100);
 
     // Mental: Baseado na Ofensiva/Streak e Bosses Derrotados (Mentalidade forte)
     const bossesDefeatedCount = user.defeatedBosses ? user.defeatedBosses.length : 0;
-    const statMental = Math.min(100, (user.streak * 2) + (bossesDefeatedCount * 15));
+    const statMental = Math.min(100, ((user.streak || 0) * 2) + (bossesDefeatedCount * 15));
 
     // Espiritual: Baseado em Medalhas conquistadas (Conquistas da alma)
-    const statEspiritual = Math.min(100, user.badges.length * 12);
+    const statEspiritual = Math.min(100, (user.badges?.length || 0) * 12);
 
     // Financeiro (Simulado): Baseado em "trabalho" concluído (Treinos/Desafios totais)
-    const statFinanceiro = Math.min(100, user.completedWorkouts * 3);
+    const statFinanceiro = Math.min(100, (user.completedWorkouts || 0) * 3);
 
     const radarStats = {
         profissional: statProfissional,
