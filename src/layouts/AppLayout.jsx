@@ -40,8 +40,12 @@ const AppLayout = () => {
         </nav>
 
         <div className="user-profile-preview" onClick={() => !session && navigate('/login')} style={{ cursor: 'pointer' }}>
-          <div className="avatar" style={{ background: session ? `url(${user.photo})` : '#444' }}>
-            {!user.photo && user.avatar && user.avatar.helmet && user.avatar.helmet.emoji}
+          <div className="avatar" style={{
+            background: session && user.photo ? `url(${user.photo})` : '#444',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center'
+          }}>
+            {(!user.photo || !session) && user.avatar && user.avatar.helmet && user.avatar.helmet.emoji}
           </div>
           <div className="user-info">
             <h4>{user.name}</h4>
