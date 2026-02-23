@@ -1,11 +1,7 @@
 {
     "rewrites": [
         {
-            "source": "/app/(.*)",
-            "destination": "/index.html"
-        },
-        {
-            "source": "/login",
+            "source": "/((?!assets/|pwa-|sw.js|favicon.ico|manifest.webmanifest|vite.svg).*)",
             "destination": "/index.html"
         }
     ],
