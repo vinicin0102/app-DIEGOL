@@ -153,7 +153,7 @@ export const GameProvider = ({ children }) => {
         let notifCleanup = null;
 
         // Init Notification System
-        if (Notification.permission === 'granted') {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             notifCleanup = startNotificationGlobalSystem();
         }
 
