@@ -1,155 +1,244 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient';
-import { Bell, BellOff, Clock, Check, Loader } from 'lucide-react';
-
-// VAPID Public Key - Você deve gerar uma e colocar aqui
-// Use: npx web-push generate-vapid-keys no terminal
-const VAPID_PUBLIC_KEY = 'YOUR_VAPID_PUBLIC_KEY_HERE';
+import { Bell, BellOff, Clock, Check, Loader, AlertTriangle } from 'lucide-react';
 
 const NotificationSettings = ({ user }) => {
-    const [permission, setPermission] = useState(() => {
-        if (typeof Notification !== 'undefined') {
-            return Notification.permission;
-        }
-        return 'default';
-    });
-    const [isSubscribed, setIsSubscribed] = useState(false);
+    const [permission, setPermission] = useState('default');
     const [loading, setLoading] = useState(false);
     const [scheduleTime, setScheduleTime] = useState('08:00');
-    const [incentiveType, setIncentiveType] = useState('both'); // 'morning', 'evening', 'both'
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [showIOSGuide, setShowIOSGuide] = useState(false);
+
+    // Detect environment
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.navigator?.standalone ||
+        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    const supportsNotifications = typeof Notification !== 'undefined';
 
     useEffect(() => {
-        checkSubscription();
+        // Check current permission
+        if (supportsNotifications) {
+            setPermission(Notification.permission);
+        }
+
+        // Load saved preferences
+        const savedEnabled = localStorage.getItem('notifications_enabled') === 'true';
+        const savedTime = localStorage.getItem('notification_time');
+        if (savedEnabled) setNotificationsEnabled(true);
+        if (savedTime) setScheduleTime(savedTime);
+
+        // Start scheduler if enabled
+        if (savedEnabled && Notification.permission === 'granted') {
+            startNotificationScheduler();
+        }
     }, []);
 
-    const urlBase64ToUint8Array = (base64String) => {
-        const padding = '='.repeat((4 - base64String.length % 4) % 4);
-        const base64 = (base64String + padding)
-            .replace(/\-/g, '+')
-            .replace(/_/g, '/');
+    // Motivational messages
+    const motivationalMessages = [
+        { title: '💪 Hora de treinar!', body: 'Seu corpo merece atenção hoje. Bora mover!' },
+        { title: '🔥 Não quebre o streak!', body: 'Você está indo bem. Mantenha a constância!' },
+        { title: '⚡ Guerreiro, acorda!', body: 'Cada dia sem treinar é um dia que o boss fica mais forte.' },
+        { title: '🏆 Falta pouco!', body: 'Você está mais perto do próximo nível. Continue!' },
+        { title: '🎯 Missão do dia', body: 'Complete seu treino e ganhe XP. Vamos lá!' },
+        { title: '🐉 O boss te espera', body: 'A preguiça é seu maior inimigo. Derrote-a hoje!' },
+        { title: '⭐ Bom dia, campeão!', body: 'Hoje é mais um dia para evoluir. Levanta e vai!' },
+    ];
 
-        const rawData = window.atob(base64);
-        const outputArray = new Uint8Array(rawData.length);
-
-        for (let i = 0; i < rawData.length; ++i) {
-            outputArray[i] = rawData.charCodeAt(i);
-        }
-        return outputArray;
+    const getRandomMessage = () => {
+        return motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
     };
 
-    const checkSubscription = async () => {
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            setIsSubscribed(!!subscription);
+    const sendTestNotification = () => {
+        const msg = getRandomMessage();
+        new Notification(msg.title, {
+            body: msg.body,
+            icon: '/pwa-192x192.png',
+            badge: '/pwa-192x192.png',
+            vibrate: [200, 100, 200],
+            tag: 'fitquest-daily',
+        });
+    };
 
-            // Carregar preferências salvas do usuário se existirem
-            if (user) {
-                const { data } = await supabase
-                    .from('user_notification_settings')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .single();
+    const startNotificationScheduler = () => {
+        // Check every 60 seconds if it's time to send
+        const checkInterval = setInterval(() => {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const savedTime = localStorage.getItem('notification_time') || '08:00';
 
-                if (data) {
-                    setScheduleTime(data.preferred_time || '08:00');
-                    setIncentiveType(data.incentive_type || 'both');
+            if (currentTime === savedTime && Notification.permission === 'granted') {
+                const lastSent = localStorage.getItem('last_notification_date');
+                const today = now.toDateString();
+
+                if (lastSent !== today) {
+                    sendTestNotification();
+                    localStorage.setItem('last_notification_date', today);
                 }
             }
-        }
+        }, 60000); // Check every minute
+
+        return () => clearInterval(checkInterval);
     };
 
-    const subscribeToPush = async () => {
+    const enableNotifications = async () => {
         setLoading(true);
+
         try {
-            const registration = await navigator.serviceWorker.ready;
-
-            let subscription = await registration.pushManager.getSubscription();
-
-            if (!subscription) {
-                // Se tiver chave VAPID configurada
-                const options = {
-                    userVisibleOnly: true,
-                    applicationServerKey: VAPID_PUBLIC_KEY !== 'YOUR_VAPID_PUBLIC_KEY_HERE'
-                        ? urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                        : undefined
-                };
-                subscription = await registration.pushManager.subscribe(options);
+            // iOS without standalone mode
+            if (isIOS && !isStandalone) {
+                setShowIOSGuide(true);
+                setLoading(false);
+                return;
             }
 
-            // Salvar no Supabase
-            if (user && subscription) {
-                const { error } = await supabase
-                    .from('notification_subscriptions')
-                    .upsert({
-                        user_id: user.id,
-                        subscription: JSON.parse(JSON.stringify(subscription)),
-                        updated_at: new Date()
-                    }, { onConflict: 'user_id' }); // Simplificação: 1 device por user por enquanto
+            // Check if Notification API exists
+            if (!supportsNotifications) {
+                alert('Este navegador não suporta notificações. Tente instalar o app na tela inicial primeiro.');
+                setLoading(false);
+                return;
+            }
 
-                if (error) throw error;
+            // Request permission
+            const result = await Notification.requestPermission();
+            setPermission(result);
 
-                setIsSubscribed(true);
-                setPermission('granted');
-                alert('Notificações ativadas com sucesso!');
+            if (result === 'granted') {
+                setNotificationsEnabled(true);
+                localStorage.setItem('notifications_enabled', 'true');
+                localStorage.setItem('notification_time', scheduleTime);
+
+                // Send a test notification
+                sendTestNotification();
+
+                // Start scheduler
+                startNotificationScheduler();
+            } else if (result === 'denied') {
+                alert('Você bloqueou as notificações. Para reativar, vá nas configurações do navegador/app e permita notificações para este site.');
+            } else {
+                alert('Permissão não concedida. Tente novamente.');
             }
         } catch (error) {
-            console.error('Erro ao inscrever:', error);
-            alert('Não foi possível ativar notificações. Verifique se o navegador suporta.');
+            console.error('Erro ao ativar notificações:', error);
+            alert('Erro ao configurar notificações. Tente instalar o app na tela inicial primeiro.');
         } finally {
             setLoading(false);
         }
     };
 
-    const unsubscribeFromPush = async () => {
-        setLoading(true);
-        try {
-            const registration = await navigator.serviceWorker.ready;
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-                await subscription.unsubscribe();
-
-                // Remover do Supabase
-                if (user) {
-                    await supabase
-                        .from('notification_subscriptions')
-                        .delete()
-                        .eq('user_id', user.id);
-                }
-
-                setIsSubscribed(false);
-            }
-        } catch (error) {
-            console.error('Erro ao desativar:', error);
-        } finally {
-            setLoading(false);
-        }
+    const disableNotifications = () => {
+        setNotificationsEnabled(false);
+        localStorage.setItem('notifications_enabled', 'false');
     };
 
-    const savePreferences = async () => {
-        if (!user) return;
-
-        try {
-            // Salvar horário preferido (simulação de tabela de preferências)
-            localStorage.setItem('notification_time', scheduleTime);
-            localStorage.setItem('incentive_type', incentiveType);
-            alert('Preferências salvas!');
-
-            // Aqui conectaríamos com uma tabela real 'user_notification_settings'
-        } catch (error) {
-            console.error(error);
-        }
+    const savePreferences = () => {
+        localStorage.setItem('notification_time', scheduleTime);
+        alert('✅ Horário salvo! Você será notificado às ' + scheduleTime + ' todos os dias.');
     };
 
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    // === iOS Guide Modal ===
+    if (showIOSGuide) {
         return (
-            <div className="glass-panel" style={{ padding: '20px', color: 'var(--text-muted)' }}>
-                <p>Notificações Push não são suportadas neste dispositivo.</p>
+            <div className="glass-panel" style={{ padding: '24px', animation: 'slide-up 0.3s ease-out' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                    <div style={{
+                        width: '40px', height: '40px',
+                        borderRadius: '10px',
+                        background: 'rgba(255, 165, 0, 0.1)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <AlertTriangle size={20} color="#FFA500" />
+                    </div>
+                    <div>
+                        <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '4px' }}>Instale o App Primeiro</h3>
+                        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>O iOS exige que o app esteja na tela inicial.</p>
+                    </div>
+                </div>
+
+                <div style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    marginBottom: '20px'
+                }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div style={{
+                                width: '36px', height: '36px', borderRadius: '10px',
+                                background: 'rgba(0, 122, 255, 0.15)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '18px', flexShrink: 0
+                            }}>📤</div>
+                            <div>
+                                <span style={{ fontWeight: '700', fontSize: '14px' }}>Passo 1</span>
+                                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                    Toque no botão <strong style={{ color: '#007AFF' }}>Compartilhar</strong> do Safari (ícone quadrado com seta)
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div style={{
+                                width: '36px', height: '36px', borderRadius: '10px',
+                                background: 'rgba(255,255,255,0.08)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '18px', flexShrink: 0
+                            }}>➕</div>
+                            <div>
+                                <span style={{ fontWeight: '700', fontSize: '14px' }}>Passo 2</span>
+                                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                    Selecione <strong style={{ color: '#fff' }}>"Adicionar à Tela de Início"</strong>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div style={{
+                                width: '36px', height: '36px', borderRadius: '10px',
+                                background: 'rgba(0, 255, 136, 0.15)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '18px', flexShrink: 0
+                            }}>🔔</div>
+                            <div>
+                                <span style={{ fontWeight: '700', fontSize: '14px' }}>Passo 3</span>
+                                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                    Abra pelo ícone novo e ative as notificações aqui
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => setShowIOSGuide(false)}
+                    className="btn-primary"
+                    style={{ width: '100%' }}
+                >
+                    Entendi
+                </button>
             </div>
         );
     }
 
+    // === Não suporta notificações neste ambiente ===
+    if (!supportsNotifications) {
+        return (
+            <div className="glass-panel" style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                    <BellOff size={20} color="var(--text-muted)" />
+                    <div>
+                        <h3 style={{ fontSize: '16px', fontWeight: '700' }}>Notificações Indisponíveis</h3>
+                        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                            {isIOS
+                                ? 'Adicione o app à Tela de Início para habilitar notificações.'
+                                : 'Seu navegador não suporta notificações.'}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // === Main UI ===
     return (
         <div className="glass-panel" style={{ padding: '24px', animation: 'slide-up 0.3s ease-out' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
@@ -177,11 +266,11 @@ const NotificationSettings = ({ user }) => {
                         fontSize: '14px',
                         color: '#ff4b4b'
                     }}>
-                        Notificações bloqueadas. Habilite nas configurações do navegador.
+                        Notificações bloqueadas. Vá nas configurações do navegador e permita notificações para este site.
                     </div>
-                ) : !isSubscribed ? (
+                ) : !notificationsEnabled ? (
                     <button
-                        onClick={subscribeToPush}
+                        onClick={enableNotifications}
                         disabled={loading}
                         className="btn-primary"
                         style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '8px' }}
@@ -241,7 +330,7 @@ const NotificationSettings = ({ user }) => {
                         </div>
 
                         <button
-                            onClick={unsubscribeFromPush}
+                            onClick={disableNotifications}
                             style={{
                                 background: 'transparent',
                                 border: '1px solid var(--border)',
@@ -259,7 +348,7 @@ const NotificationSettings = ({ user }) => {
             </div>
 
             <p style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', lineHeight: '1.4' }}>
-                * Para funcionar com o app fechado, certifique-se de instalar o app na tela inicial ("Adicionar à Tela Inicial").
+                * Para funcionar com o app fechado, certifique-se de instalar o app na tela inicial.
             </p>
         </div>
     );
