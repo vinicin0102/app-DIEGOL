@@ -38,8 +38,12 @@ export const registerPushNotifications = async (userId) => {
         }
 
         // Obter token FCM
+        // Primeiro, garantimos que o Service Worker do PWA está pronto
+        const registration = await navigator.serviceWorker.ready;
+
         const token = await getToken(messaging, {
-            vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY // Chave VAPID do Console Firebase
+            serviceWorkerRegistration: registration,
+            vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
         });
 
         if (token) {
