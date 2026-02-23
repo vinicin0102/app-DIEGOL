@@ -54,21 +54,47 @@ const Admin = ({ superMail }) => {
         setSending(true);
 
         try {
-            // 1. Chamar a Edge Function Real do Supabase
-            const { data, error: functionError } = await supabase.functions.invoke('mass-push', {
-                body: { title: notifTitle, body: notifBody }
-            });
+            // 1. Tentar chamar a Edge Function (produção)
+            let edgeFunctionWorked = false;
+            try {
+                const { data, error: functionError } = await supabase.functions.invoke('mass-push', {
+                    body: { title: notifTitle, body: notifBody }
+                });
+                if (!functionError) {
+                    edgeFunctionWorked = true;
+                    console.log('Edge Function respondeu:', data);
+                }
+            } catch (e) {
+                console.warn('Edge Function não disponível, usando fallback local:', e.message);
+            }
 
-            if (functionError) throw functionError;
+            // 2. Fallback: Enviar notificação local via Service Worker (teste direto)
+            if (!edgeFunctionWorked) {
+                if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                    const registration = await navigator.serviceWorker.ready;
+                    await registration.showNotification(notifTitle, {
+                        body: notifBody,
+                        icon: '/pwa-192x192.png',
+                        badge: '/pwa-192x192.png',
+                        vibrate: [200, 100, 200],
+                        tag: 'admin-test-' + Date.now()
+                    });
+                    console.log('Notificação de teste enviada via Service Worker local.');
+                } else {
+                    // Último recurso: Notification API direta
+                    new Notification(notifTitle, { body: notifBody });
+                }
+            }
 
-            // 2. Registrar no histórico de mensagens
-            const { error: dbError } = await supabase.from('mass_notifications').insert([{
-                title: notifTitle,
-                body: notifBody,
-                sent_at: new Date()
-            }]);
-
-            if (dbError) throw dbError;
+            // 3. Registrar no histórico (ignora erros de tabela inexistente)
+            try {
+                await supabase.from('mass_notifications').insert([{
+                    title: notifTitle,
+                    body: notifBody
+                }]);
+            } catch (dbErr) {
+                console.warn('Histórico não salvo (tabela pode não existir):', dbErr.message);
+            }
 
             setNotifSent(true);
             setTimeout(() => {
@@ -77,14 +103,17 @@ const Admin = ({ superMail }) => {
                 setNotifBody('');
             }, 3000);
 
-            alert(`Sucesso: ${data?.message || 'Notificação enviada!'}`);
+            alert(edgeFunctionWorked
+                ? '✅ Notificação enviada para TODOS os dispositivos!'
+                : '✅ Notificação de teste enviada localmente! (Para envio em massa, implante a Edge Function no Supabase)');
         } catch (err) {
             console.error("Erro ao enviar:", err);
-            alert("Erro ao disparar notificações. Certifique-se de que a Edge Function 'mass-push' está implantada no Supabase.");
+            alert("Erro ao disparar notificações: " + err.message);
         } finally {
             setSending(false);
         }
     };
+
 
     // Verificação de Admin: Segurança Máxima via Email Hardcoded + Banco
     const isSuperAdmin = session?.user?.email === superMail;
