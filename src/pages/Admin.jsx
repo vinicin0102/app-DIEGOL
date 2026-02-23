@@ -19,6 +19,7 @@ const Admin = () => {
     const [scheduleRepeat, setScheduleRepeat] = useState('daily');
     const [notifSent, setNotifSent] = useState(false);
     const [showTemplates, setShowTemplates] = useState(false);
+    const [fcmTokensCount, setFcmTokensCount] = useState(0);
 
     const notifTemplates = [
         { title: '💪 Hora de treinar!', body: 'Seu corpo merece atenção hoje. Bora mover!', category: 'treino' },
