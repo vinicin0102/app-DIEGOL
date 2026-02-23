@@ -26,110 +26,7 @@ const NotificationSettings = ({ user }) => {
         const savedTime = localStorage.getItem('notification_time');
         if (savedEnabled) setNotificationsEnabled(true);
         if (savedTime) setScheduleTime(savedTime);
-
-        // Start scheduler if enabled
-        if (savedEnabled && Notification.permission === 'granted') {
-            startNotificationScheduler();
-        }
     }, []);
-
-    // Motivational messages
-    const motivationalMessages = [
-        { title: '💪 Hora de treinar!', body: 'Seu corpo merece atenção hoje. Bora mover!' },
-        { title: '🔥 Não quebre o streak!', body: 'Você está indo bem. Mantenha a constância!' },
-        { title: '⚡ Guerreiro, acorda!', body: 'Cada dia sem treinar é um dia que o boss fica mais forte.' },
-        { title: '🏆 Falta pouco!', body: 'Você está mais perto do próximo nível. Continue!' },
-        { title: '🎯 Missão do dia', body: 'Complete seu treino e ganhe XP. Vamos lá!' },
-        { title: '🐉 O boss te espera', body: 'A preguiça é seu maior inimigo. Derrote-a hoje!' },
-        { title: '⭐ Bom dia, campeão!', body: 'Hoje é mais um dia para evoluir. Levanta e vai!' },
-    ];
-
-    const getRandomMessage = () => {
-        return motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-    };
-
-    const sendTestNotification = () => {
-        const msg = getRandomMessage();
-        new Notification(msg.title, {
-            body: msg.body,
-            icon: '/pwa-192x192.png',
-            badge: '/pwa-192x192.png',
-            vibrate: [200, 100, 200],
-            tag: 'fitquest-daily',
-        });
-    };
-
-    const startNotificationScheduler = () => {
-        // Check every 60 seconds if it's time to send
-        const checkInterval = setInterval(() => {
-            if (Notification.permission !== 'granted') return;
-
-            const now = new Date();
-            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const today = now.toDateString();
-            const dayOfWeek = now.getDay(); // 0=Sun, 6=Sat
-
-            // 1. Check user's personal notification time
-            const savedTime = localStorage.getItem('notification_time') || '08:00';
-            if (currentTime === savedTime) {
-                const lastSent = localStorage.getItem('last_notification_date');
-                if (lastSent !== today) {
-                    sendTestNotification();
-                    localStorage.setItem('last_notification_date', today);
-                }
-            }
-
-            // 2. Check admin-scheduled notifications
-            try {
-                const adminNotifs = JSON.parse(localStorage.getItem('admin_scheduled_notifications') || '[]');
-                adminNotifs.forEach(n => {
-                    if (!n.active) return;
-                    if (n.time !== currentTime) return;
-
-                    // Check repeat rule
-                    if (n.repeat === 'weekdays' && (dayOfWeek === 0 || dayOfWeek === 6)) return;
-
-                    const lastKey = `admin_notif_sent_${n.id}`;
-                    const lastSentForThis = localStorage.getItem(lastKey);
-                    if (lastSentForThis === today) return;
-
-                    // Send it!
-                    new Notification(n.title, {
-                        body: n.body,
-                        icon: '/pwa-192x192.png',
-                        badge: '/pwa-192x192.png',
-                        vibrate: [200, 100, 200],
-                        tag: 'admin-scheduled-' + n.id,
-                    });
-                    localStorage.setItem(lastKey, today);
-
-                    // If "once", deactivate it
-                    if (n.repeat === 'once') {
-                        const updated = adminNotifs.map(x => x.id === n.id ? { ...x, active: false } : x);
-                        localStorage.setItem('admin_scheduled_notifications', JSON.stringify(updated));
-                    }
-                });
-            } catch (e) { /* ignore parse errors */ }
-        }, 60000); // Check every minute
-
-        // 3. Listen for instant admin notifications via BroadcastChannel
-        try {
-            const bc = new BroadcastChannel('admin_notifications');
-            bc.onmessage = (event) => {
-                if (event.data?.type === 'INSTANT' && Notification.permission === 'granted') {
-                    new Notification(event.data.title, {
-                        body: event.data.body,
-                        icon: '/pwa-192x192.png',
-                        badge: '/pwa-192x192.png',
-                        vibrate: [200, 100, 200],
-                        tag: 'admin-instant-' + Date.now(),
-                    });
-                }
-            };
-        } catch (e) { /* BroadcastChannel not supported */ }
-
-        return () => clearInterval(checkInterval);
-    };
 
     const enableNotifications = async () => {
         setLoading(true);
@@ -158,19 +55,14 @@ const NotificationSettings = ({ user }) => {
                 localStorage.setItem('notifications_enabled', 'true');
                 localStorage.setItem('notification_time', scheduleTime);
 
-                // Send a test notification
-                sendTestNotification();
-
-                // Start scheduler
-                startNotificationScheduler();
+                // Real-time update: app should refresh or handle this
+                window.location.reload(); // Quickest way to trigger GameContext logic
             } else if (result === 'denied') {
                 alert('Você bloqueou as notificações. Para reativar, vá nas configurações do navegador/app e permita notificações para este site.');
-            } else {
-                alert('Permissão não concedida. Tente novamente.');
             }
         } catch (error) {
             console.error('Erro ao ativar notificações:', error);
-            alert('Erro ao configurar notificações. Tente instalar o app na tela inicial primeiro.');
+            alert('Erro ao configurar notificações.');
         } finally {
             setLoading(false);
         }
@@ -241,21 +133,6 @@ const NotificationSettings = ({ user }) => {
                                 </p>
                             </div>
                         </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                            <div style={{
-                                width: '36px', height: '36px', borderRadius: '10px',
-                                background: 'rgba(0, 255, 136, 0.15)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '18px', flexShrink: 0
-                            }}>🔔</div>
-                            <div>
-                                <span style={{ fontWeight: '700', fontSize: '14px' }}>Passo 3</span>
-                                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                                    Abra pelo ícone novo e ative as notificações aqui
-                                </p>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -270,7 +147,6 @@ const NotificationSettings = ({ user }) => {
         );
     }
 
-    // === Não suporta notificações neste ambiente ===
     if (!supportsNotifications) {
         return (
             <div className="glass-panel" style={{ padding: '24px' }}>
@@ -289,7 +165,6 @@ const NotificationSettings = ({ user }) => {
         );
     }
 
-    // === Main UI ===
     return (
         <div className="glass-panel" style={{ padding: '24px', animation: 'slide-up 0.3s ease-out' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
@@ -399,7 +274,7 @@ const NotificationSettings = ({ user }) => {
             </div>
 
             <p style={{ fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', lineHeight: '1.4' }}>
-                * Para funcionar com o app fechado, certifique-se de instalar o app na tela inicial.
+                * Após ativar, as notificações funcionarão globalmente no app.
             </p>
         </div>
     );

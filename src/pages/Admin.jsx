@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useGame } from '../context/GameContext';
+import { supabase } from '../lib/supabaseClient';
 import { Edit2, Trash2, Plus, Save, X, Users, Trophy, ChevronDown, Lock, Unlock, Settings, BarChart3, Bell, Send, Clock, Zap, MessageSquare, Calendar, Copy } from 'lucide-react';
 
 const Admin = () => {
@@ -34,18 +35,46 @@ const Admin = () => {
         { title: '💀 Treino hardcore hoje!', body: 'Dia de sair da zona de conforto. Bora encarar?', category: 'treino' },
     ];
 
-    // Load scheduled notifications from localStorage
+    // Load scheduled notifications from Supabase
     useEffect(() => {
-        const saved = localStorage.getItem('admin_scheduled_notifications');
-        if (saved) {
-            try { setScheduledNotifs(JSON.parse(saved)); } catch (e) { /* ignore */ }
-        }
+        const fetchScheduled = async () => {
+            const { data, error } = await supabase
+                .from('scheduled_notifications')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (data) {
+                // Map DB fields to component state
+                const mapped = data.map(n => ({
+                    id: n.id,
+                    title: n.title,
+                    body: n.body,
+                    time: n.schedule_time.substring(0, 5), // HH:mm
+                    repeat: n.repeat || 'daily',
+                    active: n.is_active,
+                    createdAt: n.created_at
+                }));
+                setScheduledNotifs(mapped);
+            }
+        };
+        fetchScheduled();
     }, []);
 
-    // Save scheduled notifications
-    const saveScheduledNotifs = (notifs) => {
-        setScheduledNotifs(notifs);
-        localStorage.setItem('admin_scheduled_notifications', JSON.stringify(notifs));
+    // Save scheduled notifications helper (deprecated for direct DB calls, but kept for state sync)
+    const saveScheduledNotifs = async (notif, type = 'insert') => {
+        if (type === 'insert') {
+            const { data, error } = await supabase.from('scheduled_notifications').insert([{
+                title: notif.title,
+                body: notif.body,
+                schedule_time: notif.time,
+                repeat: notif.repeat,
+                is_active: notif.active
+            }]).select();
+            if (data) {
+                const newMapped = { ...notif, id: data[0].id };
+                setScheduledNotifs(prev => [newMapped, ...prev]);
+            }
+        }
     };
 
     // Send instant notification
@@ -65,51 +94,69 @@ const Admin = () => {
             });
         }
 
-        // Also broadcast to other tabs via BroadcastChannel
+        // Also broadcast to all users via Supabase Realtime
         try {
+            const channel = supabase.channel('admin_notifications');
+            channel.subscribe(status => {
+                if (status === 'SUBSCRIBED') {
+                    channel.send({
+                        type: 'broadcast',
+                        event: 'INSTANT_NOTIF',
+                        payload: { title: notifTitle, body: notifBody, sentAt: new Date().toISOString() }
+                    });
+                }
+            });
+            // Also keep BroadcastChannel for same-browser fallback
             const bc = new BroadcastChannel('admin_notifications');
             bc.postMessage({ type: 'INSTANT', title: notifTitle, body: notifBody, sentAt: new Date().toISOString() });
             bc.close();
-        } catch (e) { /* BroadcastChannel not supported */ }
+        } catch (e) { console.error('Broadcast error:', e); }
 
         setNotifSent(true);
         setTimeout(() => setNotifSent(false), 3000);
     };
 
     // Schedule a notification
-    const scheduleNotification = () => {
+    const scheduleNotification = async () => {
         if (!notifTitle.trim() || !notifBody.trim()) {
             alert('Preencha o título e a mensagem!');
             return;
         }
 
         const newNotif = {
-            id: Date.now(),
             title: notifTitle,
             body: notifBody,
             time: scheduleTime,
             repeat: scheduleRepeat,
-            active: true,
-            createdAt: new Date().toISOString()
+            active: true
         };
 
-        const updated = [...scheduledNotifs, newNotif];
-        saveScheduledNotifs(updated);
+        await saveScheduledNotifs(newNotif, 'insert');
         setNotifTitle('');
         setNotifBody('');
         alert('✅ Notificação agendada para ' + scheduleTime + ' (' + (scheduleRepeat === 'daily' ? 'Diariamente' : scheduleRepeat === 'weekdays' ? 'Dias úteis' : 'Uma vez') + ')');
     };
 
     // Delete scheduled notification
-    const deleteScheduledNotif = (id) => {
-        const updated = scheduledNotifs.filter(n => n.id !== id);
-        saveScheduledNotifs(updated);
+    const deleteScheduledNotif = async (id) => {
+        const { error } = await supabase.from('scheduled_notifications').delete().eq('id', id);
+        if (!error) {
+            setScheduledNotifs(prev => prev.filter(n => n.id !== id));
+        }
     };
 
     // Toggle scheduled notification active/inactive
-    const toggleScheduledNotif = (id) => {
-        const updated = scheduledNotifs.map(n => n.id === id ? { ...n, active: !n.active } : n);
-        saveScheduledNotifs(updated);
+    const toggleScheduledNotif = async (id) => {
+        const notif = scheduledNotifs.find(n => n.id === id);
+        if (!notif) return;
+
+        const { error } = await supabase.from('scheduled_notifications')
+            .update({ is_active: !notif.active })
+            .eq('id', id);
+
+        if (!error) {
+            setScheduledNotifs(prev => prev.map(n => n.id === id ? { ...n, active: !n.active } : n));
+        }
     };
 
     // Use template

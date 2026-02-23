@@ -76,9 +76,86 @@ export const GameProvider = ({ children }) => {
         ];
     });
 
+    // --- Notifications System (Global) ---
+    const startNotificationGlobalSystem = () => {
+        if (typeof Notification === 'undefined') return;
+
+        // 1. Scheduler for daily and admin-scheduled notifs
+        const checkInterval = setInterval(async () => {
+            if (Notification.permission !== 'granted') return;
+
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const today = now.toDateString();
+            const dayOfWeek = now.getDay();
+
+            // A. Personal notification
+            const personalTime = localStorage.getItem('notification_time') || '08:00';
+            const personalEnabled = localStorage.getItem('notifications_enabled') === 'true';
+            if (personalEnabled && currentTime === personalTime) {
+                const lastSent = localStorage.getItem('last_personal_notif_date');
+                if (lastSent !== today) {
+                    new Notification('💪 Hora de treinar!', {
+                        body: 'Seu corpo merece atenção hoje. Bora mover!',
+                        icon: '/pwa-192x192.png',
+                        tag: 'personal-daily'
+                    });
+                    localStorage.setItem('last_personal_notif_date', today);
+                }
+            }
+
+            // B. Admin scheduled notifications
+            try {
+                const { data: adminNotifs } = await supabase.from('scheduled_notifications').select('*').eq('is_active', true);
+                if (adminNotifs) {
+                    adminNotifs.forEach(n => {
+                        const nTime = n.schedule_time.substring(0, 5);
+                        if (nTime !== currentTime) return;
+                        if (n.repeat === 'weekdays' && (dayOfWeek === 0 || dayOfWeek === 6)) return;
+
+                        const lastKey = `admin_notif_sent_${n.id}`;
+                        if (localStorage.getItem(lastKey) === today) return;
+
+                        new Notification(n.title, {
+                            body: n.body,
+                            icon: '/pwa-192x192.png',
+                            tag: 'admin-scheduled-' + n.id
+                        });
+                        localStorage.setItem(lastKey, today);
+                    });
+                }
+            } catch (e) { /* ignore */ }
+        }, 60000);
+
+        // 2. Realtime Broadcast for Instant Notifs
+        const channel = supabase.channel('admin_notifications')
+            .on('broadcast', { event: 'INSTANT_NOTIF' }, (payload) => {
+                if (Notification.permission === 'granted') {
+                    new Notification(payload.payload.title, {
+                        body: payload.payload.body,
+                        icon: '/pwa-192x192.png',
+                        vibrate: [200, 100, 200],
+                        tag: 'admin-global-' + Date.now()
+                    });
+                }
+            })
+            .subscribe();
+
+        return () => {
+            clearInterval(checkInterval);
+            supabase.removeChannel(channel);
+        };
+    };
+
     // Auth & Data Fetching Effect
     useEffect(() => {
         let mounted = true;
+        let notifCleanup = null;
+
+        // Init Notification System
+        if (Notification.permission === 'granted') {
+            notifCleanup = startNotificationGlobalSystem();
+        }
 
         // Timeout de segurança: se o Supabase não responder em 5s, libera o app
         const safetyTimeout = setTimeout(() => {
@@ -120,6 +197,7 @@ export const GameProvider = ({ children }) => {
             mounted = false;
             clearTimeout(safetyTimeout);
             subscription.unsubscribe();
+            if (notifCleanup) notifCleanup();
         };
     }, []);
 
