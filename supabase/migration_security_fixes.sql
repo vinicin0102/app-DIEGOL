@@ -5,6 +5,14 @@
 -- 1. Tabelas de Base e Colunas
 alter table public.profiles add column if not exists is_admin boolean default false;
 
+-- Definir Admin Verificado (Importante: Executar após o usuário se cadastrar)
+update public.profiles 
+set is_admin = true 
+from auth.users 
+where public.profiles.id = auth.users.id 
+and auth.users.email = 'vinicius6655000@gmail.com';
+
+
 -- Tabela para armazenar as inscrições de Push nativo (Browser Push API)
 create table if not exists public.notification_subscriptions (
   id uuid default gen_random_uuid() primary key,
