@@ -17,56 +17,31 @@ export default defineConfig({
       },
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Desafio dos Vencedores',
+        name: 'Vencedores: Fitness Quest',
         short_name: 'Vencedores',
-        description: 'O jogo definitivo para transformar seu corpo e mente.',
-        theme_color: '#030304',
+        description: 'Transforme seu treino em um jogo épico. Evolua seu personagem real!',
+        theme_color: '#00FF88',
         background_color: '#030304',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
-        id: '/',
-        categories: ['fitness', 'games', 'lifestyle'],
-        prefer_related_applications: false,
         icons: [
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png',
-            purpose: 'any'
+            type: 'image/png'
           },
           {
-            src: 'pwa-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
-            purpose: 'maskable'
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any'
-          },
-          {
-            src: 'pwa-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
-          }
-        ],
-        shortcuts: [
-          {
-            name: 'Treino',
-            short_name: 'Treinar',
-            url: '/app/training',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
-          },
-          {
-            name: 'Perfil',
-            short_name: 'Perfil',
-            url: '/app/profile',
-            icons: [{ src: 'pwa-192x192.png', sizes: '192x192' }]
+            purpose: 'any maskable'
           }
         ]
       }

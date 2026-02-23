@@ -1,18 +1,15 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
-// import Dashboard from './pages/Dashboard'; // Removido
 import Challenges from './pages/Challenges';
 import Community from './pages/Community';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Training from './pages/Training';
-import Login from './pages/Login';
 import Home from './pages/Home';
 import { useGame } from './context/GameContext';
-import InstallPWA from './components/InstallPWA';
-import InAppNotification from './components/InAppNotification';
 import './App.css';
+import LGPDBanner from './components/LGPDBanner';
 
 const App = () => {
   // Verificação de segurança das variáveis de ambiente
@@ -34,31 +31,11 @@ const App = () => {
     );
   }
 
-  const { isAuthenticated, loading, user } = useGame();
+  const { isAuthenticated, loading } = useGame();
 
-  // Registrar Push Notifications (FCM)
   React.useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      import('./lib/firebase').then(({ registerPushNotifications, onForegroundMessage }) => {
-        // Pequeno delay para garantir que o SW esteja pronto
-        setTimeout(() => {
-          registerPushNotifications(user.id);
-        }, 3000);
-
-        // Ouvir mensagens em foreground (app aberto)
-        onForegroundMessage((payload) => {
-          // Aqui você pode disparar um InAppNotification ou Toast
-          const event = new CustomEvent('admin-notification', {
-            detail: {
-              title: payload.notification.title,
-              body: payload.notification.body
-            }
-          });
-          window.dispatchEvent(event);
-        });
-      });
-    }
-  }, [isAuthenticated, user?.id]);
+    console.log("App State -> Loading:", loading, "Authenticated:", isAuthenticated);
+  }, [loading, isAuthenticated]);
 
   // Mostrar tela de carregamento enquanto verifica sessão
   if (loading) {
@@ -81,7 +58,7 @@ const App = () => {
         <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
 
         {/* Direct access to independent login page if needed, or use Home */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Navigate to="/" />} />
 
         {/* Protected Routes */}
         <Route path="/app" element={isAuthenticated ? <AppLayout /> : <Navigate to="/" />}>
@@ -101,8 +78,7 @@ const App = () => {
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-      <InstallPWA />
-      <InAppNotification />
+      <LGPDBanner />
     </>
   );
 };

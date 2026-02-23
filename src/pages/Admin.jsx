@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { supabase } from '../lib/supabaseClient';
-import { Edit2, Trash2, Plus, Save, X, Users, Trophy, ChevronDown, Lock, Unlock, Settings, BarChart3, Bell, Send, Clock, Zap, MessageSquare, Calendar, Copy } from 'lucide-react';
+import { Edit2, Trash2, Plus, Save, X, Users, Trophy, ChevronDown, Lock, Unlock, Settings, BarChart3 } from 'lucide-react';
 
 const Admin = () => {
     const { challenges, addChallenge, updateChallenge, deleteChallenge, user } = useGame();
@@ -10,140 +9,6 @@ const Admin = () => {
     const [newChallenge, setNewChallenge] = useState({
         title: '', level: 1, xp: 100, locked: false, price: 0, description: ''
     });
-
-    // === NOTIFICATION STATES ===
-    const [notifTitle, setNotifTitle] = useState('');
-    const [notifBody, setNotifBody] = useState('');
-    const [scheduledNotifs, setScheduledNotifs] = useState([]);
-    const [scheduleTime, setScheduleTime] = useState('08:00');
-    const [scheduleRepeat, setScheduleRepeat] = useState('daily');
-    const [notifSent, setNotifSent] = useState(false);
-    const [showTemplates, setShowTemplates] = useState(false);
-    const [fcmTokensCount, setFcmTokensCount] = useState(0);
-
-    const notifTemplates = [
-        { title: '💪 Hora de treinar!', body: 'Seu corpo merece atenção hoje. Bora mover!', category: 'treino' },
-        { title: '🔥 Não quebre o streak!', body: 'Você está indo bem. Mantenha a constância!', category: 'motivação' },
-        { title: '⚡ Guerreiro, acorda!', body: 'Cada dia sem treinar é um dia que o boss fica mais forte.', category: 'motivação' },
-        { title: '🏆 Falta pouco!', body: 'Você está mais perto do próximo nível. Continue!', category: 'progresso' },
-        { title: '🎯 Missão do dia', body: 'Complete seu treino e ganhe XP. Vamos lá!', category: 'treino' },
-        { title: '🐉 O boss te espera', body: 'A preguiça é seu maior inimigo. Derrote-a hoje!', category: 'motivação' },
-        { title: '⭐ Bom dia, campeão!', body: 'Hoje é mais um dia para evoluir. Levanta e vai!', category: 'motivação' },
-        { title: '🥇 Parabéns pelo esforço!', body: 'Cada treino conta. Você é mais forte do que pensa.', category: 'progresso' },
-        { title: '🧠 Mente forte = Corpo forte', body: 'Disciplina supera motivação. Treine mesmo sem vontade.', category: 'mental' },
-        { title: '🌟 Novo desafio disponível!', body: 'Confira os novos desafios esperando por você!', category: 'novidade' },
-        { title: '📢 Novidade no app!', body: 'Tem coisa nova pra você. Abre o app e confere!', category: 'novidade' },
-        { title: '💀 Treino hardcore hoje!', body: 'Dia de sair da zona de conforto. Bora encarar?', category: 'treino' },
-        { title: '🍎 Disciplina na dieta!', body: 'O treino é 30%, a dieta é 70%. Mantenha o foco!', category: 'dieta' },
-        { title: '💧 Hidratação é vida!', body: 'Já bebeu água hoje? Seu corpo precisa para render mais.', category: 'saúde' },
-        { title: '🛌 Descanso também é treino', body: 'Não esqueça de dormir bem. É no sono que você evolui.', category: 'saúde' },
-        { title: '🧘‍♂️ Momento de foco', body: 'Tire 5 minutos para meditar e visualizar seus objetivos.', category: 'mental' },
-    ];
-
-    // Load scheduled notifications and FCM token count
-    useEffect(() => {
-        const fetchData = async () => {
-            // Scheduled notifications
-            const { data: schedData, error: schedError } = await supabase.from('scheduled_notifications').select('*');
-            if (!schedError && schedData) {
-                setScheduledNotifs(schedData.map(n => ({
-                    id: n.id,
-                    title: n.title,
-                    body: n.body,
-                    time: n.schedule_time,
-                    repeat: n.repeat,
-                    active: n.is_active
-                })));
-            }
-
-            // FCM Tokens Count
-            const { count, error: countError } = await supabase
-                .from('user_push_tokens')
-                .select('*', { count: 'exact', head: true });
-            if (!countError) setFcmTokensCount(count || 0);
-        };
-        fetchData();
-    }, []);
-
-    // Send instant mass notification via Realtime/Broadcast
-    const sendInstantNotification = async () => {
-        if (!notifTitle || !notifBody) return;
-
-        // 1. Send via Supabase Broadcast (Realtime)
-        const channel = supabase.channel('mass-notifications');
-        await channel.subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-                await channel.send({
-                    type: 'broadcast',
-                    event: 'admin-notification',
-                    payload: { title: notifTitle, body: notifBody }
-                });
-            }
-        });
-
-        // 2. Log in DB for reference
-        await supabase.from('admin_broadcasts').insert([{ title: notifTitle, body: notifBody }]);
-
-        setNotifSent(true);
-        setTimeout(() => setNotifSent(false), 3000);
-        setNotifTitle('');
-        setNotifBody('');
-    };
-
-    // Schedule a new notification
-    const scheduleNotification = async () => {
-        if (!notifTitle || !notifBody) return;
-
-        const { data, error } = await supabase.from('scheduled_notifications').insert([{
-            title: notifTitle,
-            body: notifBody,
-            schedule_time: scheduleTime,
-            repeat: scheduleRepeat
-        }]).select();
-
-        if (!error && data) {
-            setScheduledNotifs(prev => [...prev, {
-                id: data[0].id,
-                title: notifTitle,
-                body: notifBody,
-                time: scheduleTime,
-                repeat: scheduleRepeat,
-                active: true
-            }]);
-            setNotifTitle('');
-            setNotifBody('');
-            alert('Notificação agendada com sucesso!');
-        }
-    };
-
-    // Delete scheduled notification
-    const deleteScheduledNotif = async (id) => {
-        const { error } = await supabase.from('scheduled_notifications').delete().eq('id', id);
-        if (!error) {
-            setScheduledNotifs(prev => prev.filter(n => n.id !== id));
-        }
-    };
-
-    // Toggle scheduled notification active/inactive
-    const toggleScheduledNotif = async (id) => {
-        const notif = scheduledNotifs.find(n => n.id === id);
-        if (!notif) return;
-
-        const { error } = await supabase.from('scheduled_notifications')
-            .update({ is_active: !notif.active })
-            .eq('id', id);
-
-        if (!error) {
-            setScheduledNotifs(prev => prev.map(n => n.id === id ? { ...n, active: !n.active } : n));
-        }
-    };
-
-    // Use template
-    const useTemplate = (template) => {
-        setNotifTitle(template.title);
-        setNotifBody(template.body);
-        setShowTemplates(false);
-    };
 
     const handleSaveNew = () => {
         if (!newChallenge.title) return;
@@ -154,16 +19,12 @@ const Admin = () => {
 
     const tabs = [
         { id: 'challenges', label: 'Desafios', icon: Trophy },
-        { id: 'notifications', label: 'Notificações', icon: Bell },
         { id: 'users', label: 'Alunos', icon: Users },
         { id: 'stats', label: 'Estatísticas', icon: BarChart3 },
     ];
 
-    const [isAdminAuth, setIsAdminAuth] = useState(false);
-    const [passwordInput, setPasswordInput] = useState('');
-    const [errorMsg, setErrorMsg] = useState('');
-
-    if (!isAdminAuth) {
+    // Verificação de Admin baseada no banco de dados (mais seguro)
+    if (!user || !user.isAdmin) {
         return (
             <div className="page-enter" style={{
                 height: '80vh',
@@ -175,48 +36,31 @@ const Admin = () => {
                 <div className="glass-panel" style={{ padding: '40px', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
                     <Lock size={48} color="var(--accent)" style={{ marginBottom: '20px' }} />
                     <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>Acesso Restrito</h2>
-                    <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Digite a senha de administrador para continuar.</p>
+                    <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+                        Esta área é exclusiva para administradores verificados.
+                    </p>
 
-                    <input
-                        type="password"
-                        placeholder="Senha de acesso"
-                        value={passwordInput}
-                        onChange={(e) => {
-                            setPasswordInput(e.target.value);
-                            setErrorMsg('');
-                        }}
-                        style={{
-                            width: '100%',
-                            padding: '16px',
-                            borderRadius: '12px',
-                            background: 'rgba(0,0,0,0.3)',
-                            border: '1px solid var(--border)',
-                            color: '#fff',
-                            marginBottom: '16px',
-                            textAlign: 'center',
-                            fontSize: '16px'
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
-                                if (passwordInput === adminPass) setIsAdminAuth(true);
-                                else setErrorMsg('Senha incorreta! Tente novamente.');
-                            }
-                        }}
-                    />
-
-                    {errorMsg && <p style={{ color: 'var(--accent)', fontSize: '14px', marginBottom: '16px' }}>{errorMsg}</p>}
+                    <div style={{
+                        padding: '16px',
+                        background: 'rgba(255,255,255,0.05)',
+                        borderRadius: '12px',
+                        fontSize: '13px',
+                        color: '#888',
+                        textAlign: 'left'
+                    }}>
+                        <p style={{ marginBottom: '8px', fontWeight: 'bold' }}>Como acessar?</p>
+                        <ol style={{ paddingLeft: '20px' }}>
+                            <li>Certifique-se de estar logado.</li>
+                            <li>Sua conta deve ter a permissão <code>is_admin</code> no banco de dados.</li>
+                        </ol>
+                    </div>
 
                     <button
-                        className="btn-primary"
-                        style={{ width: '100%' }}
-                        onClick={() => {
-                            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
-                            if (passwordInput === adminPass) setIsAdminAuth(true);
-                            else setErrorMsg('Senha incorreta! Tente novamente.');
-                        }}
+                        className="btn-secondary"
+                        style={{ width: '100%', marginTop: '24px' }}
+                        onClick={() => window.history.back()}
                     >
-                        Desbloquear Painel
+                        Voltar
                     </button>
                 </div>
             </div>
@@ -237,49 +81,32 @@ const Admin = () => {
             </div>
 
             {/* === TABS === */}
-            <div style={{
-                display: 'flex',
-                gap: '8px',
-                marginBottom: '32px',
-                background: 'rgba(0,0,0,0.3)',
-                padding: '6px',
-                borderRadius: '16px',
-                width: '100%',
-                overflowX: 'auto',
-                whiteSpace: 'nowrap',
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
-            }}>
-                <style>{`
-                    .admin-tabs::-webkit-scrollbar { display: none; }
-                `}</style>
-                <div className="admin-tabs" style={{ display: 'flex', gap: '8px' }}>
-                    {tabs.map(tab => {
-                        const Icon = tab.icon;
-                        return (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                style={{
-                                    padding: '12px 24px',
-                                    borderRadius: '12px',
-                                    border: 'none',
-                                    background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
-                                    color: activeTab === tab.id ? '#000' : 'var(--text-muted)',
-                                    cursor: 'pointer',
-                                    fontWeight: '700',
-                                    fontSize: '14px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    transition: 'all 0.3s ease'
-                                }}
-                            >
-                                <Icon size={18} /> {tab.label}
-                            </button>
-                        );
-                    })}
-                </div>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '32px', background: 'rgba(0,0,0,0.3)', padding: '6px', borderRadius: '16px', width: 'fit-content' }}>
+                {tabs.map(tab => {
+                    const Icon = tab.icon;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            style={{
+                                padding: '12px 24px',
+                                borderRadius: '12px',
+                                border: 'none',
+                                background: activeTab === tab.id ? 'var(--primary)' : 'transparent',
+                                color: activeTab === tab.id ? '#000' : 'var(--text-muted)',
+                                cursor: 'pointer',
+                                fontWeight: '700',
+                                fontSize: '14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            <Icon size={18} /> {tab.label}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* === CHALLENGES TAB === */}
@@ -518,6 +345,28 @@ const Admin = () => {
                                 <td style={{ padding: '16px', fontWeight: '700' }}>{user.xp.toLocaleString()} XP</td>
                                 <td style={{ padding: '16px' }}><span className="badge badge-primary">Ativo</span></td>
                             </tr>
+                            <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                                <td style={{ padding: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #333, #222)' }}></div>
+                                        <span style={{ fontWeight: '600' }}>Carlos Mendes</span>
+                                    </div>
+                                </td>
+                                <td style={{ padding: '16px' }}><span className="level-badge">LVL 8</span></td>
+                                <td style={{ padding: '16px', fontWeight: '700' }}>1,200 XP</td>
+                                <td style={{ padding: '16px' }}><span className="badge badge-primary">Ativo</span></td>
+                            </tr>
+                            <tr>
+                                <td style={{ padding: '16px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #444, #333)' }}></div>
+                                        <span style={{ fontWeight: '600' }}>Maria Oliveira</span>
+                                    </div>
+                                </td>
+                                <td style={{ padding: '16px' }}><span className="level-badge">LVL 5</span></td>
+                                <td style={{ padding: '16px', fontWeight: '700' }}>650 XP</td>
+                                <td style={{ padding: '16px' }}><span className="badge badge-secondary">Inativo</span></td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -529,260 +378,19 @@ const Admin = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
                         <div className="glass-panel" style={{ padding: '28px', textAlign: 'center' }}>
                             <h4 style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '600' }}>TOTAL ALUNOS</h4>
-                            <p style={{ fontSize: '40px', fontWeight: '900' }}>1</p>
+                            <p style={{ fontSize: '40px', fontWeight: '900' }}>156</p>
                         </div>
                         <div className="glass-panel" style={{ padding: '28px', textAlign: 'center' }}>
                             <h4 style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '600' }}>DESAFIOS ATIVOS</h4>
                             <p style={{ fontSize: '40px', fontWeight: '900', color: 'var(--primary)' }}>{challenges.length}</p>
                         </div>
-                    </div>
-                </div>
-            )}
-
-            {/* === NOTIFICATIONS TAB === */}
-            {activeTab === 'notifications' && (
-                <div>
-                    <div className="glass-panel" style={{ padding: '28px', marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                            <div style={{
-                                width: '44px', height: '44px', borderRadius: '12px',
-                                background: 'linear-gradient(135deg, rgba(0,255,136,0.2), rgba(0,255,136,0.05))',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}>
-                                <Send size={22} color="var(--primary)" />
-                            </div>
-                            <div>
-                                <h3 style={{ fontSize: '22px', fontWeight: '900', letterSpacing: '-0.5px' }}>Notificações em Massa</h3>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Comunique-se com todos os seus guerreiros</p>
-                                    <span style={{
-                                        padding: '2px 8px',
-                                        background: 'rgba(0, 255, 136, 0.1)',
-                                        color: 'var(--primary)',
-                                        borderRadius: '6px',
-                                        fontSize: '11px',
-                                        fontWeight: '700',
-                                        border: '1px solid rgba(0, 255, 136, 0.2)'
-                                    }}>
-                                        {fcmTokensCount} DISPOSITIVOS
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => setShowTemplates(!showTemplates)}
-                            style={{
-                                width: '100%',
-                                padding: '16px',
-                                background: showTemplates ? 'linear-gradient(135deg, rgba(123, 47, 255, 0.2), rgba(123, 47, 255, 0.1))' : 'rgba(255,255,255,0.03)',
-                                border: `1px solid ${showTemplates ? 'var(--secondary)' : 'var(--border)'}`,
-                                borderRadius: '16px',
-                                color: showTemplates ? '#fff' : 'var(--text-muted)',
-                                cursor: 'pointer',
-                                fontWeight: '700',
-                                fontSize: '14px',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '10px',
-                                marginBottom: '20px',
-                                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                boxShadow: showTemplates ? '0 0 20px rgba(123, 47, 255, 0.2)' : 'none'
-                            }}
-                        >
-                            <Copy size={20} />
-                            {showTemplates ? 'Ocultar Sugestões' : '📋 Ver Mensagens Predefinidas'}
-                        </button>
-
-                        {showTemplates && (
-                            <div style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-                                gap: '10px',
-                                marginBottom: '20px',
-                                maxHeight: '300px',
-                                overflowY: 'auto',
-                                padding: '4px'
-                            }}>
-                                {notifTemplates.map((t, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => useTemplate(t)}
-                                        style={{
-                                            padding: '14px 16px',
-                                            background: 'rgba(255,255,255,0.03)',
-                                            border: '1px solid var(--border)',
-                                            borderRadius: '12px',
-                                            cursor: 'pointer',
-                                            textAlign: 'left',
-                                            transition: 'all 0.2s ease',
-                                            color: '#fff'
-                                        }}
-                                    >
-                                        <div style={{ fontWeight: '700', fontSize: '14px', marginBottom: '4px' }}>{t.title}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.4' }}>{t.body}</div>
-                                        <span style={{
-                                            display: 'inline-block',
-                                            marginTop: '8px',
-                                            fontSize: '10px',
-                                            fontWeight: '700',
-                                            textTransform: 'uppercase',
-                                            letterSpacing: '0.5px',
-                                            padding: '3px 8px',
-                                            borderRadius: '100px',
-                                            background: 'rgba(0,255,136,0.1)',
-                                            color: '#00FF88'
-                                        }}>{t.category}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-
-                        <div style={{ marginBottom: '12px' }}>
-                            <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block', fontWeight: '600', textTransform: 'uppercase' }}>TÍTULO</label>
-                            <input
-                                placeholder="Ex: 💪 Hora de treinar!"
-                                value={notifTitle}
-                                onChange={e => setNotifTitle(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '14px 16px',
-                                    background: 'rgba(0,0,0,0.4)',
-                                    border: '1px solid var(--border)',
-                                    color: '#fff',
-                                    borderRadius: '12px',
-                                    fontSize: '15px'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block', fontWeight: '600', textTransform: 'uppercase' }}>MENSAGEM</label>
-                            <textarea
-                                placeholder="Ex: Seu corpo merece atenção hoje. Bora mover!"
-                                value={notifBody}
-                                onChange={e => setNotifBody(e.target.value)}
-                                rows={3}
-                                style={{
-                                    width: '100%',
-                                    padding: '14px 16px',
-                                    background: 'rgba(0,0,0,0.4)',
-                                    border: '1px solid var(--border)',
-                                    color: '#fff',
-                                    borderRadius: '12px',
-                                    fontSize: '14px',
-                                    resize: 'vertical',
-                                    fontFamily: 'inherit'
-                                }}
-                            />
-                        </div>
-
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                            <button
-                                onClick={sendInstantNotification}
-                                disabled={notifSent || !notifTitle || !notifBody}
-                                className="btn-primary"
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                            >
-                                {notifSent ? 'Enviada!' : <><Send size={18} /> Disparar Agora</>}
-                            </button>
-                            <button
-                                onClick={scheduleNotification}
-                                disabled={!notifTitle || !notifBody}
-                                style={{
-                                    padding: '14px 20px',
-                                    background: 'rgba(123, 47, 255, 0.1)',
-                                    border: '1px solid rgba(123, 47, 255, 0.3)',
-                                    borderRadius: '12px',
-                                    color: 'var(--secondary)',
-                                    cursor: 'pointer',
-                                    fontWeight: '700',
-                                    fontSize: '14px',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
-                                }}
-                            >
-                                <Calendar size={18} /> Agendar
-                            </button>
+                        <div className="glass-panel" style={{ padding: '28px', textAlign: 'center' }}>
+                            <h4 style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '600' }}>MEDALHAS GANHAS</h4>
+                            <p style={{ fontSize: '40px', fontWeight: '900', color: '#FFD700' }}>89</p>
                         </div>
                     </div>
-
-                    {/* Schedule Section */}
-                    <div className="glass-panel" style={{ padding: '28px', marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                            <div style={{
-                                width: '44px', height: '44px', borderRadius: '12px',
-                                background: 'linear-gradient(135deg, rgba(123,47,255,0.2), rgba(123,47,255,0.05))',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}>
-                                <Clock size={22} color="var(--secondary)" />
-                            </div>
-                            <div>
-                                <h3 style={{ fontSize: '20px', fontWeight: '800' }}>Configurações de Agendamento</h3>
-                                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Horário padrão para as mensagens agendadas</p>
-                            </div>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                            <div>
-                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block', fontWeight: '600' }}>HORÁRIO</label>
-                                <input
-                                    type="time"
-                                    value={scheduleTime}
-                                    onChange={e => setScheduleTime(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '14px 16px',
-                                        background: 'rgba(0,0,0,0.4)',
-                                        border: '1px solid var(--border)',
-                                        color: '#fff',
-                                        borderRadius: '12px'
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', display: 'block', fontWeight: '600' }}>REPETIÇÃO</label>
-                                <select
-                                    value={scheduleRepeat}
-                                    onChange={e => setScheduleRepeat(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '14px 16px',
-                                        background: 'rgba(0,0,0,0.4)',
-                                        border: '1px solid var(--border)',
-                                        color: '#fff',
-                                        borderRadius: '12px'
-                                    }}
-                                >
-                                    <option value="daily">Diário</option>
-                                    <option value="weekdays">Dias úteis</option>
-                                    <option value="once">Uma vez</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Scheduled List */}
-                    <div className="glass-panel" style={{ padding: '28px' }}>
-                        <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '20px' }}>Mensagens Agendadas</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {scheduledNotifs.map(n => (
-                                <div key={n.id} className="glass-panel" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div>
-                                        <h4 style={{ fontWeight: '700', fontSize: '14px' }}>{n.title}</h4>
-                                        <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{n.time} - {n.repeat}</p>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button onClick={() => toggleScheduledNotif(n.id)} style={{ padding: '8px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: 'none', color: n.active ? 'var(--primary)' : '#666' }}>
-                                            {n.active ? <Bell size={16} /> : <Bell size={16} style={{ opacity: 0.5 }} />}
-                                        </button>
-                                        <button onClick={() => deleteScheduledNotif(n.id)} style={{ padding: '8px', borderRadius: '8px', background: 'rgba(255, 51, 102, 0.1)', border: 'none', color: 'var(--accent)' }}>
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                            {scheduledNotifs.length === 0 && <p style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>Nenhum agendamento ativo.</p>}
-                        </div>
+                    <div className="glass-panel" style={{ padding: '28px', height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <p style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>📊 Gráficos de engajamento em breve...</p>
                     </div>
                 </div>
             )}

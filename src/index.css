@@ -56,10 +56,32 @@ a {
 #root {
   height: 100%;
   overflow: hidden;
+  /* PWA Safe Areas */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-right: env(safe-area-inset-right);
+  padding-left: env(safe-area-inset-left);
 }
 
-button {
-  font-family: inherit;
+/* Prevent text selection unless needed for better "App" feel */
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  user-select: text;
+}
+
+/* Fix for iOS Safari height issues in standalone mode */
+@media (display-mode: standalone) {
+  body {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
 }
 
 /* Custom Scrollbar */
@@ -2564,27 +2586,36 @@ input[type="range"]::-moz-range-thumb {
 
 /* === AVATAR ANIMATIONS === */
 @keyframes avatar-float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-8px);
   }
 }
 
 @keyframes avatar-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(255, 215, 0, 0.6), 0 0 60px rgba(255, 165, 0, 0.3);
   }
 }
 
 @keyframes avatar-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.02);
   }
@@ -2594,15 +2625,19 @@ input[type="range"]::-moz-range-thumb {
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
 
 @keyframes border-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     border-color: rgba(255, 215, 0, 0.5);
   }
+
   50% {
     border-color: rgba(255, 215, 0, 1);
   }
@@ -2610,9 +2645,12 @@ input[type="range"]::-moz-range-thumb {
 
 /* Boss sprite animations */
 @keyframes boss-idle {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1) translateY(0);
   }
+
   50% {
     transform: scale(1.02) translateY(-3px);
   }
@@ -2622,12 +2660,15 @@ input[type="range"]::-moz-range-thumb {
   0% {
     transform: scale(1) translateX(0);
   }
+
   25% {
     transform: scale(1.15) translateX(10px);
   }
+
   50% {
     transform: scale(1.1) translateX(-5px);
   }
+
   100% {
     transform: scale(1) translateX(0);
   }
@@ -2638,6 +2679,7 @@ input[type="range"]::-moz-range-thumb {
     filter: grayscale(0) brightness(1);
     transform: scale(1);
   }
+
   100% {
     filter: grayscale(100%) brightness(0.5);
     transform: scale(0.95);
@@ -2682,12 +2724,10 @@ input[type="range"]::-moz-range-thumb {
 
 /* Golden shimmer effect */
 .golden-shimmer {
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 215, 0, 0.3) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 215, 0, 0.3) 50%,
+      transparent 100%);
   background-size: 200% 100%;
   animation: card-shimmer 3s ease-in-out infinite;
 }
@@ -2701,6 +2741,7 @@ input[type="range"]::-moz-range-thumb {
 .pulse-glow {
   animation: avatar-glow 2s ease-in-out infinite;
 }
+
 body.hide-mobile-nav .mobile-nav {
-    display: none !important;
+  display: none !important;
 }

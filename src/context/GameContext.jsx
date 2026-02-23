@@ -76,127 +76,9 @@ export const GameProvider = ({ children }) => {
         ];
     });
 
-    // --- Notifications System (Global) ---
-    const dispatchInAppNotif = (title, body, id) => {
-        window.dispatchEvent(new CustomEvent('admin-notification', {
-            detail: { title, body, id: id || Date.now() }
-        }));
-    };
-
-    const startNotificationGlobalSystem = () => {
-        // 1. Check for missed broadcasts on startup (last 24h)
-        const checkMissed = async () => {
-            try {
-                const lastSeen = localStorage.getItem('last_broadcast_seen_at') || new Date(Date.now() - 86400000).toISOString();
-                const { data } = await supabase
-                    .from('admin_broadcasts')
-                    .select('*')
-                    .gt('sent_at', lastSeen)
-                    .order('sent_at', { ascending: true });
-
-                if (data && data.length > 0) {
-                    data.forEach(n => {
-                        dispatchInAppNotif(n.title, n.body, n.id);
-                    });
-                    localStorage.setItem('last_broadcast_seen_at', new Date().toISOString());
-                }
-            } catch (e) { console.log('Missed broadcast check skipped:', e); }
-        };
-        checkMissed();
-
-        // 2. Scheduler for personal + admin-scheduled notifs (every minute)
-        const checkInterval = setInterval(async () => {
-            const now = new Date();
-            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            const today = now.toDateString();
-            const dayOfWeek = now.getDay();
-
-            // A. Personal notification
-            const personalEnabled = localStorage.getItem('notifications_enabled') === 'true';
-            if (personalEnabled && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-                const personalTime = localStorage.getItem('notification_time') || '08:00';
-                if (currentTime === personalTime) {
-                    const lastSent = localStorage.getItem('last_personal_notif_date');
-                    if (lastSent !== today) {
-                        new Notification('💪 Hora de treinar!', {
-                            body: 'Seu corpo merece atenção hoje. Bora mover!',
-                            icon: '/pwa-192x192.png',
-                            tag: 'personal-daily'
-                        });
-                        localStorage.setItem('last_personal_notif_date', today);
-                    }
-                }
-            }
-
-            // B. Admin scheduled notifications
-            try {
-                const { data: adminNotifs } = await supabase
-                    .from('scheduled_notifications')
-                    .select('*')
-                    .eq('is_active', true);
-
-                if (adminNotifs) {
-                    adminNotifs.forEach(n => {
-                        const nTime = (n.schedule_time || '').substring(0, 5);
-                        if (nTime !== currentTime) return;
-                        if (n.repeat === 'weekdays' && (dayOfWeek === 0 || dayOfWeek === 6)) return;
-
-                        const lastKey = `admin_notif_sent_${n.id}`;
-                        if (localStorage.getItem(lastKey) === today) return;
-
-                        // Show in-app toast
-                        dispatchInAppNotif(n.title, n.body, 'sched-' + n.id);
-
-                        // Also try native notification
-                        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-                            new Notification(n.title, {
-                                body: n.body,
-                                icon: '/pwa-192x192.png',
-                                tag: 'admin-scheduled-' + n.id
-                            });
-                        }
-                        localStorage.setItem(lastKey, today);
-                    });
-                }
-            } catch (e) { /* ignore */ }
-        }, 60000);
-
-        // 3. Supabase Realtime for instant admin broadcasts
-        const channel = supabase.channel('global_notifications')
-            .on('broadcast', { event: 'INSTANT_NOTIF' }, (payload) => {
-                const { title, body } = payload.payload || {};
-                if (title && body) {
-                    // Show in-app toast (works everywhere)
-                    dispatchInAppNotif(title, body);
-
-                    // Also try native notification
-                    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-                        new Notification(title, {
-                            body: body,
-                            icon: '/pwa-192x192.png',
-                            vibrate: [200, 100, 200],
-                            tag: 'admin-global-' + Date.now()
-                        });
-                    }
-
-                    // Update last seen timestamp
-                    localStorage.setItem('last_broadcast_seen_at', new Date().toISOString());
-                }
-            })
-            .subscribe();
-
-        return () => {
-            clearInterval(checkInterval);
-            supabase.removeChannel(channel);
-        };
-    };
-
     // Auth & Data Fetching Effect
     useEffect(() => {
         let mounted = true;
-
-        // ALWAYS init notification system (in-app toasts work without Notification API)
-        const notifCleanup = startNotificationGlobalSystem();
 
         // Timeout de segurança: se o Supabase não responder em 5s, libera o app
         const safetyTimeout = setTimeout(() => {
@@ -238,7 +120,6 @@ export const GameProvider = ({ children }) => {
             mounted = false;
             clearTimeout(safetyTimeout);
             subscription.unsubscribe();
-            notifCleanup();
         };
     }, []);
 
@@ -258,7 +139,8 @@ export const GameProvider = ({ children }) => {
                     avatar: data.avatar || defaultUser.avatar,
                     stats: data.stats || defaultUser.stats,
                     challengeProfile: data.challenge_profile,
-                    defeatedBosses: data.defeated_bosses || []
+                    defeatedBosses: data.defeated_bosses || [],
+                    isAdmin: data.is_admin || false
                 });
             }
         } catch (error) {

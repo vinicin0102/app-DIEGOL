@@ -1,7 +1,11 @@
 
-// Service Worker customizado
+// Service Worker robusto para PWA
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
+import { registerRoute } from 'workbox-routing'
+import { CacheFirst, StaleWhileRevalidate } from 'workbox-strategies'
+import { ExpirationPlugin } from 'workbox-expiration'
+import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 
 cleanupOutdatedCaches()
 
@@ -12,11 +16,34 @@ precacheAndRoute(self.__WB_MANIFEST)
 self.skipWaiting()
 clientsClaim()
 
-// --- Lógica de Push Notification ---
+// Cache de Imagens
+registerRoute(
+    ({ request }) => request.destination === 'image',
+    new CacheFirst({
+        cacheName: 'images',
+        plugins: [
+            new ExpirationPlugin({
+                maxEntries: 50,
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Dias
+            }),
+            new CacheableResponsePlugin({
+                statuses: [0, 200],
+            }),
+        ],
+    })
+)
 
+// Cache de Fontes (Google Fonts)
+registerRoute(
+    ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
+    new StaleWhileRevalidate({
+        cacheName: 'google-fonts',
+    })
+)
+
+// --- Lógica de Push Notification ---
 self.addEventListener('push', (event) => {
     let notificationData = {}
-
     try {
         notificationData = event.data.json()
     } catch (e) {
@@ -39,27 +66,17 @@ self.addEventListener('push', (event) => {
         actions: notificationData.actions || []
     }
 
-    event.waitUntil(
-        self.registration.showNotification(title, options)
-    )
+    event.waitUntil(self.registration.showNotification(title, options))
 })
 
 self.addEventListener('notificationclick', (event) => {
     event.notification.close()
-
-    // Ao clicar, focar ou abrir a janela do app
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-            // Se já tem uma janela aberta, foca nela
             for (let client of windowClients) {
-                if (client.url === '/' && 'focus' in client) {
-                    return client.focus()
-                }
+                if (client.url === '/' && 'focus' in client) return client.focus()
             }
-            // Se não, abre uma nova
-            if (clients.openWindow) {
-                return clients.openWindow('/')
-            }
+            if (clients.openWindow) return clients.openWindow('/')
         })
     )
 })

@@ -460,23 +460,6 @@ const Profile = () => {
                     ))}
                 </div>
             </div>
-
-            {/* === LGPD FOOTER === */}
-            <div style={{
-                marginTop: '60px',
-                padding: '40px 24px',
-                borderTop: '1px solid var(--border)',
-                textAlign: 'center'
-            }}>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '16px' }}>
-                    <a href="#" style={{ color: 'var(--text-muted)', fontSize: '13px', textDecoration: 'none' }}>Termos de Uso</a>
-                    <a href="#" style={{ color: 'var(--text-muted)', fontSize: '13px', textDecoration: 'none' }}>Política de Privacidade</a>
-                </div>
-                <p style={{ color: 'var(--text-muted)', fontSize: '12px', lineHeight: '1.6', maxWidth: '400px', margin: '0 auto' }}>
-                    Seus dados estão protegidos seguindo as diretrizes da LGPD (Lei Geral de Proteção de Dados).
-                    Utilizamos criptografia ponta-a-ponta para garantir sua segurança.
-                </p>
-            </div>
         </div>
     );
 };
