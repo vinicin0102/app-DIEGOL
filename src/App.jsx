@@ -3,7 +3,8 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import AppLayout from './layouts/AppLayout';
 import Challenges from './pages/Challenges';
 import Community from './pages/Community';
-import Profile from './pages/Profile';
+import Missions from './pages/Missions';
+import Calendar from './pages/Calendar';
 import Admin from './pages/Admin';
 import Training from './pages/Training';
 import Home from './pages/Home';
@@ -88,6 +89,8 @@ const App = () => {
             <Route path="challenges" element={<Challenges />} />
             <Route path="community" element={<Community />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="missions" element={<Missions />} />
+            <Route path="calendar" element={<Calendar />} />
           </Route>
         </Route>
 

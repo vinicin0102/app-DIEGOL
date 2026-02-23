@@ -1,0 +1,103 @@
+.calendar-page {
+    padding-bottom: 120px;
+}
+
+.calendar-tab-group {
+    display: flex;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px;
+    border-radius: 12px;
+    margin-bottom: 32px;
+}
+
+.calendar-tab {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.calendar-tab.active {
+    background: #00DDEE;
+    color: #000;
+    box-shadow: 0 0 15px rgba(0, 221, 238, 0.3);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 8px 0;
+    text-transform: uppercase;
+}
+
+.calendar-day-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    aspect-ratio: 1/1.2;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+}
+
+.calendar-day-card.completed {
+    background: rgba(0, 255, 136, 0.1);
+    border-color: var(--primary);
+}
+
+.calendar-day-card.today {
+    border-color: #00DDEE;
+    background: rgba(0, 221, 238, 0.05);
+}
+
+.calendar-day-number {
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.calendar-day-progress {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+.day-progress-mini {
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 4px 0;
+}
+
+.day-progress-mini-fill {
+    height: 100%;
+    background: var(--primary);
+}
+
+.day-dots-container {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+}
+
+.day-dot-mini {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}

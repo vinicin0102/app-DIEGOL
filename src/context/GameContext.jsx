@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { INITIAL_MISSIONS } from '../data/missionsData';
 
 const GameContext = createContext();
 
@@ -8,6 +9,21 @@ export const useGame = () => useContext(GameContext);
 export const GameProvider = ({ children }) => {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const [missions, setMissions] = useState(() => {
+        const saved = localStorage.getItem('gameMissions');
+        return saved ? JSON.parse(saved) : INITIAL_MISSIONS.map(m => ({ ...m, completed: false }));
+    });
+
+    const [bonusMissions, setBonusMissions] = useState(() => {
+        const saved = localStorage.getItem('gameBonusMissions');
+        return saved ? JSON.parse(saved) : [];
+    });
+
+    const [calendarData, setCalendarData] = useState(() => {
+        const saved = localStorage.getItem('gameCalendarData');
+        return saved ? JSON.parse(saved) : {};
+    });
 
     // Initial default user state (fallback)
     const defaultUser = {
@@ -230,12 +246,23 @@ export const GameProvider = ({ children }) => {
 
     // --- State Modifiers (Wrapped to Sync) ---
 
-    // Initial Sync Effect for LocalStorage (only if not logged in)
     useEffect(() => {
         if (!session) {
             localStorage.setItem('gameUser', JSON.stringify(user));
         }
     }, [user, session]);
+
+    useEffect(() => {
+        localStorage.setItem('gameMissions', JSON.stringify(missions));
+    }, [missions]);
+
+    useEffect(() => {
+        localStorage.setItem('gameBonusMissions', JSON.stringify(bonusMissions));
+    }, [bonusMissions]);
+
+    useEffect(() => {
+        localStorage.setItem('gameCalendarData', JSON.stringify(calendarData));
+    }, [calendarData]);
 
     useEffect(() => {
         if (!session) {
@@ -398,18 +425,64 @@ export const GameProvider = ({ children }) => {
         }
     };
 
-    const likePost = async (postId) => {
-        // Optimistic update
-        setPosts(prev => prev.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
+    const toggleMission = (id) => {
+        setMissions(prev => {
+            const newMissions = prev.map(m => m.id === id ? { ...m, completed: !m.completed } : m);
 
-        if (session) {
-            // In a real app we would check if user already liked
-            // For now just increment counter in DB
-            const post = posts.find(p => p.id === postId);
-            if (post) {
-                await supabase.from('posts').update({ likes: post.likes + 1 }).eq('id', postId);
+            // Check if all missions for today are completed
+            const allDone = newMissions.every(m => m.completed);
+            const today = new Date().toISOString().split('T')[0];
+
+            if (allDone) {
+                setCalendarData(prevCal => ({
+                    ...prevCal,
+                    [today]: {
+                        completed: true,
+                        count: `${newMissions.length}/${newMissions.length}`,
+                        timestamp: new Date().toISOString()
+                    }
+                }));
+            } else {
+                setCalendarData(prevCal => ({
+                    ...prevCal,
+                    [today]: {
+                        completed: false,
+                        count: `${newMissions.filter(m => m.completed).length}/${newMissions.length}`,
+                        timestamp: new Date().toISOString()
+                    }
+                }));
             }
-        }
+
+            return newMissions;
+        });
+    };
+
+    const addBonusMission = (title) => {
+        if (bonusMissions.length >= 2) return;
+        setBonusMissions(prev => [...prev, {
+            id: Date.now(),
+            title,
+            completed: false,
+            xp: 1,
+            category: 'Bônus'
+        }]);
+    };
+
+    const toggleBonusMission = (id) => {
+        setBonusMissions(prev => {
+            const updated = prev.map(m => {
+                if (m.id === id && !m.completed) {
+                    addXp(1);
+                    return { ...m, completed: true };
+                }
+                return m;
+            });
+            return updated;
+        });
+    };
+
+    const deleteBonusMission = (id) => {
+        setBonusMissions(prev => prev.filter(m => m.id !== id));
     };
 
     return (
@@ -433,6 +506,14 @@ export const GameProvider = ({ children }) => {
             updateStats,
             logWorkout,
             saveChallengeProfile,
+            // Missions
+            missions,
+            toggleMission,
+            bonusMissions,
+            addBonusMission,
+            toggleBonusMission,
+            deleteBonusMission,
+            calendarData,
             // Auth
             session,
             loading,

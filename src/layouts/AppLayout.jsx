@@ -1,7 +1,8 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Trophy, Users, User, ShieldCheck, Dumbbell } from 'lucide-react';
+import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2 } from 'lucide-react';
+import { getRank, getRankColor } from '../data/missionsData';
 import InstallPWA from '../components/InstallPWA';
 import './AppLayout.css';
 
@@ -19,23 +20,52 @@ const AppLayout = () => {
       { path: 'https://desafiodosvencedores.vercel.app', icon: User, label: 'Voltar p/ o App', isExternal: true },
     ]
     : [
-      { path: '/app/profile', icon: User, label: 'Perfil' },
-      { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
-      { path: '/app/challenges', icon: Trophy, label: 'Desafios' },
-      { path: '/app/community', icon: Users, label: 'Comunidade' },
+      { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
+      { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
+      { path: '/app/missions', icon: Target, label: 'Missões' },
+      { path: '/app/store', icon: Clock, label: 'Loja do Tempo' },
+      { path: '/app/rewards', icon: Gift, label: 'Itens de Recompensa' },
+      { path: '/app/avatars', icon: Users, label: 'Avatares' },
+      { path: '/app/priority', icon: Layout, label: 'Matriz de Prioridades' },
+      { path: '/app/progress', icon: TrendingUp, label: 'Progresso' },
+      { path: '/app/virtues', icon: Trophy, label: 'Virtudes' },
+      { path: '/app/ai-chat', icon: Brain, label: 'Evolução Chat IA' },
+      { path: '/app/evolution-tree', icon: TreeDeciduous, label: 'Árvore de Evolução' },
       { path: '/app/admin', icon: ShieldCheck, label: 'Painel Admin' }
     ];
+
+  const rank = getRank(user.level);
+  const rankColor = getRankColor(rank);
 
 
   return (
     <div className="app-container">
       <aside className="sidebar">
-        <div className="brand">
+        <div className="brand" style={{ marginBottom: '24px' }}>
           <div className="logo-mark"></div>
-          <span className="brand-text">VENCEDORES</span>
+          <div>
+            <span className="brand-text" style={{ fontSize: '18px', display: 'block' }}>O SISTEMA</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Arquitetura da Evolução</span>
+          </div>
         </div>
 
-        <nav className="nav-menu">
+        <div className="user-profile-summary" style={{ marginBottom: '32px', padding: '0 8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '20px', fontWeight: '900', color: '#00DDEE', textTransform: 'uppercase' }}>{user.name || 'JUNIO'}</h3>
+            <Edit2 size={14} color="var(--text-muted)" />
+          </div>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>NÍVEL {user.level} — O Despertar</span>
+          <span style={{ fontSize: '12px', color: rankColor, fontWeight: '800', display: 'block', marginBottom: '12px' }}>RANK {rank}</span>
+
+          <div className="xp-bar" style={{ height: '4px' }}>
+            <div className="xp-bar-fill" style={{ width: `${(user.xp % 1000) / 10}%` }}></div>
+          </div>
+          <div style={{ textAlign: 'right', fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {user.xp % 1000}/1000 XP
+          </div>
+        </div>
+
+        <nav className="nav-menu" style={{ overflowY: 'auto', paddingRight: '4px' }}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path === '/app' && location.pathname === '/app/');
 
@@ -53,27 +83,42 @@ const AppLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={`nav-item ${isActive ? 'active' : ''}`}
+                style={{ padding: '12px 16px' }}
               >
-                <item.icon size={20} />
-                <span>{item.label}</span>
+                <item.icon size={20} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
+                <span style={{ fontSize: '14px' }}>{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="user-profile-preview" onClick={() => !session && navigate('/login')} style={{ cursor: 'pointer' }}>
-          <div className="avatar" style={{
-            background: session && user.photo ? `url(${user.photo})` : '#444',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}>
-            {(!user.photo || !session) && user.avatar && user.avatar.helmet && user.avatar.helmet.emoji}
-          </div>
-          <div className="user-info">
-            <h4>{user.name}</h4>
-            <span>{session ? `Nível ${user.level}` : 'Clique para entrar'}</span>
-          </div>
+        <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.03)' }}>
+          <span style={{ fontSize: '10px', color: '#00DDEE', fontWeight: '800', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>Mensagem do Arquiteto IA</span>
+          <p style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic', lineHeight: '1.4' }}>
+            "A perfeição não é destino, é jornada constante."
+          </p>
         </div>
+
+        <button
+          onClick={() => logout()}
+          style={{
+            marginTop: '24px',
+            width: '100%',
+            padding: '14px',
+            background: 'rgba(255,51,102,0.1)',
+            border: '1px solid rgba(255,51,102,0.2)',
+            borderRadius: '12px',
+            color: '#FF3366',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            fontWeight: '700',
+            cursor: 'pointer'
+          }}
+        >
+          <LogOut size={18} /> Sair
+        </button>
       </aside>
 
       <main className="main-content">
@@ -81,7 +126,7 @@ const AppLayout = () => {
       </main>
 
       <nav className="mobile-nav">
-        {navItems.map((item) => {
+        {navItems.slice(0, 5).map((item) => {
           const isActive = location.pathname === item.path;
 
           if (item.isExternal) {
