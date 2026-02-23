@@ -34,9 +34,31 @@ const App = () => {
     );
   }
 
-  const { isAuthenticated, loading } = useGame();
+  const { isAuthenticated, loading, user } = useGame();
 
-  // App state monitoring removed in production
+  // Registrar Push Notifications (FCM)
+  React.useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      import('./lib/firebase').then(({ registerPushNotifications, onForegroundMessage }) => {
+        // Pequeno delay para garantir que o SW esteja pronto
+        setTimeout(() => {
+          registerPushNotifications(user.id);
+        }, 3000);
+
+        // Ouvir mensagens em foreground (app aberto)
+        onForegroundMessage((payload) => {
+          // Aqui você pode disparar um InAppNotification ou Toast
+          const event = new CustomEvent('admin-notification', {
+            detail: {
+              title: payload.notification.title,
+              body: payload.notification.body
+            }
+          });
+          window.dispatchEvent(event);
+        });
+      });
+    }
+  }, [isAuthenticated, user?.id]);
 
   // Mostrar tela de carregamento enquanto verifica sessão
   if (loading) {
