@@ -46,15 +46,19 @@ const NotificationSettings = ({ user }) => {
 
             // Carregar preferências salvas do usuário se existirem
             if (user) {
-                const { data } = await supabase
-                    .from('user_notification_settings')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .single();
+                try {
+                    const { data } = await supabase
+                        .from('user_notification_settings')
+                        .select('preferred_time, incentive_type')
+                        .eq('user_id', user.id)
+                        .maybeSingle();
 
-                if (data) {
-                    setScheduleTime(data.preferred_time || '08:00');
-                    setIncentiveType(data.incentive_type || 'both');
+                    if (data) {
+                        setScheduleTime(data.preferred_time || '08:00');
+                        setIncentiveType(data.incentive_type || 'both');
+                    }
+                } catch (e) {
+                    console.warn('Tabela user_notification_settings não encontrada, usando padrão.');
                 }
             }
         }
@@ -84,9 +88,8 @@ const NotificationSettings = ({ user }) => {
                     .from('notification_subscriptions')
                     .upsert({
                         user_id: user.id,
-                        subscription: JSON.parse(JSON.stringify(subscription)),
-                        updated_at: new Date()
-                    }, { onConflict: 'user_id' }); // Simplificação: 1 device por user por enquanto
+                        subscription: JSON.parse(JSON.stringify(subscription))
+                    }, { onConflict: 'user_id' });
 
                 if (error) throw error;
 
@@ -137,8 +140,7 @@ const NotificationSettings = ({ user }) => {
                 .upsert({
                     user_id: user.id,
                     preferred_time: scheduleTime,
-                    incentive_type: incentiveType,
-                    updated_at: new Date()
+                    incentive_type: incentiveType
                 }, { onConflict: 'user_id' });
 
             if (error) throw error;
