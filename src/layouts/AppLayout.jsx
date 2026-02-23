@@ -10,13 +10,20 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const { user, session } = useGame();
 
-  const navItems = [
-    { path: '/app/profile', icon: User, label: 'Perfil' },
-    { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
-    { path: '/app/challenges', icon: Trophy, label: 'Desafios' },
-    { path: '/app/community', icon: Users, label: 'Comunidade' },
-    { path: '/app/admin', icon: ShieldCheck, label: 'Admin' },
-  ];
+  const isHostAdmin = window.location.hostname.startsWith('admin.');
+
+  const navItems = isHostAdmin
+    ? [
+      { path: '/', icon: ShieldCheck, label: 'Dashboard Admin' },
+      { path: 'https://desafiodosvencedores.vercel.app', icon: User, label: 'Voltar p/ o App', isExternal: true },
+    ]
+    : [
+      { path: '/app/profile', icon: User, label: 'Perfil' },
+      { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
+      { path: '/app/challenges', icon: Trophy, label: 'Desafios' },
+      { path: '/app/community', icon: Users, label: 'Comunidade' },
+    ];
+
 
   return (
     <div className="app-container">
@@ -27,16 +34,29 @@ const AppLayout = () => {
         </div>
 
         <nav className="nav-menu">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`nav-item ${location.pathname === item.path || (item.path === '/app' && location.pathname === '/app/') ? 'active' : ''}`}
-            >
-              <item.icon size={20} />
-              <span>{item.label}</span>
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path || (item.path === '/app' && location.pathname === '/app/');
+
+            if (item.isExternal) {
+              return (
+                <a key={item.path} href={item.path} className="nav-item">
+                  <item.icon size={20} />
+                  <span>{item.label}</span>
+                </a>
+              );
+            }
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`nav-item ${isActive ? 'active' : ''}`}
+              >
+                <item.icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="user-profile-preview" onClick={() => !session && navigate('/login')} style={{ cursor: 'pointer' }}>
@@ -59,17 +79,35 @@ const AppLayout = () => {
       </main>
 
       <nav className="mobile-nav">
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-            style={{ flexDirection: 'column', gap: '4px', fontSize: '10px', padding: '8px', border: 'none' }}
-          >
-            <item.icon size={24} />
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const isActive = location.pathname === item.path;
+
+          if (item.isExternal) {
+            return (
+              <a
+                key={item.path}
+                href={item.path}
+                className="nav-item"
+                style={{ flexDirection: 'column', gap: '4px', fontSize: '10px', padding: '8px', border: 'none' }}
+              >
+                <item.icon size={24} />
+                <span>{item.label}</span>
+              </a>
+            );
+          }
+
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`nav-item ${isActive ? 'active' : ''}`}
+              style={{ flexDirection: 'column', gap: '4px', fontSize: '10px', padding: '8px', border: 'none' }}
+            >
+              <item.icon size={24} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
       <InstallPWA />
     </div>

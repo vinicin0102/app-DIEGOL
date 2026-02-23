@@ -33,9 +33,12 @@ const App = () => {
 
   const { isAuthenticated, loading } = useGame();
 
+  // Detecção de subdomínio
+  const isHostAdmin = window.location.hostname.startsWith('admin.');
+
   React.useEffect(() => {
-    console.log("App State -> Loading:", loading, "Authenticated:", isAuthenticated);
-  }, [loading, isAuthenticated]);
+    console.log("App State -> Subdomain Admin:", isHostAdmin, "Auth:", isAuthenticated);
+  }, [loading, isAuthenticated, isHostAdmin]);
 
   // Mostrar tela de carregamento enquanto verifica sessão
   if (loading) {
@@ -51,13 +54,26 @@ const App = () => {
     );
   }
 
+  // --- ROTEAMENTO PARA SUBDOMÍNIO ADMIN ---
+  if (isHostAdmin) {
+    return (
+      <>
+        <Routes>
+          <Route path="/" element={isAuthenticated ? <AppLayout /> : <Home />}>
+            <Route index element={<Admin />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Route>
+        </Routes>
+        <LGPDBanner />
+      </>
+    );
+  }
+
+  // --- ROTEAMENTO PARA DOMÍNIO PRINCIPAL (APP) ---
   return (
     <>
       <Routes>
-        {/* If authenticated, redirect to /app (Dashboard), else show Home (Landing/Login) */}
         <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
-
-        {/* Direct access to independent login page if needed, or use Home */}
         <Route path="/login" element={<Navigate to="/" />} />
 
         {/* Protected Routes */}
@@ -67,20 +83,16 @@ const App = () => {
           <Route path="challenges" element={<Challenges />} />
           <Route path="community" element={<Community />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="admin" element={<Admin />} />
+          {/* Redireciona tentativa de acesso interno para o subdomínio correto */}
+          <Route path="admin" element={<Navigate to="/" />} />
         </Route>
-
-        {/* Legacy/Fallback routes handling */}
-        <Route path="/challenges" element={<Navigate to="/app/challenges" />} />
-        <Route path="/community" element={<Navigate to="/app/community" />} />
-        <Route path="/profile" element={<Navigate to="/app/profile" />} />
-        <Route path="/admin" element={<Navigate to="/app/admin" />} />
 
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       <LGPDBanner />
     </>
   );
+
 };
 
 export default App;
