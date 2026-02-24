@@ -425,6 +425,17 @@ export const GameProvider = ({ children }) => {
         }
     };
 
+    const likePost = async (id) => {
+        if (session) {
+            const { error } = await supabase.rpc('increment_likes', { post_id: id });
+            if (!error) {
+                setPosts(prev => prev.map(p => p.id === id ? { ...p, likes: (p.likes || 0) + 1 } : p));
+            }
+        } else {
+            setPosts(prev => prev.map(p => p.id === id ? { ...p, likes: (p.likes || 0) + 1 } : p));
+        }
+    };
+
     const toggleMission = (id) => {
         setMissions(prev => {
             const newMissions = prev.map(m => m.id === id ? { ...m, completed: !m.completed } : m);
