@@ -67,6 +67,25 @@ const NotificationSettings = ({ user }) => {
     const subscribeToPush = async () => {
         setLoading(true);
         try {
+            // Verificar se é iOS e se está na tela de início
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+            if (isIOS && !isStandalone) {
+                alert('No iPhone, as notificações só funcionam se você adicionar o app à sua Tela de Início primeiro. Toque no ícone de compartilhar e depois em "Adicionar à Tela de Início".');
+                setLoading(false);
+                return;
+            }
+
+            // Pedir permissão explicitamente antes de inscrever (necessário em alguns navegadores)
+            if (typeof Notification !== 'undefined') {
+                const permissionResult = await Notification.requestPermission();
+                setPermission(permissionResult);
+                if (permissionResult !== 'granted') {
+                    throw new Error('Permissão negada pelo usuário.');
+                }
+            }
+
             const registration = await navigator.serviceWorker.ready;
 
             let subscription = await registration.pushManager.getSubscription();
@@ -75,7 +94,7 @@ const NotificationSettings = ({ user }) => {
                 // Se tiver chave VAPID configurada
                 const options = {
                     userVisibleOnly: true,
-                    applicationServerKey: VAPID_PUBLIC_KEY !== 'YOUR_VAPID_PUBLIC_KEY_HERE'
+                    applicationServerKey: VAPID_PUBLIC_KEY && VAPID_PUBLIC_KEY !== 'YOUR_VAPID_PUBLIC_KEY_HERE'
                         ? urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
                         : undefined
                 };
@@ -91,15 +110,22 @@ const NotificationSettings = ({ user }) => {
                         subscription: JSON.parse(JSON.stringify(subscription))
                     }, { onConflict: 'user_id' });
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Erro ao salvar no Supabase:', error);
+                    throw new Error('Erro ao salvar sua inscrição no servidor. Verifique sua conexão.');
+                }
 
                 setIsSubscribed(true);
                 setPermission('granted');
-                alert('Notificações ativadas com sucesso!');
+                alert('Notificações ativadas com sucesso! Você receberá incentivos diários.');
             }
         } catch (error) {
             console.error('Erro ao inscrever:', error);
-            alert('Não foi possível ativar notificações. Verifique se o navegador suporta.');
+            if (error.message.includes('Permissão negada')) {
+                alert('As notificações foram negadas. Por favor, limpe as configurações do site ou habilite-as manualmente.');
+            } else {
+                alert(`Erro: ${error.message || 'Não foi possível ativar as notificações.'} Verifique se o app está instalado na tela inicial.`);
+            }
         } finally {
             setLoading(false);
         }
