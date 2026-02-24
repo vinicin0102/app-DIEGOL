@@ -21,6 +21,9 @@ const Admin = ({ superMail }) => {
     const [notifSent, setNotifSent] = useState(false);
     const [sending, setSending] = useState(false);
     const [deviceCount, setDeviceCount] = useState(0);
+    const [scheduleDate, setScheduleDate] = useState('');
+    const [isScheduling, setIsScheduling] = useState(false);
+    const [scheduledList, setScheduledList] = useState([]);
 
     const handleSaveNew = () => {
         if (!newChallenge.title) return;
@@ -36,18 +39,76 @@ const Admin = ({ superMail }) => {
         { id: 'stats', label: 'Estatísticas', icon: BarChart3 },
     ];
 
-    // Contagem de dispositivos inscritos via Supabase
+    // Contagem de dispositivos e lista de agendados
     useEffect(() => {
-        const fetchDevices = async () => {
+        const fetchData = async () => {
             if (activeTab === 'notifications') {
-                const { count, error } = await supabase
+                // Contagem de dispositivos
+                const { count } = await supabase
                     .from('notification_subscriptions')
                     .select('*', { count: 'exact', head: true });
-                if (!error) setDeviceCount(count || 0);
+                setDeviceCount(count || 0);
+
+                // Lista de agendamentos pendentes
+                const { data } = await supabase
+                    .from('scheduled_notifications')
+                    .select('*')
+                    .eq('status', 'pending')
+                    .order('schedule_at', { ascending: true });
+                setScheduledList(data || []);
             }
         };
-        fetchDevices();
+        fetchData();
+        const interval = setInterval(fetchData, 30000); // Atualiza a cada 30s
+        return () => clearInterval(interval);
     }, [activeTab]);
+
+    const handleScheduleNotification = async () => {
+        if (!notifTitle || !notifBody || !scheduleDate) {
+            alert('Preencha título, corpo e data/hora do agendamento.');
+            return;
+        }
+
+        setSending(true);
+        try {
+            const { error } = await supabase
+                .from('scheduled_notifications')
+                .insert([{
+                    title: notifTitle,
+                    body: notifBody,
+                    schedule_at: new Date(scheduleDate).toISOString(),
+                    status: 'pending'
+                }]);
+
+            if (error) throw error;
+
+            alert('✅ Notificação agendada com sucesso!');
+            setNotifTitle('');
+            setNotifBody('');
+            setScheduleDate('');
+            setIsScheduling(false);
+
+            // Recarregar lista
+            const { data } = await supabase
+                .from('scheduled_notifications')
+                .select('*')
+                .eq('status', 'pending');
+            setScheduledList(data || []);
+
+        } catch (err) {
+            alert('Erro ao agendar: ' + err.message);
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const deleteScheduled = async (id) => {
+        if (!confirm('Deseja cancelar este agendamento?')) return;
+        const { error } = await supabase.from('scheduled_notifications').delete().eq('id', id);
+        if (!error) {
+            setScheduledList(prev => prev.filter(n => n.id !== id));
+        }
+    };
 
     const sendInstantNotification = async () => {
         if (!notifTitle || !notifBody) return;
@@ -584,18 +645,94 @@ const Admin = ({ superMail }) => {
                                 onClick={sendInstantNotification}
                                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px' }}
                             >
-                                {sending ? <Loader size={20} className="spin" /> : notifSent ? 'ENVIADO!' : <><Send size={18} /> DISPARAR AGORA</>}
+                                {sending && !isScheduling ? <Loader size={20} className="spin" /> : notifSent ? 'ENVIADO!' : <><Send size={18} /> DISPARAR AGORA</>}
                             </button>
 
                             <button
                                 className="btn-secondary"
-                                onClick={() => alert('Recurso de agendamento automático em desenvolvimento. Por enquanto, use o disparo manual à esquerda.')}
-                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', border: '1px dashed rgba(255,255,255,0.2)' }}
+                                onClick={() => setIsScheduling(!isScheduling)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px',
+                                    background: isScheduling ? 'rgba(255,255,255,0.1)' : 'transparent',
+                                    border: isScheduling ? '1px solid var(--primary)' : '1px dashed rgba(255,255,255,0.2)'
+                                }}
                             >
-                                <Clock size={18} /> AGENDAR...
+                                <Clock size={18} /> {isScheduling ? 'CANCELAR AGEND.' : 'AGENDAR...'}
                             </button>
                         </div>
+
+                        {isScheduling && (
+                            <div style={{
+                                animation: 'fadeIn 0.3s ease',
+                                padding: '20px',
+                                background: 'rgba(0,0,0,0.3)',
+                                borderRadius: '12px',
+                                border: '1px solid var(--primary-glow)',
+                                marginBottom: '24px'
+                            }}>
+                                <label style={{ fontSize: '12px', color: 'var(--primary)', marginBottom: '8px', display: 'block', fontWeight: '800' }}>
+                                    📅 ESCOLHA A DATA E HORA EXATA:
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    value={scheduleDate}
+                                    onChange={e => setScheduleDate(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px',
+                                        background: '#000',
+                                        border: '1px solid var(--border)',
+                                        color: '#fff',
+                                        borderRadius: '8px',
+                                        marginBottom: '15px'
+                                    }}
+                                />
+                                <button
+                                    className="btn-primary"
+                                    disabled={sending || !scheduleDate}
+                                    onClick={handleScheduleNotification}
+                                    style={{ width: '100%', background: 'var(--primary)', color: '#000' }}
+                                >
+                                    {sending ? <Loader size={18} className="spin" /> : 'CONFIRMAR AGENDAMENTO'}
+                                </button>
+                            </div>
+                        )}
                     </div>
+
+                    {/* Scheduled List */}
+                    {scheduledList.length > 0 && (
+                        <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
+                            <h4 style={{ fontSize: '14px', fontWeight: '900', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Calendar size={16} color="var(--primary)" /> PROGRAMADAS ({scheduledList.length})
+                            </h4>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {scheduledList.map(notif => (
+                                    <div key={notif.id} style={{
+                                        padding: '14px',
+                                        background: 'rgba(255,255,255,0.03)',
+                                        borderRadius: '10px',
+                                        border: '1px solid var(--border)',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <div>
+                                            <div style={{ fontWeight: '700', fontSize: '13px' }}>{notif.title}</div>
+                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                                                {new Date(notif.schedule_at).toLocaleString('pt-BR')}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => deleteScheduled(notif.id)}
+                                            style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '5px' }}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     <div className="glass-panel" style={{ padding: '24px', background: 'rgba(255, 165, 0, 0.05)', border: '1px solid rgba(255, 165, 0, 0.1)' }}>
                         <h4 style={{ color: '#FFA500', fontSize: '14px', fontWeight: '800', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
