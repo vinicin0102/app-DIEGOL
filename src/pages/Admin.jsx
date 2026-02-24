@@ -54,51 +54,63 @@ const Admin = ({ superMail }) => {
         setSending(true);
 
         try {
-            // 1. Tentar chamar a Edge Function (produção)
-            let edgeFunctionWorked = false;
-            try {
-                const { data, error: functionError } = await supabase.functions.invoke('mass-push', {
-                    body: { title: notifTitle, body: notifBody }
-                });
+            // 1. Buscar todas as inscrições do banco de dados
+            const { data: subscriptions, error: subError } = await supabase
+                .from('notification_subscriptions')
+                .select('subscription');
 
-                if (functionError) {
-                    console.error('Erro retornado pela Edge Function:', functionError);
-                    // Se for erro de auth ou CORS, não marcamos como sucesso do edge
-                    edgeFunctionWorked = false;
+            const totalSubs = subscriptions?.length || 0;
+            console.log(`Total de inscrições encontradas: ${totalSubs}`);
+
+            // 2. Tentar enviar via Edge Function
+            let edgeFunctionWorked = false;
+            let edgeResult = null;
+
+            try {
+                const response = await fetch(
+                    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mass-push`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                        },
+                        body: JSON.stringify({ title: notifTitle, body: notifBody })
+                    }
+                );
+
+                if (response.ok) {
+                    edgeResult = await response.json();
+                    edgeFunctionWorked = edgeResult?.sent > 0;
+                    console.log('Edge Function respondeu:', edgeResult);
                 } else {
-                    edgeFunctionWorked = true;
-                    console.log('Edge Function respondeu com sucesso:', data);
+                    const errorText = await response.text();
+                    console.warn(`Edge Function respondeu com status ${response.status}:`, errorText);
                 }
             } catch (e) {
-                console.warn('Erro ao tentar conectar com a Edge Function:', e.message);
+                console.warn('Edge Function indisponível:', e.message);
             }
 
-            // 2. Fallback: Enviar notificação local via Service Worker (teste direto)
-            if (!edgeFunctionWorked) {
-                if ('serviceWorker' in navigator && Notification.permission === 'granted') {
-                    const registration = await navigator.serviceWorker.ready;
-                    await registration.showNotification(notifTitle, {
-                        body: notifBody,
-                        icon: '/pwa-192x192.png',
-                        badge: '/pwa-192x192.png',
-                        vibrate: [200, 100, 200],
-                        tag: 'admin-test-' + Date.now()
-                    });
-                    console.log('Notificação de teste enviada via Service Worker local.');
-                } else {
-                    // Último recurso: Notification API direta
-                    new Notification(notifTitle, { body: notifBody });
-                }
+            // 3. Sempre enviar notificação local para o admin (como feedback)
+            if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+                const registration = await navigator.serviceWorker.ready;
+                await registration.showNotification(notifTitle, {
+                    body: notifBody,
+                    icon: '/pwa-192x192.png',
+                    badge: '/pwa-192x192.png',
+                    vibrate: [200, 100, 200],
+                    tag: 'admin-broadcast-' + Date.now()
+                });
             }
 
-            // 3. Registrar no histórico (ignora erros de tabela inexistente)
+            // 4. Registrar no histórico
             try {
                 await supabase.from('mass_notifications').insert([{
                     title: notifTitle,
                     body: notifBody
                 }]);
             } catch (dbErr) {
-                console.warn('Histórico não salvo (tabela pode não existir):', dbErr.message);
+                console.warn('Histórico não salvo:', dbErr.message);
             }
 
             setNotifSent(true);
@@ -108,9 +120,11 @@ const Admin = ({ superMail }) => {
                 setNotifBody('');
             }, 3000);
 
-            alert(edgeFunctionWorked
-                ? '✅ Notificação enviada para TODOS os dispositivos!'
-                : '✅ Notificação de teste enviada localmente! (Para envio em massa, implante a Edge Function no Supabase)');
+            if (edgeFunctionWorked) {
+                alert(`✅ Notificação enviada para ${edgeResult?.sent || totalSubs} dispositivo(s)!`);
+            } else {
+                alert(`✅ Notificação enviada localmente!\n\n📊 ${totalSubs} dispositivo(s) inscritos no banco.\n\n⚠️ O envio push em massa requer que a Edge Function esteja funcionando. Verifique os logs no Dashboard do Supabase.`);
+            }
         } catch (err) {
             console.error("Erro ao enviar:", err);
             alert("Erro ao disparar notificações: " + err.message);

@@ -1,18 +1,23 @@
+// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import webpush from 'https://esm.sh/web-push@3.6.7'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 serve(async (req) => {
+    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
 
     try {
+        // Dynamic import of web-push (npm compat)
+        const webpush = (await import('npm:web-push@3.6.7')).default
+
         const { title, body } = await req.json()
 
         const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY')!
@@ -30,38 +35,42 @@ serve(async (req) => {
             .from('notification_subscriptions')
             .select('subscription')
 
-        if (subError) throw subError;
+        if (subError) throw subError
 
         if (!subscriptions || subscriptions.length === 0) {
-            return new Response(JSON.stringify({ message: 'Nenhuma inscrição encontrada' }), {
+            return new Response(JSON.stringify({
+                message: 'Nenhuma inscrição encontrada.',
+                sent: 0, failed: 0, total: 0
+            }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 status: 200,
             })
         }
 
+        const payload = JSON.stringify({
+            title: title || 'Desafio dos Vencedores',
+            body: body || 'Nova mensagem!'
+        })
+
         const results = await Promise.allSettled(
-            subscriptions.map(async (sub: any) => {
-                return webpush.sendNotification(sub.subscription, JSON.stringify({
-                    title: title || 'Desafio dos Vencedores',
-                    body
-                }))
-            })
+            subscriptions.map((sub: any) =>
+                webpush.sendNotification(sub.subscription, payload)
+            )
         )
 
-        const successCount = results.filter(r => r.status === 'fulfilled').length;
-        const failCount = results.filter(r => r.status === 'rejected').length;
+        const sent = results.filter(r => r.status === 'fulfilled').length
+        const failed = results.filter(r => r.status === 'rejected').length
 
         return new Response(JSON.stringify({
-            message: `Disparo concluído. Sucesso: ${successCount}, Falha: ${failCount}`,
-            sent: successCount,
-            failed: failCount,
-            details: results
+            message: `Disparo concluído. Sucesso: ${sent}, Falha: ${failed}`,
+            sent, failed, total: subscriptions.length
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,
         })
 
     } catch (error: any) {
+        console.error('Erro:', error.message)
         return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,
