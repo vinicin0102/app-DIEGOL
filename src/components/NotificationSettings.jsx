@@ -121,12 +121,30 @@ const NotificationSettings = ({ user }) => {
             if (userId && subscription) {
                 try {
                     console.log('Salvando inscrição para user_id:', userId);
-                    const { error } = await supabase
+                    const subData = JSON.parse(JSON.stringify(subscription));
+
+                    // Verificar se já existe uma inscrição para este usuário
+                    const { data: existing } = await supabase
                         .from('notification_subscriptions')
-                        .upsert({
-                            user_id: userId,
-                            subscription: JSON.parse(JSON.stringify(subscription))
-                        }, { onConflict: 'user_id' });
+                        .select('id')
+                        .eq('user_id', userId)
+                        .maybeSingle();
+
+                    let error;
+                    if (existing) {
+                        // Atualizar a inscrição existente
+                        const result = await supabase
+                            .from('notification_subscriptions')
+                            .update({ subscription: subData, updated_at: new Date().toISOString() })
+                            .eq('user_id', userId);
+                        error = result.error;
+                    } else {
+                        // Inserir nova inscrição
+                        const result = await supabase
+                            .from('notification_subscriptions')
+                            .insert({ user_id: userId, subscription: subData });
+                        error = result.error;
+                    }
 
                     if (error) {
                         console.error('ERRO ao salvar inscrição no Supabase:', error.message, error);
