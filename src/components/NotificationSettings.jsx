@@ -5,7 +5,7 @@ import { Bell, BellOff, Clock, Check, Loader } from 'lucide-react';
 
 // VAPID Public Key - Você deve gerar uma e colocar aqui
 // Use: npx web-push generate-vapid-keys no terminal
-const VAPID_PUBLIC_KEY = 'BBhUqxcoIT9MwTKa62X3Wyo0aqzFkS5HdHdO8E8Gx2yLW9-eUKyA4sdv0ppuwtw5LxRurW-1g9snv88WW21Rs4o';
+const VAPID_PUBLIC_KEY = 'BK670BTn0OkhJSUCgiPxbOgYQFQuZ2JjtjzKclt0U0sLUlNYK8sVI7y16t5Mh9DuOzwrauee10aHgius65CCR3U';
 
 const NotificationSettings = ({ user }) => {
     const [permission, setPermission] = useState(() => {
