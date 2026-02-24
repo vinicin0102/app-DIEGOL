@@ -48,16 +48,23 @@ const Home = () => {
     setError('');
 
     // Use signUp from context
-    const { error } = await signUp(email, password, name);
+    const { data, error } = await signUp(email, password, name);
     setLoading(false);
 
     if (error) {
       setError('Erro ao criar conta: ' + error.message);
-    } else {
-      alert('Conta criada! Verifique seu email se necessário.');
-      // Usually Supabase auto-logs in unless email confirm is on.
-      // If auto-login, we navigate.
+    } else if (data?.user && !data?.session) {
+      alert('Sua conta foi criada com sucesso! 📧 Por favor, verifique seu e-mail para confirmar a conta antes de entrar.');
+      setShowSignup(false);
+      setShowLogin(true);
+    } else if (data?.session) {
+      alert('Conta criada com sucesso! Bem-vindo(a) ao Desafio dos Vencedores.');
       navigate('/app');
+    } else {
+      // Fallback for unexpected success without session/user (unlikely)
+      alert('Conta criada! Tente fazer login.');
+      setShowSignup(false);
+      setShowLogin(true);
     }
   };
 
@@ -260,8 +267,9 @@ const Home = () => {
                   required
                 />
               </div>
-              <button type="submit" className="btn-primary full-width">
-                Iniciar Aventura
+              {error && <p style={{ color: '#ff4444', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>{error}</p>}
+              <button type="submit" className="btn-primary full-width" disabled={loading}>
+                {loading ? 'Criando Conta...' : 'Iniciar Aventura'}
               </button>
             </form>
             <p className="switch-auth">

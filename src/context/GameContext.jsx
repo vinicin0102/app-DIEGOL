@@ -204,7 +204,7 @@ export const GameProvider = ({ children }) => {
     };
 
     // Helper para timeout
-    const withTimeout = (promise, ms = 15000) => {
+    const withTimeout = (promise, ms = 30000) => {
         return Promise.race([
             promise,
             new Promise((_, reject) => setTimeout(() => reject(new Error('Tempo limite excedido. Verifique sua conexão.')), ms))
