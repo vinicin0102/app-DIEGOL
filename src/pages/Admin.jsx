@@ -478,7 +478,7 @@ const Admin = ({ superMail }) => {
                                 </div>
                                 <div>
                                     <h3 style={{ fontSize: '22px', fontWeight: '900', letterSpacing: '-0.5px' }}>Notificações em Massa</h3>
-                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Comunique-se com todos os seus guerreiros</p>
+                                    <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Mande incentivos aos seus guerreiros</p>
                                 </div>
                             </div>
                             <div style={{
@@ -493,10 +493,42 @@ const Admin = ({ superMail }) => {
                             </div>
                         </div>
 
+                        {/* Predefined Templates */}
+                        <div style={{ marginBottom: '24px' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'block', fontWeight: '800', textTransform: 'uppercase' }}>💡 Modelos Prontos</label>
+                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                {[
+                                    { t: '🔋 Hora de Treinar!', b: 'Seu corpo merece esse movimento hoje. Vamos pra cima!' },
+                                    { t: '📅 Novo Desafio Liberado!', b: 'Um novo Boss apareceu! Corra para ver os requisitos.' },
+                                    { t: '🦁 Mentalidade Blindada', b: 'O cansaço passa, o orgulho de ter feito fica. Não desista!' },
+                                    { t: '💧 Lembrete de Hidratação', b: 'Já bebeu água hoje? Saúde em primeiro lugar!' }
+                                ].map((temp, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => { setNotifTitle(temp.t); setNotifBody(temp.b); }}
+                                        style={{
+                                            padding: '6px 14px',
+                                            borderRadius: '8px',
+                                            border: '1px solid var(--border)',
+                                            background: 'rgba(255,255,255,0.05)',
+                                            color: '#fff',
+                                            fontSize: '11px',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                    >
+                                        {temp.t}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="form-group" style={{ marginBottom: '20px' }}>
                             <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block', fontWeight: '700', textTransform: 'uppercase' }}>Título da Mensagem</label>
                             <input
-                                placeholder="Ex: 🔋 Hora de treinar!"
+                                placeholder="Título chamativo..."
                                 value={notifTitle}
                                 onChange={e => setNotifTitle(e.target.value)}
                                 style={{
@@ -511,10 +543,10 @@ const Admin = ({ superMail }) => {
                             />
                         </div>
 
-                        <div className="form-group" style={{ marginBottom: '32px' }}>
+                        <div className="form-group" style={{ marginBottom: '25px' }}>
                             <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '8px', display: 'block', fontWeight: '700', textTransform: 'uppercase' }}>Conteúdo da Mensagem</label>
                             <textarea
-                                placeholder="Ex: Seu corpo merece atenção hoje. Bora mover!"
+                                placeholder="Conteúdo da notificação..."
                                 value={notifBody}
                                 onChange={e => setNotifBody(e.target.value)}
                                 rows={3}
@@ -531,14 +563,24 @@ const Admin = ({ superMail }) => {
                             />
                         </div>
 
-                        <button
-                            className="btn-primary"
-                            disabled={sending || !notifTitle || !notifBody}
-                            onClick={sendInstantNotification}
-                            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px' }}
-                        >
-                            {sending ? <Loader size={20} className="spin" /> : notifSent ? 'MENSAGEM ENVIADA!' : <><Send size={18} /> DISPARAR PARA TODOS</>}
-                        </button>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(180px, 0.8fr)', gap: '12px', marginBottom: '24px' }}>
+                            <button
+                                className="btn-primary"
+                                disabled={sending || !notifTitle || !notifBody}
+                                onClick={sendInstantNotification}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px' }}
+                            >
+                                {sending ? <Loader size={20} className="spin" /> : notifSent ? 'ENVIADO!' : <><Send size={18} /> DISPARAR AGORA</>}
+                            </button>
+
+                            <button
+                                className="btn-secondary"
+                                onClick={() => alert('Recurso de agendamento automático em desenvolvimento. Por enquanto, use o disparo manual à esquerda.')}
+                                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '16px', border: '1px dashed rgba(255,255,255,0.2)' }}
+                            >
+                                <Clock size={18} /> AGENDAR...
+                            </button>
+                        </div>
                     </div>
 
                     <div className="glass-panel" style={{ padding: '24px', background: 'rgba(255, 165, 0, 0.05)', border: '1px solid rgba(255, 165, 0, 0.1)' }}>
