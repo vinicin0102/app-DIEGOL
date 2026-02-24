@@ -25,6 +25,7 @@ const Admin = ({ superMail }) => {
     const [isScheduling, setIsScheduling] = useState(false);
     const [scheduledList, setScheduledList] = useState([]);
     const [scheduleBatch, setScheduleBatch] = useState([]);
+    const [notifTemplates, setNotifTemplates] = useState([]);
 
     const handleSaveNew = () => {
         if (!newChallenge.title) return;
@@ -51,12 +52,19 @@ const Admin = ({ superMail }) => {
                 setDeviceCount(count || 0);
 
                 // Lista de agendamentos pendentes
-                const { data } = await supabase
+                const { data: scheduled } = await supabase
                     .from('scheduled_notifications')
                     .select('*')
                     .eq('status', 'pending')
                     .order('schedule_at', { ascending: true });
-                setScheduledList(data || []);
+                setScheduledList(scheduled || []);
+
+                // Carregar templates/predefinições
+                const { data: templates } = await supabase
+                    .from('notification_templates')
+                    .select('*')
+                    .order('created_at', { ascending: true });
+                setNotifTemplates(templates || []);
             }
         };
         fetchData();
@@ -575,32 +583,59 @@ const Admin = ({ superMail }) => {
 
                         {/* Predefined Templates */}
                         <div style={{ marginBottom: '24px' }}>
-                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '10px', display: 'block', fontWeight: '800', textTransform: 'uppercase' }}>💡 Modelos Prontos</label>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                                <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', fontWeight: '800', textTransform: 'uppercase' }}>💡 Modelos Salvos</label>
+                                <button
+                                    onClick={async () => {
+                                        if (!notifTitle || !notifBody) return alert('Escreva um título e corpo primeiro!');
+                                        const { data, error } = await supabase.from('notification_templates').insert([{ title: notifTitle, body: notifBody }]).select();
+                                        if (!error) {
+                                            setNotifTemplates(prev => [...prev, data[0]]);
+                                            alert('Modelo salvo com sucesso!');
+                                        }
+                                    }}
+                                    style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '10px', fontWeight: '800', cursor: 'pointer' }}
+                                >
+                                    + SALVAR ATUAL COMO MODELO
+                                </button>
+                            </div>
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                {[
-                                    { t: '🔋 Hora de Treinar!', b: 'Seu corpo merece esse movimento hoje. Vamos pra cima!' },
-                                    { t: '📅 Novo Desafio Liberado!', b: 'Um novo Boss apareceu! Corra para ver os requisitos.' },
-                                    { t: '🦁 Mentalidade Blindada', b: 'O cansaço passa, o orgulho de ter feito fica. Não desista!' },
-                                    { t: '💧 Lembrete de Hidratação', b: 'Já bebeu água hoje? Saúde em primeiro lugar!' }
-                                ].map((temp, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => { setNotifTitle(temp.t); setNotifBody(temp.b); }}
-                                        style={{
-                                            padding: '6px 14px',
-                                            borderRadius: '8px',
-                                            border: '1px solid var(--border)',
-                                            background: 'rgba(255,255,255,0.05)',
-                                            color: '#fff',
-                                            fontSize: '11px',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s ease'
-                                        }}
-                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                    >
-                                        {temp.t}
-                                    </button>
+                                {notifTemplates.length === 0 && (
+                                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Nenhum modelo salvo ainda.</span>
+                                )}
+                                {notifTemplates.map((temp) => (
+                                    <div key={temp.id} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                        <button
+                                            onClick={() => { setNotifTitle(temp.title); setNotifBody(temp.body); }}
+                                            style={{
+                                                padding: '6px 14px',
+                                                borderRadius: '8px',
+                                                border: '1px solid var(--border)',
+                                                background: 'rgba(255,255,255,0.05)',
+                                                color: '#fff',
+                                                fontSize: '11px',
+                                                cursor: 'pointer',
+                                                transition: 'all 0.2s ease',
+                                                paddingRight: '25px'
+                                            }}
+                                            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                            onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                        >
+                                            {temp.title}
+                                        </button>
+                                        <span
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (confirm('Excluir este modelo?')) {
+                                                    await supabase.from('notification_templates').delete().eq('id', temp.id);
+                                                    setNotifTemplates(prev => prev.filter(t => t.id !== temp.id));
+                                                }
+                                            }}
+                                            style={{ position: 'absolute', right: '8px', color: '#ff4444', fontSize: '12px', cursor: 'pointer', fontWeight: '900' }}
+                                        >
+                                            ×
+                                        </span>
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -676,8 +711,52 @@ const Admin = ({ superMail }) => {
                                 marginBottom: '24px'
                             }}>
                                 <label style={{ fontSize: '12px', color: 'var(--primary)', marginBottom: '8px', display: 'block', fontWeight: '800' }}>
-                                    📅 ADICIONE HORÁRIOS (quantos quiser):
+                                    📅 ADICIONE HORÁRIOS:
                                 </label>
+
+                                {/* Quick Combos */}
+                                <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                                    {[
+                                        { label: 'Hoje (Lembretes)', times: ['08:00', '13:00', '20:00'], dayOffset: 0 },
+                                        { label: 'Amanhã (Manhã)', times: ['07:00'], dayOffset: 1 },
+                                        { label: 'Semana (08:00)', times: ['08:00'], days: 7 }
+                                    ].map((combo, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => {
+                                                const now = new Date();
+                                                const newTimes = [];
+                                                if (combo.days) {
+                                                    for (let i = 1; i <= combo.days; i++) {
+                                                        const d = new Date(); d.setDate(d.getDate() + i);
+                                                        combo.times.forEach(t => {
+                                                            const [h, m] = t.split(':');
+                                                            d.setHours(parseInt(h), parseInt(m), 0, 0);
+                                                            newTimes.push(d.toISOString().slice(0, 16));
+                                                        });
+                                                    }
+                                                } else {
+                                                    const d = new Date(); d.setDate(d.getDate() + combo.dayOffset);
+                                                    combo.times.forEach(t => {
+                                                        const [h, m] = t.split(':');
+                                                        const specificDate = new Date(d);
+                                                        specificDate.setHours(parseInt(h), parseInt(m), 0, 0);
+                                                        newTimes.push(specificDate.toISOString().slice(0, 16));
+                                                    });
+                                                }
+                                                setScheduleBatch(prev => [...new Set([...prev, ...newTimes])]);
+                                            }}
+                                            style={{
+                                                fontSize: '10px', padding: '5px 10px', borderRadius: '20px',
+                                                border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)',
+                                                color: '#aaa', cursor: 'pointer'
+                                            }}
+                                        >
+                                            ⚡ {combo.label}
+                                        </button>
+                                    ))}
+                                </div>
+
                                 <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
                                     <input
                                         type="datetime-local"
