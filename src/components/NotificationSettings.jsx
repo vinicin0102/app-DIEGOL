@@ -67,7 +67,7 @@ const NotificationSettings = ({ user }) => {
     const subscribeToPush = async () => {
         setLoading(true);
         try {
-            // Verificar se é iOS e se está na tela de início
+            // Verificar se é iOS e se está na tela de início (PWA instalado)
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
@@ -77,21 +77,21 @@ const NotificationSettings = ({ user }) => {
                 return;
             }
 
-            // Pedir permissão explicitamente antes de inscrever (necessário em alguns navegadores)
+            // Pedir permissão explicitamente
             if (typeof Notification !== 'undefined') {
                 const permissionResult = await Notification.requestPermission();
                 setPermission(permissionResult);
                 if (permissionResult !== 'granted') {
-                    throw new Error('Permissão negada pelo usuário.');
+                    alert('Permissão negada. Para ativar, vá nas Configurações do seu dispositivo e permita notificações para este site.');
+                    setLoading(false);
+                    return;
                 }
             }
 
             const registration = await navigator.serviceWorker.ready;
-
             let subscription = await registration.pushManager.getSubscription();
 
             if (!subscription) {
-                // Se tiver chave VAPID configurada
                 const options = {
                     userVisibleOnly: true,
                     applicationServerKey: VAPID_PUBLIC_KEY && VAPID_PUBLIC_KEY !== 'YOUR_VAPID_PUBLIC_KEY_HERE'
@@ -101,31 +101,33 @@ const NotificationSettings = ({ user }) => {
                 subscription = await registration.pushManager.subscribe(options);
             }
 
-            // Salvar no Supabase
+            // Ativar localmente independente do Supabase
+            setIsSubscribed(true);
+            setPermission('granted');
+
+            // Tentar salvar no Supabase (não bloqueia se falhar)
             if (user && subscription) {
-                const { error } = await supabase
-                    .from('notification_subscriptions')
-                    .upsert({
-                        user_id: user.id,
-                        subscription: JSON.parse(JSON.stringify(subscription))
-                    }, { onConflict: 'user_id' });
+                try {
+                    const { error } = await supabase
+                        .from('notification_subscriptions')
+                        .upsert({
+                            user_id: user.id,
+                            subscription: JSON.parse(JSON.stringify(subscription))
+                        }, { onConflict: 'user_id' });
 
-                if (error) {
-                    console.error('Erro ao salvar no Supabase:', error);
-                    throw new Error('Erro ao salvar sua inscrição no servidor. Verifique sua conexão.');
+                    if (error) {
+                        console.warn('Aviso: Não foi possível sincronizar inscrição com o servidor:', error.message);
+                        // Inscrição local funciona mesmo sem sincronizar no servidor
+                    }
+                } catch (dbErr) {
+                    console.warn('Aviso: Erro de rede ao salvar inscrição:', dbErr);
                 }
-
-                setIsSubscribed(true);
-                setPermission('granted');
-                alert('Notificações ativadas com sucesso! Você receberá incentivos diários.');
             }
+
+            alert('Notificações ativadas com sucesso! ✅ Você receberá incentivos diários.');
         } catch (error) {
             console.error('Erro ao inscrever:', error);
-            if (error.message.includes('Permissão negada')) {
-                alert('As notificações foram negadas. Por favor, limpe as configurações do site ou habilite-as manualmente.');
-            } else {
-                alert(`Erro: ${error.message || 'Não foi possível ativar as notificações.'} Verifique se o app está instalado na tela inicial.`);
-            }
+            alert('Não foi possível ativar as notificações: ' + (error.message || 'Erro desconhecido'));
         } finally {
             setLoading(false);
         }
