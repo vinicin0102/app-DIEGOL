@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2 } from 'lucide-react';
+import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2, Swords, Zap } from 'lucide-react';
 import { getRank, getRankColor } from '../data/missionsData';
 import InstallPWA from '../components/InstallPWA';
 import './AppLayout.css';
@@ -21,11 +21,14 @@ const AppLayout = () => {
     ]
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
-      { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
+      { path: '/app/challenges', icon: Swords, label: 'Bosses' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
+      { path: '/app/missions', icon: Zap, label: 'Bônus' },
+      { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
+      { path: '/app/community', icon: Users, label: 'Comunidade' },
       { path: '/app/store', icon: Clock, label: 'Loja do Tempo' },
       { path: '/app/rewards', icon: Gift, label: 'Itens de Recompensa' },
-      { path: '/app/avatars', icon: Users, label: 'Avatares' },
+      { path: '/app/avatars', icon: User, label: 'Avatares' },
       { path: '/app/priority', icon: Layout, label: 'Matriz de Prioridades' },
       { path: '/app/progress', icon: TrendingUp, label: 'Progresso' },
       { path: '/app/virtues', icon: Trophy, label: 'Virtudes' },

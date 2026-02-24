@@ -119,14 +119,9 @@ const ChallengeGuideModal = ({ isOpen, onClose, guide }) => {
 
 const Challenges = () => {
     const {
-        user, setUser, addXp,
-        missions, toggleMission,
-        bonusMissions, addBonusMission, toggleBonusMission, deleteBonusMission,
-        calendarData
+        user, addXp
     } = useGame();
 
-    const [gamePhase, setGamePhase] = useState('battle');
-    const [mainTab, setMainTab] = useState('bosses'); // 'bosses', 'calendar', 'missions', 'bonus'
     const [activeBosses, setActiveBosses] = useState([]);
     const [openDayModal, setOpenDayModal] = useState({ bossId: null, dayIndex: null });
     const [guideModalOpen, setGuideModalOpen] = useState(false);
@@ -179,7 +174,6 @@ const Challenges = () => {
                         setDefeatedBoss(boss);
                         setShowVictory(true);
                         addXp(boss.reward.xp);
-                        // Add badge logic here if needed
                     }
 
                     return { ...boss, calendar: newCalendar, currentHealth: newHealth, defeated: newHealth === 0 };
@@ -207,183 +201,68 @@ const Challenges = () => {
             )}
 
             {/* Top Rank Info */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', position: 'relative', zHeight: 1 }}>
                 <div>
-                    <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#fff', textTransform: 'uppercase' }}>{user.name}</h1>
+                    <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#fff', textTransform: 'uppercase' }}>Bosses do Desafio</h1>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <span style={{ fontSize: '14px', fontWeight: '800', color: rankColor }}>RANK {rank}</span>
                         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>NÍVEL {user.level}</span>
                     </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>{user.xp} XP TOTAL</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>ESTADO ATUAL</div>
                     <div style={{ width: '120px', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '100px' }}>
                         <div style={{ width: `${(user.xp % 1000) / 10}%`, height: '100%', background: 'var(--primary)', borderRadius: '100px' }}></div>
                     </div>
                 </div>
             </div>
 
-            {/* Main Tabs */}
-            <div className="tabs-nav" style={{ marginBottom: '32px', position: 'relative', zIndex: 1 }}>
-                <button className={`tab-button ${mainTab === 'bosses' ? 'active' : ''}`} onClick={() => setMainTab('bosses')}>
-                    <Sword size={16} /> Bosses
-                </button>
-                <button className={`tab-button ${mainTab === 'calendar' ? 'active' : ''}`} onClick={() => setMainTab('calendar')}>
-                    <CalendarIcon size={16} /> Calendário
-                </button>
-                <button className={`tab-button ${mainTab === 'missions' ? 'active' : ''}`} onClick={() => setMainTab('missions')}>
-                    <Target size={16} /> Missões
-                </button>
-                <button className={`tab-button ${mainTab === 'bonus' ? 'active' : ''}`} onClick={() => setMainTab('bonus')}>
-                    <Zap size={16} /> Bônus
-                </button>
-            </div>
-
             <div style={{ position: 'relative', zIndex: 1 }}>
-                {mainTab === 'bosses' && (
-                    <div className="boss-grid">
-                        {activeBosses.map(boss => {
-                            const currentHealth = boss.currentHealth ?? boss.maxHealth;
-                            const healthPercent = (currentHealth / boss.maxHealth) * 100;
-                            return (
-                                <div key={boss.id} className={`boss-card ${boss.locked ? 'locked' : ''}`}>
-                                    <div className="card-header">
-                                        <div className="boss-image-container">
-                                            <BossSprite bossType={boss.spriteType} isDefeated={boss.defeated} isAttacking={attackingBossId === boss.id} />
-                                        </div>
-                                        <h3 className="boss-name">{boss.name}</h3>
+                <div className="boss-grid">
+                    {activeBosses.map(boss => {
+                        const currentHealth = boss.currentHealth ?? boss.maxHealth;
+                        const healthPercent = (currentHealth / boss.maxHealth) * 100;
+                        return (
+                            <div key={boss.id} className={`boss-card ${boss.locked ? 'locked' : ''}`}>
+                                <div className="card-header">
+                                    <div className="boss-image-container">
+                                        <BossSprite bossType={boss.spriteType} isDefeated={boss.defeated} isAttacking={attackingBossId === boss.id} />
                                     </div>
-                                    <div className="card-content">
-                                        <div className="health-section">
-                                            <div className="health-header">
-                                                <span>HP</span>
-                                                <span>{currentHealth}/{boss.maxHealth}</span>
+                                    <h3 className="boss-name">{boss.name}</h3>
+                                </div>
+                                <div className="card-content">
+                                    <div className="health-section">
+                                        <div className="health-header">
+                                            <span>HP</span>
+                                            <span>{currentHealth}/{boss.maxHealth}</span>
+                                        </div>
+                                        <div className="health-track">
+                                            <div className="health-fill" style={{ width: `${healthPercent}%`, background: boss.color }}></div>
+                                        </div>
+                                    </div>
+                                    <div className="mission-box" style={{ borderColor: boss.color }}>
+                                        <p className="mission-text">{boss.challenge}</p>
+                                        <button className="detail-btn" onClick={() => { setActiveGuide(boss.guide); setGuideModalOpen(true); }}>
+                                            Ver Guia
+                                        </button>
+                                    </div>
+                                    <div className="calendar-grid" style={{ marginTop: '16px' }}>
+                                        {boss.calendar.slice(0, 14).map((day, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`calendar-day ${day.verified ? 'verified' : ''}`}
+                                                onClick={() => setOpenDayModal({ bossId: boss.id, dayIndex: idx })}
+                                            >
+                                                {day.verified ? <Check size={10} /> : day.day}
                                             </div>
-                                            <div className="health-track">
-                                                <div className="health-fill" style={{ width: `${healthPercent}%`, background: boss.color }}></div>
-                                            </div>
-                                        </div>
-                                        <div className="mission-box" style={{ borderColor: boss.color }}>
-                                            <p className="mission-text">{boss.challenge}</p>
-                                            <button className="detail-btn" onClick={() => { setActiveGuide(boss.guide); setGuideModalOpen(true); }}>
-                                                Ver Guia
-                                            </button>
-                                        </div>
-                                        <div className="calendar-grid" style={{ marginTop: '16px' }}>
-                                            {boss.calendar.slice(0, 14).map((day, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className={`calendar-day ${day.verified ? 'verified' : ''}`}
-                                                    onClick={() => setOpenDayModal({ bossId: boss.id, dayIndex: idx })}
-                                                >
-                                                    {day.verified ? <Check size={10} /> : day.day}
-                                                </div>
-                                            ))}
-                                            <div className="calendar-day" style={{ background: 'none', border: 'none' }}><Plus size={10} /></div>
-                                        </div>
+                                        ))}
+                                        <div className="calendar-day" style={{ background: 'none', border: 'none' }}><Plus size={10} /></div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-
-                {mainTab === 'calendar' && (
-                    <div className="glass-panel" style={{ padding: '24px' }}>
-                        <h2 style={{ marginBottom: '24px' }}>Registro de Evolução</h2>
-                        <div className="calendar-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px' }}>
-                            {Array.from({ length: 31 }, (_, i) => {
-                                const date = `2024-03-${String(i + 1).padStart(2, '0')}`;
-                                const data = calendarData[date] || { completed: false, count: '0/0' };
-                                return (
-                                    <div key={i} className={`calendar-day ${data.completed ? 'verified' : ''}`} style={{ width: '100%', height: 'auto', aspectRatio: '1', fontSize: '14px' }}>
-                                        {i + 1}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {mainTab === 'missions' && (
-                    <div style={{ display: 'grid', gap: '16px' }}>
-                        {missions.map(m => (
-                            <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: m.completed ? 'var(--primary)' : '#444' }}></div>
-                                    <div>
-                                        <h4 style={{ fontSize: '16px', fontWeight: '800' }}>{m.title}</h4>
-                                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{m.category} • {m.xp} XP</span>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => toggleMission(m.id)}
-                                    style={{ padding: '8px 16px', borderRadius: '8px', background: m.completed ? 'var(--primary)' : 'rgba(255,255,255,0.1)', border: 'none', cursor: 'pointer', color: m.completed ? '#000' : '#fff' }}
-                                >
-                                    {m.completed ? <Check size={18} /> : 'Concluir'}
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {mainTab === 'bonus' && (
-                    <div style={{ display: 'grid', gap: '16px' }}>
-                        <div className="glass-panel" style={{ padding: '24px', marginBottom: '16px' }}>
-                            <h3>Missões Bônus (+1 XP Diário)</h3>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '20px' }}>Adicione até 2 missões personalizadas para o seu dia.</p>
-
-                            {bonusMissions.length < 2 && (
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <input
-                                        type="text"
-                                        id="bonusInput"
-                                        placeholder="Digite sua missão bônus..."
-                                        style={{ flex: 1, padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', borderRadius: '8px', color: '#fff' }}
-                                    />
-                                    <button
-                                        className="btn-primary"
-                                        onClick={() => {
-                                            const input = document.getElementById('bonusInput');
-                                            if (input.value) {
-                                                addBonusMission(input.value);
-                                                input.value = '';
-                                            }
-                                        }}
-                                    >
-                                        <Plus size={20} />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        {bonusMissions.map(m => (
-                            <div key={m.id} className="mission-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', background: 'rgba(255,51,102,0.05)', borderRadius: '16px', border: '1px solid rgba(255,51,102,0.2)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                    <Zap size={20} color="#FF3366" />
-                                    <div>
-                                        <h4 style={{ fontSize: '16px', fontWeight: '800' }}>{m.title}</h4>
-                                        <span style={{ fontSize: '12px', color: '#FF3366' }}>Bônus • +1 XP</span>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '10px' }}>
-                                    <button
-                                        onClick={() => toggleBonusMission(m.id)}
-                                        style={{ padding: '8px', borderRadius: '8px', background: m.completed ? 'var(--primary)' : 'rgba(255,255,255,0.1)', border: 'none', color: m.completed ? '#000' : '#fff' }}
-                                    >
-                                        <Check size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => deleteBonusMission(m.id)}
-                                        style={{ padding: '8px', borderRadius: '8px', background: 'rgba(255,51,102,0.1)', border: 'none', color: '#FF3366' }}
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                )}
+                        );
+                    })}
+                </div>
             </div>
 
             <DayEditModal
