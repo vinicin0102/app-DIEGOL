@@ -3,11 +3,22 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { Bell, BellOff, Clock, Check, Loader } from 'lucide-react';
 
-// VAPID Public Key - Você deve gerar uma e colocar aqui
-// Use: npx web-push generate-vapid-keys no terminal
+// VAPID Public Key
 const VAPID_PUBLIC_KEY = 'BK670BTn0OkhJSUCgiPxbOgYQFQuZ2JjtjzKclt0U0sLUlNYK8sVI7y16t5Mh9DuOzwrauee10aHgius65CCR3U';
 
 const NotificationSettings = ({ user }) => {
+    // Pegar o user autenticado do Supabase (com UUID real)
+    const [authUser, setAuthUser] = useState(null);
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => {
+            if (data?.user) {
+                setAuthUser(data.user);
+                console.log('Auth user ID:', data.user.id);
+            }
+        });
+    }, []);
+
     const [permission, setPermission] = useState(() => {
         if (typeof Notification !== 'undefined') {
             return Notification.permission;
@@ -45,12 +56,12 @@ const NotificationSettings = ({ user }) => {
             setIsSubscribed(!!subscription);
 
             // Carregar preferências salvas do usuário se existirem
-            if (user) {
+            if (authUser) {
                 try {
                     const { data } = await supabase
                         .from('user_notification_settings')
                         .select('preferred_time, incentive_type')
-                        .eq('user_id', user.id)
+                        .eq('user_id', authUser.id)
                         .maybeSingle();
 
                     if (data) {
@@ -105,19 +116,23 @@ const NotificationSettings = ({ user }) => {
             setIsSubscribed(true);
             setPermission('granted');
 
-            // Tentar salvar no Supabase (não bloqueia se falhar)
-            if (user && subscription) {
+            // Salvar no Supabase com o UUID real do usuário autenticado
+            const userId = authUser?.id;
+            if (userId && subscription) {
                 try {
+                    console.log('Salvando inscrição para user_id:', userId);
                     const { error } = await supabase
                         .from('notification_subscriptions')
                         .upsert({
-                            user_id: user.id,
+                            user_id: userId,
                             subscription: JSON.parse(JSON.stringify(subscription))
                         }, { onConflict: 'user_id' });
 
                     if (error) {
-                        console.warn('Aviso: Não foi possível sincronizar inscrição com o servidor:', error.message);
-                        // Inscrição local funciona mesmo sem sincronizar no servidor
+                        console.error('ERRO ao salvar inscrição no Supabase:', error.message, error);
+                        alert('Aviso: Notificações ativadas localmente, mas houve um erro ao sincronizar com o servidor: ' + error.message);
+                    } else {
+                        console.log('✅ Inscrição salva com sucesso no Supabase!');
                     }
                 } catch (dbErr) {
                     console.warn('Aviso: Erro de rede ao salvar inscrição:', dbErr);
@@ -142,11 +157,11 @@ const NotificationSettings = ({ user }) => {
                 await subscription.unsubscribe();
 
                 // Remover do Supabase
-                if (user) {
+                if (authUser) {
                     await supabase
                         .from('notification_subscriptions')
                         .delete()
-                        .eq('user_id', user.id);
+                        .eq('user_id', authUser.id);
                 }
 
                 setIsSubscribed(false);
@@ -159,14 +174,14 @@ const NotificationSettings = ({ user }) => {
     };
 
     const savePreferences = async () => {
-        if (!user) return;
+        if (!authUser) return;
         setLoading(true);
 
         try {
             const { error } = await supabase
                 .from('user_notification_settings')
                 .upsert({
-                    user_id: user.id,
+                    user_id: authUser.id,
                     preferred_time: scheduleTime,
                     incentive_type: incentiveType
                 }, { onConflict: 'user_id' });
