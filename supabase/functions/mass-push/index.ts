@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import webpush from 'npm:web-push'
+import webpush from 'https://esm.sh/web-push@3.6.6'
 
 // CORS Headers
 const corsHeaders = {
@@ -40,10 +40,17 @@ serve(async (req) => {
         // Disparo em massa
         const results = await Promise.allSettled(
             subscriptions.map(async (sub: any) => {
-                return webpush.sendNotification(sub.subscription, JSON.stringify({
-                    title: title || 'Desafio dos Vencedores',
-                    body
-                }))
+                try {
+                    return await webpush.sendNotification(sub.subscription, JSON.stringify({
+                        title: title || 'Desafio dos Vencedores',
+                        body
+                    }))
+                } catch (e: any) {
+                    // Log individual errors for failed notifications
+                    console.warn('Falha ao enviar notificação para uma inscrição:', e.message, sub.subscription);
+                    // Re-throw or return a rejected promise to be caught by Promise.allSettled
+                    throw e;
+                }
             })
         )
 
@@ -55,7 +62,9 @@ serve(async (req) => {
             status: 200,
         })
 
-    } catch (error) {
+    } catch (error: any) {
+        // Log the main error for the entire function execution
+        console.error('Erro na função Edge:', error.message);
         return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 400,

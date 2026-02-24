@@ -60,12 +60,17 @@ const Admin = ({ superMail }) => {
                 const { data, error: functionError } = await supabase.functions.invoke('mass-push', {
                     body: { title: notifTitle, body: notifBody }
                 });
-                if (!functionError) {
+
+                if (functionError) {
+                    console.error('Erro retornado pela Edge Function:', functionError);
+                    // Se for erro de auth ou CORS, não marcamos como sucesso do edge
+                    edgeFunctionWorked = false;
+                } else {
                     edgeFunctionWorked = true;
-                    console.log('Edge Function respondeu:', data);
+                    console.log('Edge Function respondeu com sucesso:', data);
                 }
             } catch (e) {
-                console.warn('Edge Function não disponível, usando fallback local:', e.message);
+                console.warn('Erro ao tentar conectar com a Edge Function:', e.message);
             }
 
             // 2. Fallback: Enviar notificação local via Service Worker (teste direto)
