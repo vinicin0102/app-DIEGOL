@@ -23,7 +23,7 @@ const AppLayout = () => {
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
       { path: '/app/challenges', icon: Swords, label: 'Bosses' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
-      { path: '/app/missions', icon: Zap, label: 'Bônus' },
+      { path: '/app/missions#bonus', icon: Zap, label: 'Bônus' },
       { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
       { path: '/app/community', icon: Users, label: 'Comunidade' },
       { path: '/app/store', icon: Clock, label: 'Loja do Tempo' },
@@ -35,6 +35,17 @@ const AppLayout = () => {
       { path: '/app/ai-chat', icon: Brain, label: 'Evolução Chat IA' },
       { path: '/app/evolution-tree', icon: TreeDeciduous, label: 'Árvore de Evolução' },
       { path: '/app/admin', icon: ShieldCheck, label: 'Painel Admin' }
+    ];
+
+  // Itens para a barra de navegação inferior no mobile (apenas os mais importantes)
+  const mobileNavItems = isHostAdmin
+    ? navItems
+    : [
+      { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
+      { path: '/app/challenges', icon: Swords, label: 'Bosses' },
+      { path: '/app/missions', icon: Target, label: 'Missões' },
+      { path: '/app/community', icon: Users, label: 'Comunidade' },
+      { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
     ];
 
   const rank = getRank(user.level);
@@ -83,7 +94,7 @@ const AppLayout = () => {
 
             return (
               <Link
-                key={item.path}
+                key={`${item.path}-${item.label}`}
                 to={item.path}
                 className={`nav-item ${isActive ? 'active' : ''}`}
                 style={{ padding: '12px 16px' }}
@@ -129,13 +140,13 @@ const AppLayout = () => {
       </main>
 
       <nav className="mobile-nav">
-        {navItems.slice(0, 5).map((item) => {
-          const isActive = location.pathname === item.path;
+        {mobileNavItems.map((item) => {
+          const isActive = location.pathname === item.path || location.pathname.startsWith(item.path.split('#')[0]) && item.path === location.pathname;
 
           if (item.isExternal) {
             return (
               <a
-                key={item.path}
+                key={`mob-${item.path}-${item.label}`}
                 href={item.path}
                 className="nav-item"
                 style={{ flexDirection: 'column', gap: '4px', fontSize: '10px', padding: '8px', border: 'none' }}
@@ -148,12 +159,12 @@ const AppLayout = () => {
 
           return (
             <Link
-              key={item.path}
-              to={item.path}
+              key={`mob-${item.path}-${item.label}`}
+              to={item.path.split('#')[0]}
               className={`nav-item ${isActive ? 'active' : ''}`}
               style={{ flexDirection: 'column', gap: '4px', fontSize: '10px', padding: '8px', border: 'none' }}
             >
-              <item.icon size={24} />
+              <item.icon size={24} color={isActive ? 'var(--primary)' : undefined} />
               <span>{item.label}</span>
             </Link>
           );
