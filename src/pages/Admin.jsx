@@ -24,6 +24,7 @@ const Admin = ({ superMail }) => {
     const [scheduleDate, setScheduleDate] = useState('');
     const [isScheduling, setIsScheduling] = useState(false);
     const [scheduledList, setScheduledList] = useState([]);
+    const [scheduleBatch, setScheduleBatch] = useState([]);
 
     const handleSaveNew = () => {
         if (!newChallenge.title) return;
@@ -64,35 +65,39 @@ const Admin = ({ superMail }) => {
     }, [activeTab]);
 
     const handleScheduleNotification = async () => {
-        if (!notifTitle || !notifBody || !scheduleDate) {
-            alert('Preencha título, corpo e data/hora do agendamento.');
+        if (!notifTitle || !notifBody || scheduleBatch.length === 0) {
+            alert('Preencha título, corpo e adicione pelo menos um horário.');
             return;
         }
 
         setSending(true);
         try {
+            const rows = scheduleBatch.map(dt => ({
+                title: notifTitle,
+                body: notifBody,
+                schedule_at: new Date(dt).toISOString(),
+                status: 'pending'
+            }));
+
             const { error } = await supabase
                 .from('scheduled_notifications')
-                .insert([{
-                    title: notifTitle,
-                    body: notifBody,
-                    schedule_at: new Date(scheduleDate).toISOString(),
-                    status: 'pending'
-                }]);
+                .insert(rows);
 
             if (error) throw error;
 
-            alert('✅ Notificação agendada com sucesso!');
+            alert(`✅ ${rows.length} agendamento(s) criado(s) com sucesso!`);
             setNotifTitle('');
             setNotifBody('');
             setScheduleDate('');
+            setScheduleBatch([]);
             setIsScheduling(false);
 
             // Recarregar lista
             const { data } = await supabase
                 .from('scheduled_notifications')
                 .select('*')
-                .eq('status', 'pending');
+                .eq('status', 'pending')
+                .order('schedule_at', { ascending: true });
             setScheduledList(data || []);
 
         } catch (err) {
@@ -671,68 +676,145 @@ const Admin = ({ superMail }) => {
                                 marginBottom: '24px'
                             }}>
                                 <label style={{ fontSize: '12px', color: 'var(--primary)', marginBottom: '8px', display: 'block', fontWeight: '800' }}>
-                                    📅 ESCOLHA A DATA E HORA EXATA:
+                                    📅 ADICIONE HORÁRIOS (quantos quiser):
                                 </label>
-                                <input
-                                    type="datetime-local"
-                                    value={scheduleDate}
-                                    onChange={e => setScheduleDate(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '12px',
-                                        background: '#000',
-                                        border: '1px solid var(--border)',
-                                        color: '#fff',
-                                        borderRadius: '8px',
-                                        marginBottom: '15px'
-                                    }}
-                                />
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                                    <input
+                                        type="datetime-local"
+                                        value={scheduleDate}
+                                        onChange={e => setScheduleDate(e.target.value)}
+                                        style={{
+                                            flex: 1,
+                                            padding: '12px',
+                                            background: '#000',
+                                            border: '1px solid var(--border)',
+                                            color: '#fff',
+                                            borderRadius: '8px'
+                                        }}
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            if (!scheduleDate) return;
+                                            setScheduleBatch(prev => [...prev, scheduleDate]);
+                                            setScheduleDate('');
+                                        }}
+                                        style={{
+                                            padding: '12px 18px',
+                                            background: 'var(--primary)',
+                                            color: '#000',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            fontWeight: '800',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        + ADD
+                                    </button>
+                                </div>
+
+                                {scheduleBatch.length > 0 && (
+                                    <div style={{ marginBottom: '15px' }}>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: '700' }}>
+                                            {scheduleBatch.length} horário(s) adicionado(s):
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                            {scheduleBatch.map((dt, i) => (
+                                                <span key={i} style={{
+                                                    padding: '4px 10px',
+                                                    background: 'rgba(0,255,136,0.1)',
+                                                    border: '1px solid rgba(0,255,136,0.2)',
+                                                    borderRadius: '6px',
+                                                    fontSize: '11px',
+                                                    color: 'var(--primary)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '6px'
+                                                }}>
+                                                    {new Date(dt).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                    <span
+                                                        onClick={() => setScheduleBatch(prev => prev.filter((_, j) => j !== i))}
+                                                        style={{ cursor: 'pointer', color: '#ff4444', fontWeight: '900' }}
+                                                    >×</span>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <button
                                     className="btn-primary"
-                                    disabled={sending || !scheduleDate}
+                                    disabled={sending || scheduleBatch.length === 0 || !notifTitle || !notifBody}
                                     onClick={handleScheduleNotification}
                                     style={{ width: '100%', background: 'var(--primary)', color: '#000' }}
                                 >
-                                    {sending ? <Loader size={18} className="spin" /> : 'CONFIRMAR AGENDAMENTO'}
+                                    {sending ? <Loader size={18} className="spin" /> : `AGENDAR ${scheduleBatch.length} NOTIFICAÇÃO(ÕES)`}
                                 </button>
                             </div>
                         )}
                     </div>
 
-                    {/* Scheduled List */}
-                    {scheduledList.length > 0 && (
-                        <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
-                            <h4 style={{ fontSize: '14px', fontWeight: '900', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Calendar size={16} color="var(--primary)" /> PROGRAMADAS ({scheduledList.length})
-                            </h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                {scheduledList.map(notif => (
-                                    <div key={notif.id} style={{
-                                        padding: '14px',
-                                        background: 'rgba(255,255,255,0.03)',
-                                        borderRadius: '10px',
-                                        border: '1px solid var(--border)',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center'
-                                    }}>
-                                        <div>
-                                            <div style={{ fontWeight: '700', fontSize: '13px' }}>{notif.title}</div>
-                                            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                                                {new Date(notif.schedule_at).toLocaleString('pt-BR')}
-                                            </div>
+                    {/* Scheduled List - Grouped by Day */}
+                    {scheduledList.length > 0 && (() => {
+                        const grouped = {};
+                        scheduledList.forEach(n => {
+                            const d = new Date(n.schedule_at);
+                            const key = d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+                            if (!grouped[key]) grouped[key] = [];
+                            grouped[key].push(n);
+                        });
+
+                        return (
+                            <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px' }}>
+                                <h4 style={{ fontSize: '14px', fontWeight: '900', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Calendar size={16} color="var(--primary)" /> PROGRAMADAS ({scheduledList.length})
+                                </h4>
+                                {Object.entries(grouped).map(([dayLabel, notifs]) => (
+                                    <div key={dayLabel} style={{ marginBottom: '16px' }}>
+                                        <div style={{
+                                            fontSize: '12px', fontWeight: '800', color: 'var(--primary)',
+                                            marginBottom: '8px', textTransform: 'capitalize',
+                                            paddingBottom: '6px', borderBottom: '1px solid rgba(255,255,255,0.05)'
+                                        }}>
+                                            📅 {dayLabel}
                                         </div>
-                                        <button
-                                            onClick={() => deleteScheduled(notif.id)}
-                                            style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '5px' }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                            {notifs.map(notif => (
+                                                <div key={notif.id} style={{
+                                                    padding: '10px 14px',
+                                                    background: 'rgba(255,255,255,0.03)',
+                                                    borderRadius: '8px',
+                                                    border: '1px solid var(--border)',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center'
+                                                }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                        <span style={{
+                                                            fontSize: '13px', fontWeight: '800', color: '#fff',
+                                                            background: 'rgba(0,255,136,0.15)', padding: '3px 8px', borderRadius: '6px',
+                                                            minWidth: '50px', textAlign: 'center'
+                                                        }}>
+                                                            {new Date(notif.schedule_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                        <div>
+                                                            <div style={{ fontWeight: '700', fontSize: '12px' }}>{notif.title}</div>
+                                                            <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{notif.body.length > 50 ? notif.body.substring(0, 50) + '...' : notif.body}</div>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => deleteScheduled(notif.id)}
+                                                        style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', padding: '5px' }}
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     <div className="glass-panel" style={{ padding: '24px', background: 'rgba(255, 165, 0, 0.05)', border: '1px solid rgba(255, 165, 0, 0.1)' }}>
                         <h4 style={{ color: '#FFA500', fontSize: '14px', fontWeight: '800', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
