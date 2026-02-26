@@ -6,8 +6,7 @@ import './Missions.css';
 const Missions = () => {
     const {
         missions, toggleMission,
-        bonusMissions, addBonusMission, toggleBonusMission, deleteBonusMission,
-        user
+        bonusMissions, addBonusMission, toggleBonusMission, deleteBonusMission
     } = useGame();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -20,7 +19,7 @@ const Missions = () => {
     const filters = ['Todas', 'Foco do Dia', 'Pendentes', 'Concluídas'];
 
     const completedCount = missions.filter(m => m.completed).length;
-    const progress = (completedCount / missions.length) * 100;
+    const progress = missions.length > 0 ? (completedCount / missions.length) * 100 : 0;
 
     const filteredMissions = missions.filter(m => {
         const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase());
