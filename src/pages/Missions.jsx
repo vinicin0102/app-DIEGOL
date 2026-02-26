@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { Search, ChevronLeft, ChevronRight, Plus, Check, Trash2, Zap, Clock } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Plus, Check, Trash2, Zap, Clock, Target, Trophy, Flame } from 'lucide-react';
 import './Missions.css';
 
 const Missions = () => {
     const {
         missions, toggleMission,
-        bonusMissions, addBonusMission, toggleBonusMission, deleteBonusMission
+        bonusMissions, addBonusMission, toggleBonusMission, deleteBonusMission,
+        user
     } = useGame();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +17,10 @@ const Missions = () => {
     const [bonusTitle, setBonusTitle] = useState('');
 
     const categories = ['Todos', 'Corpo', 'Saúde', 'Finanças', 'Trabalho', 'Espiritual', 'Mente'];
-    const filters = ['Foco do Dia', 'Todas', 'Pendentes', 'Concluídas'];
+    const filters = ['Todas', 'Foco do Dia', 'Pendentes', 'Concluídas'];
+
+    const completedCount = missions.filter(m => m.completed).length;
+    const progress = (completedCount / missions.length) * 100;
 
     const filteredMissions = missions.filter(m => {
         const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase());
@@ -25,7 +29,7 @@ const Missions = () => {
         let matchesFilter = true;
         if (activeFilter === 'Pendentes') matchesFilter = !m.completed;
         else if (activeFilter === 'Concluídas') matchesFilter = m.completed;
-        else if (activeFilter === 'Foco do Dia') matchesFilter = missions.indexOf(m) < 3; // Mostrar top 3 como foco
+        else if (activeFilter === 'Foco do Dia') matchesFilter = !m.completed && m.xp >= 15; // Missões de alto XP como foco
 
         return matchesSearch && matchesCategory && matchesFilter;
     });
@@ -40,67 +44,64 @@ const Missions = () => {
 
     return (
         <div className="missions-page page-enter">
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h1 style={{ fontSize: '32px', fontWeight: '900', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ color: '#FF3366' }}>◎</span> Missões
-                </h1>
+            {/* Upper Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+                <div>
+                    <h1 style={{ fontSize: '32px', fontWeight: '900', color: '#fff' }}>Minhas Missões</h1>
+                    <p style={{ color: 'var(--text-muted)', fontSize: '14px' }}>Supere seus limites hoje</p>
+                </div>
                 <button className="bonus-btn" onClick={() => setShowBonusForm(true)}>
                     <Plus size={24} />
                 </button>
             </div>
 
-            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
-                {missions.filter(m => !m.completed).length} missões pendentes
-            </p>
-
-            {/* Date Nav */}
-            <div className="glass-panel" style={{ padding: '4px', borderRadius: '14px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <button className="category-tab"><Search size={18} /></button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <ChevronLeft size={18} color="#444" />
-                    <span style={{ fontWeight: '700', fontSize: '14px' }}>Hoje</span>
-                    <ChevronRight size={18} color="#444" />
+            {/* Progress Header */}
+            <div className="progress-header">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Trophy size={18} color="var(--primary)" />
+                        <span style={{ fontWeight: '800', fontSize: '14px' }}>Progresso Diário</span>
+                    </div>
+                    <span style={{ fontWeight: '900', color: 'var(--primary)' }}>{Math.round(progress)}%</span>
                 </div>
-                <div style={{ width: '40px' }}></div>
+                <div className="progress-bar-bg">
+                    <div className="progress-bar-fill" style={{ width: `${progress}%` }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+                    <span style={{ fontSize: '12px', color: '#666' }}>{completedCount} de {missions.length} concluídas</span>
+                    <span style={{ fontSize: '12px', color: '#666' }}>+{missions.filter(m => m.completed).reduce((acc, curr) => acc + curr.xp, 0)} XP hoje</span>
+                </div>
             </div>
 
-            {/* Search */}
-            <div style={{ position: 'relative', marginBottom: '24px' }}>
-                <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#444' }} />
-                <input
-                    type="text"
-                    placeholder="Pesquisar missão..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    style={{
-                        width: '100%',
-                        padding: '14px 14px 14px 48px',
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: '16px',
-                        color: '#fff'
-                    }}
-                />
+            {/* Date / Search Bar */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ position: 'relative', flex: 1 }}>
+                    <Search size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#555' }} />
+                    <input
+                        type="text"
+                        placeholder="Pesquisar missão..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '14px 14px 14px 48px',
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            borderRadius: '16px',
+                            color: '#fff',
+                            fontSize: '14px'
+                        }}
+                    />
+                </div>
+                <div className="glass-panel" style={{ padding: '4px', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '8px', paddingRight: '12px' }}>
+                    <button className="category-tab" style={{ padding: '8px' }}><ChevronLeft size={18} /></button>
+                    <span style={{ fontWeight: '800', fontSize: '12px' }}>HOJE</span>
+                    <button className="category-tab" style={{ padding: '8px' }}><ChevronRight size={18} /></button>
+                </div>
             </div>
 
-            {/* Filters */}
-            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginBottom: '24px', paddingBottom: '4px' }}>
-                {filters.map(filter => (
-                    <button
-                        key={filter}
-                        className={`filter-pill ${activeFilter === filter ? 'active' : ''}`}
-                        onClick={() => setActiveFilter(filter)}
-                    >
-                        {filter === 'Foco do Dia' && '📅 '}
-                        {filter === 'Concluídas' && '✅ '}
-                        {filter}
-                    </button>
-                ))}
-            </div>
-
-            {/* Categories */}
-            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '32px', background: 'rgba(255,255,255,0.02)', padding: '4px', borderRadius: '12px' }}>
+            {/* Categories Horizontal Scroll */}
+            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '24px', paddingBottom: '8px' }}>
                 {categories.map(cat => (
                     <button
                         key={cat}
@@ -112,91 +113,105 @@ const Missions = () => {
                 ))}
             </div>
 
-            {/* Section: Flexível */}
-            <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid #00DDFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Clock size={16} color="#00DDFF" />
+            {/* Filter Pills */}
+            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginBottom: '32px', paddingBottom: '4px' }}>
+                {filters.map(filter => (
+                    <button
+                        key={filter}
+                        className={`filter-pill ${activeFilter === filter ? 'active' : ''}`}
+                        onClick={() => setActiveFilter(filter)}
+                    >
+                        {filter}
+                    </button>
+                ))}
+            </div>
+
+            {/* Section Header */}
+            <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ padding: '8px', background: 'rgba(0, 221, 255, 0.1)', borderRadius: '10px' }}>
+                    <Clock size={18} color="#00DDFF" />
                 </div>
-                <div>
-                    <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#00DDFF' }}>Flexível / Qualquer Horário</h3>
-                    <span style={{ fontSize: '13px', color: '#00DDFF', opacity: 0.8 }}>({filteredMissions.length})</span>
-                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '900', color: '#fff' }}>Próximas Missões</h3>
             </div>
 
             {/* Mission List */}
-            {filteredMissions.length > 0 ? (
-                filteredMissions.map(m => (
-                    <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`}>
-                        <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                                <div className={`mission-dot ${m.completed ? 'green' : 'gray'}`}></div>
-                                <div>
-                                    <h4 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '4px' }}>{m.title}</h4>
-                                    <div style={{ display: 'flex', gap: '8px' }}>
-                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: '#888', padding: '4px 10px' }}>
-                                            💬 {m.type === 'diaria' ? 'Diária' : 'Extra'}
-                                        </span>
-                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: '#888', padding: '4px 10px' }}>
-                                            {m.category}
-                                        </span>
+            <div className="missions-list">
+                {filteredMissions.length > 0 ? (
+                    filteredMissions.map(m => (
+                        <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                    <div className={`mission-icon-container ${m.completed ? 'completed' : ''}`}>
+                                        <span style={{ fontSize: '24px' }}>{m.icon || '🎯'}</span>
+                                    </div>
+                                    <div>
+                                        <h4 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '6px', color: m.completed ? '#666' : '#fff' }}>
+                                            {m.title}
+                                        </h4>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <span className="mission-type-badge">{m.type === 'diaria' ? 'Diária' : 'Extra'}</span>
+                                            <span className="mission-category-tag">{m.category}</span>
+                                            <div className="xp-badge">
+                                                <Zap size={12} fill="var(--primary)" /> +{m.xp} XP
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
+                                {m.completed && (
+                                    <div style={{ background: 'var(--primary)', padding: '4px', borderRadius: '50%' }}>
+                                        <Check size={16} color="#000" strokeWidth={3} />
+                                    </div>
+                                )}
                             </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <div style={{ color: 'var(--primary)', fontWeight: '900', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <Zap size={14} fill="var(--primary)" /> +{m.xp} XP
-                                </div>
-                            </div>
-                        </div>
 
-                        <button
-                            onClick={() => toggleMission(m.id)}
-                            className="btn-primary"
-                            style={{
-                                width: '100%',
-                                background: m.completed ? 'var(--primary)' : 'linear-gradient(90deg, #00FFCC, #00FFEE)',
-                                color: '#000',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                padding: '16px'
-                            }}
-                        >
-                            {m.completed ? <Check size={20} /> : null}
-                            {m.completed ? 'Concluída' : 'Completar'}
-                        </button>
+                            <button
+                                onClick={() => toggleMission(m.id)}
+                                className={`btn-complete ${m.completed ? 'completed' : ''}`}
+                                style={{
+                                    background: m.completed ? 'rgba(255,255,255,0.05)' : 'var(--primary)',
+                                    color: m.completed ? '#aaa' : '#000'
+                                }}
+                            >
+                                {m.completed ? 'Missão Cumprida' : 'Completar Missão'}
+                            </button>
+                        </div>
+                    ))
+                ) : (
+                    <div style={{ padding: '60px 20px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                        <Target size={48} style={{ marginBottom: '16px', opacity: 0.1, color: '#fff' }} />
+                        <h4 style={{ color: '#aaa', fontWeight: '700' }}>Nenhuma missão encontrada</h4>
+                        <p style={{ color: '#555', fontSize: '14px' }}>Tente mudar os filtros ou categorias</p>
                     </div>
-                ))
-            ) : (
-                <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                    <Target size={40} style={{ marginBottom: '16px', opacity: 0.3 }} />
-                    <p>Nenhuma missão encontrada para este filtro.</p>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Bonus Missions Section */}
             {(bonusMissions.length > 0 || showBonusForm) && (
-                <div style={{ marginTop: '40px' }}>
-                    <h3 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '20px', color: '#FF3366' }}>Missões Bônus</h3>
+                <div style={{ marginTop: '48px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                        <div style={{ padding: '8px', background: 'rgba(255, 51, 102, 0.1)', borderRadius: '10px' }}>
+                            <Flame size={18} color="#FF3366" />
+                        </div>
+                        <h3 style={{ fontSize: '18px', fontWeight: '900', color: '#fff' }}>Missões Bônus</h3>
+                    </div>
 
                     {bonusMissions.map(m => (
-                        <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`} style={{ borderColor: '#FF3366' }}>
+                        <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`} style={{ borderColor: m.completed ? 'rgba(0,255,136,0.2)' : 'rgba(255,51,102,0.3)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <div className="mission-dot orange"></div>
-                                    <h4 style={{ fontSize: '16px', fontWeight: '700' }}>{m.title}</h4>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: m.completed ? 'var(--primary)' : '#FF3366' }}></div>
+                                    <h4 style={{ fontSize: '16px', fontWeight: '700', color: m.completed ? '#666' : '#fff' }}>{m.title}</h4>
                                 </div>
-                                <div style={{ display: 'flex', gap: '12px' }}>
+                                <div style={{ display: 'flex', gap: '8px' }}>
                                     <button
                                         onClick={() => toggleBonusMission(m.id)}
-                                        style={{ background: m.completed ? 'var(--primary)' : 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '8px', padding: '8px', color: m.completed ? '#000' : '#fff' }}
+                                        style={{ background: m.completed ? 'var(--primary)' : 'rgba(255,255,255,0.05)', border: 'none', borderRadius: '10px', padding: '10px', color: m.completed ? '#000' : '#fff', cursor: 'pointer' }}
                                     >
-                                        <Check size={18} />
+                                        <Check size={18} strokeWidth={3} />
                                     </button>
                                     <button
                                         onClick={() => deleteBonusMission(m.id)}
-                                        style={{ background: 'rgba(255,51,102,0.1)', border: 'none', borderRadius: '8px', padding: '8px', color: '#FF3366' }}
+                                        style={{ background: 'rgba(255,51,102,0.05)', border: 'none', borderRadius: '10px', padding: '10px', color: '#FF3366', cursor: 'pointer' }}
                                     >
                                         <Trash2 size={18} />
                                     </button>
@@ -206,17 +221,18 @@ const Missions = () => {
                     ))}
 
                     {showBonusForm && (
-                        <div className="glass-panel" style={{ padding: '20px', marginBottom: '20px' }}>
+                        <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,51,102,0.2)' }}>
+                            <h4 style={{ marginBottom: '16px', fontWeight: '800' }}>Nova Missão Bônus</h4>
                             <input
                                 type="text"
-                                placeholder="Título da missão bônus..."
+                                placeholder="Ex: Caminhada de 15 min..."
                                 value={bonusTitle}
                                 onChange={e => setBonusTitle(e.target.value)}
-                                style={{ width: '100%', padding: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid #444', borderRadius: '8px', color: '#fff', marginBottom: '12px' }}
+                                style={{ width: '100%', padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,51,102,0.1)', borderRadius: '12px', color: '#fff', marginBottom: '16px' }}
                             />
                             <div style={{ display: 'flex', gap: '10px' }}>
-                                <button className="btn-primary" style={{ flex: 1 }} onClick={handleAddBonus}>Adicionar</button>
-                                <button className="btn-secondary" style={{ flex: 1, borderColor: '#444', color: '#888' }} onClick={() => setShowBonusForm(false)}>Cancelar</button>
+                                <button className="btn-complete" style={{ flex: 1, padding: '14px', background: '#FF3366', color: '#fff' }} onClick={handleAddBonus}>Adicionar</button>
+                                <button className="category-tab" style={{ flex: 1, background: 'rgba(255,255,255,0.05)' }} onClick={() => setShowBonusForm(false)}>Cancelar</button>
                             </div>
                         </div>
                     )}
