@@ -264,6 +264,23 @@ export const GameProvider = ({ children }) => {
         localStorage.setItem('gameCalendarData', JSON.stringify(calendarData));
     }, [calendarData]);
 
+    // Daily reset for missions
+    useEffect(() => {
+        const checkReset = () => {
+            const lastReset = localStorage.getItem('gameLastMissionsReset');
+            const today = new Date().toLocaleDateString('pt-BR');
+            if (lastReset !== today) {
+                setMissions(INITIAL_MISSIONS.map(m => ({ ...m, completed: false })));
+                setBonusMissions([]);
+                localStorage.setItem('gameLastMissionsReset', today);
+            }
+        };
+        checkReset();
+        // Check again every hour
+        const interval = setInterval(checkReset, 3600000);
+        return () => clearInterval(interval);
+    }, []);
+
     useEffect(() => {
         if (!session) {
             localStorage.setItem('gameChallenges', JSON.stringify(challenges));
@@ -438,7 +455,19 @@ export const GameProvider = ({ children }) => {
 
     const toggleMission = (id) => {
         setMissions(prev => {
-            const newMissions = prev.map(m => m.id === id ? { ...m, completed: !m.completed } : m);
+            const mission = prev.find(m => m.id === id);
+            if (!mission) return prev;
+
+            const isCompleting = !mission.completed;
+
+            // Recompensar com XP
+            if (isCompleting) {
+                addXp(mission.xp || 5);
+            } else {
+                addXp(-(mission.xp || 5));
+            }
+
+            const newMissions = prev.map(m => m.id === id ? { ...m, completed: isCompleting } : m);
 
             // Check if all missions for today are completed
             const allDone = newMissions.every(m => m.completed);

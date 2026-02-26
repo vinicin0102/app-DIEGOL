@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2, Swords, Zap } from 'lucide-react';
+import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2, Swords, Zap, Menu, X } from 'lucide-react';
 import { getRank, getRankColor } from '../data/missionsData';
 import InstallPWA from '../components/InstallPWA';
 import './AppLayout.css';
@@ -10,6 +10,7 @@ const AppLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, session, signOut } = useGame();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   const isHostAdmin = window.location.hostname.startsWith('admin.');
   const isSuperAdmin = session?.user?.email === 'vinicius6655000@gmail.com';
@@ -23,6 +24,7 @@ const AppLayout = () => {
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
       { path: '/app/challenges', icon: Swords, label: 'Bosses' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
+      { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
       { path: '/app/missions#bonus', icon: Zap, label: 'Bônus' },
       { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
       { path: '/app/community', icon: Users, label: 'Comunidade' },
@@ -44,8 +46,8 @@ const AppLayout = () => {
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
       { path: '/app/challenges', icon: Swords, label: 'Bosses' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
-      { path: '/app/community', icon: Users, label: 'Comunidade' },
-      { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
+      { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
+      { path: '#menu', icon: Menu, label: 'Mais', isMenuToggle: true }
     ];
 
   const rank = getRank(user.level);
@@ -54,7 +56,15 @@ const AppLayout = () => {
 
   return (
     <div className="app-container">
-      <aside className="sidebar">
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+        <button
+          className="mobile-close-btn"
+          onClick={() => setIsSidebarOpen(false)}
+          style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'var(--text-muted)', display: 'none' }}
+        >
+          <X size={24} />
+        </button>
         <div className="brand" style={{ marginBottom: '24px' }}>
           <div className="logo-mark"></div>
           <div>
@@ -98,6 +108,7 @@ const AppLayout = () => {
                 to={item.path}
                 className={`nav-item ${isActive ? 'active' : ''}`}
                 style={{ padding: '12px 16px' }}
+                onClick={() => setIsSidebarOpen(false)}
               >
                 <item.icon size={20} color={isActive ? 'var(--primary)' : 'var(--text-muted)'} />
                 <span style={{ fontSize: '14px' }}>{item.label}</span>
@@ -157,12 +168,27 @@ const AppLayout = () => {
             );
           }
 
+          if (item.isMenuToggle) {
+            return (
+              <button
+                key="mob-menu-toggle"
+                onClick={() => setIsSidebarOpen(true)}
+                className="nav-item"
+                style={{ background: 'none', border: 'none', flexDirection: 'column', gap: '4px', fontSize: '10px', padding: '8px' }}
+              >
+                <item.icon size={24} color="var(--text-muted)" />
+                <span>{item.label}</span>
+              </button>
+            );
+          }
+
           return (
             <Link
               key={`mob-${item.path}-${item.label}`}
               to={item.path.split('#')[0]}
               className={`nav-item ${isActive ? 'active' : ''}`}
               style={{ flexDirection: 'column', gap: '4px', fontSize: '10px', padding: '8px', border: 'none' }}
+              onClick={() => setIsSidebarOpen(false)}
             >
               <item.icon size={24} color={isActive ? 'var(--primary)' : undefined} />
               <span>{item.label}</span>

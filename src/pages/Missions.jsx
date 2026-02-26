@@ -21,9 +21,12 @@ const Missions = () => {
     const filteredMissions = missions.filter(m => {
         const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory = activeCategory === 'Todos' || m.category === activeCategory;
-        const matchesFilter = activeFilter === 'Todas' ||
-            (activeFilter === 'Pendentes' && !m.completed) ||
-            (activeFilter === 'Concluídas' && m.completed);
+
+        let matchesFilter = true;
+        if (activeFilter === 'Pendentes') matchesFilter = !m.completed;
+        else if (activeFilter === 'Concluídas') matchesFilter = m.completed;
+        else if (activeFilter === 'Foco do Dia') matchesFilter = missions.indexOf(m) < 3; // Mostrar top 3 como foco
+
         return matchesSearch && matchesCategory && matchesFilter;
     });
 
@@ -121,49 +124,56 @@ const Missions = () => {
             </div>
 
             {/* Mission List */}
-            {filteredMissions.map(m => (
-                <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`}>
-                    <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <div className={`mission-dot ${m.completed ? 'green' : 'gray'}`}></div>
-                            <div>
-                                <h4 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '4px' }}>{m.title}</h4>
-                                <div style={{ display: 'flex', gap: '8px' }}>
-                                    <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: '#888', padding: '4px 10px' }}>
-                                        💬 {m.type === 'diaria' ? 'Diária' : 'Extra'}
-                                    </span>
-                                    <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: '#888', padding: '4px 10px' }}>
-                                        {m.category}
-                                    </span>
+            {filteredMissions.length > 0 ? (
+                filteredMissions.map(m => (
+                    <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`}>
+                        <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between', marginBottom: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div className={`mission-dot ${m.completed ? 'green' : 'gray'}`}></div>
+                                <div>
+                                    <h4 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '4px' }}>{m.title}</h4>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: '#888', padding: '4px 10px' }}>
+                                            💬 {m.type === 'diaria' ? 'Diária' : 'Extra'}
+                                        </span>
+                                        <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: '#888', padding: '4px 10px' }}>
+                                            {m.category}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                                <div style={{ color: 'var(--primary)', fontWeight: '900', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Zap size={14} fill="var(--primary)" /> +{m.xp} XP
                                 </div>
                             </div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={{ color: 'var(--primary)', fontWeight: '900', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <Zap size={14} fill="var(--primary)" /> +{m.xp} XP
-                            </div>
-                        </div>
-                    </div>
 
-                    <button
-                        onClick={() => toggleMission(m.id)}
-                        className="btn-primary"
-                        style={{
-                            width: '100%',
-                            background: m.completed ? 'var(--primary)' : 'linear-gradient(90deg, #00FFCC, #00FFEE)',
-                            color: '#000',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '8px',
-                            padding: '16px'
-                        }}
-                    >
-                        {m.completed ? <Check size={20} /> : null}
-                        {m.completed ? 'Concluída' : 'Completar'}
-                    </button>
+                        <button
+                            onClick={() => toggleMission(m.id)}
+                            className="btn-primary"
+                            style={{
+                                width: '100%',
+                                background: m.completed ? 'var(--primary)' : 'linear-gradient(90deg, #00FFCC, #00FFEE)',
+                                color: '#000',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                padding: '16px'
+                            }}
+                        >
+                            {m.completed ? <Check size={20} /> : null}
+                            {m.completed ? 'Concluída' : 'Completar'}
+                        </button>
+                    </div>
+                ))
+            ) : (
+                <div className="glass-panel" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <Target size={40} style={{ marginBottom: '16px', opacity: 0.3 }} />
+                    <p>Nenhuma missão encontrada para este filtro.</p>
                 </div>
-            ))}
+            )}
 
             {/* Bonus Missions Section */}
             {(bonusMissions.length > 0 || showBonusForm) && (
