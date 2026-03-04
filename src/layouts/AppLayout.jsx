@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2, Swords, Zap, Menu, X } from 'lucide-react';
+import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2, Swords, Zap, Menu, X, Skull } from 'lucide-react';
 import { getRank, getRankColor } from '../data/missionsData';
 import InstallPWA from '../components/InstallPWA';
 import './AppLayout.css';
@@ -22,6 +22,7 @@ const AppLayout = () => {
     ]
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
+      { path: '/app/boss-global', icon: Skull, label: 'Boss Global' },
       { path: '/app/challenges', icon: Swords, label: 'Bosses' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
@@ -44,6 +45,7 @@ const AppLayout = () => {
     ? navItems
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
+      { path: '/app/boss-global', icon: Skull, label: 'Boss G.' },
       { path: '/app/challenges', icon: Swords, label: 'Bosses' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },

@@ -8,6 +8,7 @@ import Calendar from './pages/Calendar';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Training from './pages/Training';
+import BossGlobal from './pages/BossGlobal';
 import Home from './pages/Home';
 import { useGame } from './context/GameContext';
 import './App.css';
@@ -87,6 +88,7 @@ const App = () => {
           <Route element={isAuthenticated ? <Outlet /> : <Navigate to="/" />}>
             <Route index element={<Navigate to="profile" replace />} />
             <Route path="training" element={<Training />} />
+            <Route path="boss-global" element={<BossGlobal />} />
             <Route path="challenges" element={<Challenges />} />
             <Route path="community" element={<Community />} />
             <Route path="profile" element={<Profile />} />
