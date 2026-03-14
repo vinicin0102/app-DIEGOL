@@ -505,19 +505,87 @@ const Funnel = () => {
       <h2 className="fn-big-title" style={{ color: '#00C8FF' }}>A GAMIFICAÇÃO QUE FUNCIONA</h2>
       <p className="fn-desc">Cada repetição conta. Transforme suor em XP e suba de nível na vida real.</p>
 
-      <div className="fn-features-row">
-        {[
-          { icon: Target, title: 'Missões Diárias', desc: 'Objetivos personalizados que se adaptam ao seu progresso.', color: '#00C8FF' },
-          { icon: Trophy, title: 'Conquistas', desc: 'Desbloqueie medalhas e exiba no ranking global da comunidade.', color: '#FFD700' },
-          { icon: TrendingUp, title: 'Evolução Real', desc: 'Seus atributos (Força, Resistência, Agilidade) evoluem com você.', color: '#00FF88' },
-          { icon: Swords, title: 'Batalhas de Boss', desc: 'Use seus treinos diários para causar dano aos chefões globais.', color: '#FF3366' },
-        ].map((f, i) => (
-          <div key={i} className="fn-feature-card fn-stagger" style={{ '--stagger-delay': `${i * 0.1}s`, '--feature-color': f.color }}>
-            <f.icon size={36} style={{ color: f.color }} />
-            <h3>{f.title}</h3>
-            <p>{f.desc}</p>
+      <div className="fn-showcase-grid">
+        {/* Showcase Block 1 */}
+        <div className="fn-showcase-block" style={{ '--sc-color': '#00FF88' }}>
+          <div className="fn-sc-text">
+            <h3><Target color="#00FF88" size={28} /> PÁGINA INICIAL</h3>
+            <p>VEJA SEU PROGRESSO GERAL, ESTATÍSTICAS E NÍVEL</p>
+            <span>Toda sua evolução visualizada de forma gráfica. Acompanhe seu rank, XP atual e metas semanais diretamente no painel.</span>
           </div>
-        ))}
+          <div className="fn-sc-mockup">
+            <div className="fn-fake-laptop">
+              <div className="fn-fl-screen">
+                <div className="fn-fl-header"></div>
+                <div className="fn-fl-body">
+                  <div className="fn-fl-card"></div>
+                  <div className="fn-fl-card"></div>
+                </div>
+              </div>
+              <div className="fn-fl-base"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Showcase Block 2 */}
+        <div className="fn-showcase-block reverse" style={{ '--sc-color': '#FFD700' }}>
+          <div className="fn-sc-text">
+            <h3><Trophy color="#FFD700" size={28} /> CONQUISTAS</h3>
+            <p>DESBLOQUEIE CONQUISTAS AVANÇANDO NO DESAFIO</p>
+            <span>Colecione medalhas épicas e mostre para a comunidade quem é que manda. Torne suas conquistas visíveis no ranking global!</span>
+          </div>
+          <div className="fn-sc-mockup">
+            <div className="fn-fake-phone">
+               <div className="fn-fp-screen">
+                  <div className="fn-fp-achievement"><div className="fn-fp-icon"></div><div className="fn-fp-lines"></div></div>
+                  <div className="fn-fp-achievement"><div className="fn-fp-icon"></div><div className="fn-fp-lines"></div></div>
+                  <div className="fn-fp-achievement"><div className="fn-fp-icon"></div><div className="fn-fp-lines"></div></div>
+               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Showcase Block 3 */}
+        <div className="fn-showcase-block" style={{ '--sc-color': '#FF3366' }}>
+          <div className="fn-sc-text">
+            <h3><TrendingUp color="#FF3366" size={28} /> HÁBITOS</h3>
+            <p>REGISTRE E ACOMPANHE TODOS SEUS HÁBITOS</p>
+            <span>Marque sua consistência diária, mantenha o seu streak de vitórias vivo e ganhe buffs de experiência.</span>
+          </div>
+          <div className="fn-sc-mockup">
+            <div className="fn-fake-laptop">
+              <div className="fn-fl-screen">
+                <div className="fn-fl-header"></div>
+                <div className="fn-fl-body" style={{ flexDirection: 'column', gap: '8px' }}>
+                  <div className="fn-fl-row"></div>
+                  <div className="fn-fl-row"></div>
+                  <div className="fn-fl-row"></div>
+                </div>
+              </div>
+              <div className="fn-fl-base"></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Showcase Block 4 */}
+        <div className="fn-showcase-block reverse" style={{ '--sc-color': '#7B2FFF' }}>
+          <div className="fn-sc-text">
+            <h3><Star color="#7B2FFF" size={28} /> LOJA DO TEMPO</h3>
+            <p>GANHE MOEDAS CUMPRINDO HÁBITOS E TAREFAS</p>
+            <span>Troque moedas ganhas por habilidades únicas, bônus de XP ou itens reais. O esforço literalmente paga.</span>
+          </div>
+          <div className="fn-sc-mockup">
+             <div className="fn-fake-phone">
+               <div className="fn-fp-screen">
+                  <div className="fn-fp-grid">
+                     <div className="fn-fp-item"></div><div className="fn-fp-item"></div>
+                     <div className="fn-fp-item"></div><div className="fn-fp-item"></div>
+                  </div>
+               </div>
+             </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -582,38 +650,78 @@ const Funnel = () => {
   /* ─── STEP 5: A DECISÃO ─── */
   const renderStep5 = () => (
     <div className="fn-step fn-fade-in">
-      <Particles color="#7B2FFF" count={20} />
-      <h2 className="fn-big-title" style={{ color: '#7B2FFF' }}>A DECISÃO É SUA</h2>
-      <p className="fn-desc">O jogo já começou na vida real. Você vai ficar parado no Nível 1 para sempre?</p>
+      <Particles color="#FF3366" count={25} />
+      <h2 className="fn-big-title" style={{ color: '#FFF' }}>ESCOLHA SEU <span style={{color: '#FF3366'}}>PLANO</span></h2>
+      <p className="fn-desc">Comece sua jornada de transformação hoje mesmo</p>
 
-      <div className="fn-cta-epic">
-        <div className="fn-cta-badge">🔥 ACESSO LIBERADO</div>
-        <h3 className="fn-cta-title">Destrave seu Acesso Total</h3>
-        
-        <ul className="fn-cta-benefits">
-          <li><CheckCircle size={18} color="#00FF88" /> Acesso completo ao Sistema FitQuest</li>
-          <li><CheckCircle size={18} color="#00FF88" /> Missões, Chefões e Conquistas ilimitadas</li>
-          <li><CheckCircle size={18} color="#00FF88" /> Comunidade exclusiva e Guildas rankeadas</li>
-          <li><CheckCircle size={18} color="#00FF88" /> Temas épicos e lendários desbloqueáveis</li>
-          <li><CheckCircle size={18} color="#00FF88" /> Suporte direto dos desenvolvedores</li>
-          <li><CheckCircle size={18} color="#00FF88" /> Todas as atualizações futuras incluídas</li>
-        </ul>
+      <div className="fn-pricing-wrap">
+        {/* MENSAL */}
+        <div className="fn-pricing-card basic">
+           <Zap size={28} className="fn-price-icon" />
+           <h4>MENSAL</h4>
+           <div className="fn-price-amount">
+              <span className="fn-currency">R$</span>
+              <span className="fn-number">32,90</span>
+              <span className="fn-month">/mês</span>
+           </div>
+           <ul className="fn-price-features">
+             <li><CheckCircle size={14} color="#00FF88" /> Acesso completo por 1 mês</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Funcionalidades desbloqueadas</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Atualizações futuras</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Suporte via comunidade</li>
+           </ul>
+           <button className="fn-price-btn" onClick={() => setShowSignup(true)}>ASSINAR MENSAL</button>
+        </div>
 
-        <button className="fn-cta-button" onClick={() => setShowSignup(true)}>
-          CRIAR MINHA CONTA AGORA <ChevronRight size={20} />
-        </button>
-        
-        <div className="fn-cta-footer">
-          <p>Já tem conta? <a onClick={() => setShowLogin(true)}>Fazer login</a></p>
-          <p className="fn-guarantee">🔒 Ambiente 100% seguro</p>
+        {/* SEMESTRAL (Destaque) */}
+        <div className="fn-pricing-card premium">
+           <div className="fn-offer-badge">🔥 OFERTA POR TEMPO LIMITADO</div>
+           <Flame size={28} className="fn-price-icon" color="#FF3366" />
+           <h4 style={{ color: '#FF3366' }}>SEMESTRAL</h4>
+           <p className="fn-price-sub">4 meses grátis comparado ao plano mensal</p>
+           <div className="fn-price-strike">De R$ 197,00</div>
+           <div className="fn-price-amount" style={{ color: '#FF3366' }}>
+              <span className="fn-currency">R$</span>
+              <span className="fn-number">12,90</span>
+              <span className="fn-month">/mês</span>
+           </div>
+           <div className="fn-price-cash">ou R$ 68,75 à vista</div>
+           <ul className="fn-price-features">
+             <li><CheckCircle size={14} color="#00FF88" /> Acesso completo por 6 meses</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Todas funcionalidades VIP</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Bônus Exclusivos</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Suporte Prioritário</li>
+           </ul>
+           <button className="fn-price-btn highlight" onClick={() => setShowSignup(true)}>ASSINAR SEMESTRAL</button>
+        </div>
+
+        {/* VITALÍCIO */}
+        <div className="fn-pricing-card lifetime">
+           <Crown size={28} className="fn-price-icon" color="#7B2FFF" />
+           <h4 style={{ color: '#fff' }}>VITALÍCIO</h4>
+           <p className="fn-price-sub">Pagamento único. Acesso infinito.</p>
+           <div className="fn-price-strike">De R$ 497,00</div>
+           <div className="fn-price-amount">
+              <span className="fn-currency">R$</span>
+              <span className="fn-number">14,90</span>
+              <span className="fn-month">/mês</span>
+           </div>
+           <div className="fn-price-cash">ou R$ 146,90 à vista</div>
+           <ul className="fn-price-features">
+             <li><CheckCircle size={14} color="#00FF88" /> Acesso VITALÍCIO ao sistema</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Atualizações gratuitas sempre</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Avatar e Tema Exclusivo</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Acesso ao Grupo VIP</li>
+           </ul>
+           <button className="fn-price-btn best-value" onClick={() => setShowSignup(true)}>PEGAR VITALÍCIO</button>
         </div>
       </div>
 
-      {/* Urgency */}
-      <div className="fn-urgency-bar">
-        <Flame size={16} color="#FF3366" />
-        <span><strong><AnimatedCounter end={23} /></strong> vagas preenchidas nas últimas 2 horas</span>
+      <div className="fn-cta-footer" style={{ marginTop: '30px' }}>
+          <p>Já tem conta? <a onClick={() => setShowLogin(true)}>Fazer login</a></p>
+          <p className="fn-guarantee">🔒 Ambiente 100% seguro com garantia de 7 dias.</p>
       </div>
+
     </div>
   );
 
