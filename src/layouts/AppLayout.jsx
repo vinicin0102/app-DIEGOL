@@ -23,7 +23,7 @@ const AppLayout = () => {
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
       { path: '/app/boss-global', icon: Skull, label: 'Boss Global' },
-      { path: '/app/challenges', icon: Swords, label: 'Bosses' },
+      { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
       { path: '/app/missions#bonus', icon: Zap, label: 'Bônus' },
@@ -46,7 +46,7 @@ const AppLayout = () => {
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
       { path: '/app/boss-global', icon: Skull, label: 'Boss G.' },
-      { path: '/app/challenges', icon: Swords, label: 'Bosses' },
+      { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
       { path: '#menu', icon: Menu, label: 'Mais', isMenuToggle: true }

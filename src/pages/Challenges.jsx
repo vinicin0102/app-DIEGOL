@@ -203,7 +203,7 @@ const Challenges = () => {
             {/* Top Rank Info */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', position: 'relative', zHeight: 1 }}>
                 <div>
-                    <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#fff', textTransform: 'uppercase' }}>Bosses do Desafio</h1>
+                    <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#fff', textTransform: 'uppercase' }}>Projeto Vencedores</h1>
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                         <span style={{ fontSize: '14px', fontWeight: '800', color: rankColor }}>RANK {rank}</span>
                         <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>NÍVEL {user.level}</span>

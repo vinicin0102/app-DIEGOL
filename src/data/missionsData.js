@@ -1,9 +1,6 @@
 export const INITIAL_MISSIONS = [
     { id: 1, title: 'Beber 2L a 3L De Água', category: 'Saúde', xp: 10, type: 'diaria', icon: '💧' },
-    { id: 2, title: 'Ler Um Livro', category: 'Mente', xp: 8, type: 'diaria', icon: '📚' },
-    { id: 3, title: 'Leitura Espiritual Diária', category: 'Espiritual', xp: 12, type: 'diaria', icon: '🙏' },
     { id: 4, title: 'Treino de Força', category: 'Corpo', xp: 20, type: 'diaria', icon: '💪' },
-    { id: 5, title: 'Mente Blindada - Estudo', category: 'Mente', xp: 15, type: 'diaria', icon: '🧠' },
 ];
 
 export const getRank = (level) => {
