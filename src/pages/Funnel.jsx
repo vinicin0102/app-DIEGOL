@@ -654,7 +654,7 @@ const Funnel = () => {
       <h2 className="fn-big-title" style={{ color: '#FFF' }}>ESCOLHA SEU <span style={{color: '#FF3366'}}>PLANO</span></h2>
       <p className="fn-desc">Comece sua jornada de transformação hoje mesmo</p>
 
-      <div className="fn-pricing-wrap">
+      <div className="fn-pricing-wrap fn-pricing-wrap-4">
         {/* MENSAL */}
         <div className="fn-pricing-card basic">
            <Zap size={28} className="fn-price-icon" />
@@ -666,11 +666,13 @@ const Funnel = () => {
            </div>
            <ul className="fn-price-features">
              <li><CheckCircle size={14} color="#00FF88" /> Acesso completo por 1 mês</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Funcionalidades desbloqueadas</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Atualizações futuras</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Suporte via comunidade</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Todas as funcionalidades desbloqueadas</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Atualizações futuras incluídas</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Suporte via WhatsApp</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Acesso grátis ao grupo de membros</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Cancele quando quiser</li>
            </ul>
-           <button className="fn-price-btn" onClick={() => setShowSignup(true)}>ASSINAR MENSAL</button>
+           <button className="fn-price-btn" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
         </div>
 
         {/* SEMESTRAL (Destaque) */}
@@ -686,20 +688,54 @@ const Funnel = () => {
               <span className="fn-month">/mês</span>
            </div>
            <div className="fn-price-cash">ou R$ 68,75 à vista</div>
+           
+           <div className="fn-urgency-box">
+             <div className="fn-urgency-header">
+               <span>Vagas restantes:</span>
+               <span style={{color: '#FF3366', fontWeight: 'bold'}}>27</span>
+             </div>
+             <div className="fn-progress-bar"><div className="fn-progress-fill" style={{width: '27%'}}></div></div>
+             <p className="fn-urgency-text">Após esgotar, preço volta para R$ 197,00</p>
+           </div>
+
            <ul className="fn-price-features">
-             <li><CheckCircle size={14} color="#00FF88" /> Acesso completo por 6 meses</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Todas funcionalidades VIP</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Bônus Exclusivos</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Suporte Prioritário</li>
+             <li><CheckCircle size={14} color="#FF3366" /> Acesso completo por 6 meses</li>
+             <li><CheckCircle size={14} color="#FF3366" /> Todas as funcionalidades desbloqueadas</li>
+             <li><CheckCircle size={14} color="#FF3366" /> Atualizações futuras incluídas</li>
+             <li><CheckCircle size={14} color="#FF3366" /> Suporte via WhatsApp</li>
+             <li><CheckCircle size={14} color="#FF3366" /> Acesso grátis ao grupo de membros</li>
            </ul>
-           <button className="fn-price-btn highlight" onClick={() => setShowSignup(true)}>ASSINAR SEMESTRAL</button>
+           <button className="fn-price-btn highlight" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
+        </div>
+
+        {/* ANUAL */}
+        <div className="fn-pricing-card basic">
+           <Crown size={28} className="fn-price-icon" />
+           <h4>ANUAL</h4>
+           <div className="fn-tag-popular">MAIS POPULAR</div>
+           <div className="fn-price-strike">De R$ 397,00</div>
+           <div className="fn-price-amount">
+              <span className="fn-currency">R$</span>
+              <span className="fn-number">13,90</span>
+              <span className="fn-month">/mês</span>
+           </div>
+           <div className="fn-price-cash">ou R$ 137,00 à vista</div>
+           <ul className="fn-price-features">
+             <li><CheckCircle size={14} color="#00FF88" /> Acesso completo por 1 ano</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Todas as funcionalidades desbloqueadas</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Atualizações futuras incluídas</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Suporte via WhatsApp</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Acesso grátis ao grupo de membros</li>
+             <li><CheckCircle size={14} color="#00FF88" /> Economia de R$ 250 por ano vs mensal</li>
+           </ul>
+           <button className="fn-price-btn" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
         </div>
 
         {/* VITALÍCIO */}
         <div className="fn-pricing-card lifetime">
            <Crown size={28} className="fn-price-icon" color="#7B2FFF" />
            <h4 style={{ color: '#fff' }}>VITALÍCIO</h4>
-           <p className="fn-price-sub">Pagamento único. Acesso infinito.</p>
+           <div className="fn-tag-exclusive">EXCLUSIVO</div>
            <div className="fn-price-strike">De R$ 497,00</div>
            <div className="fn-price-amount">
               <span className="fn-currency">R$</span>
@@ -708,12 +744,14 @@ const Funnel = () => {
            </div>
            <div className="fn-price-cash">ou R$ 146,90 à vista</div>
            <ul className="fn-price-features">
-             <li><CheckCircle size={14} color="#00FF88" /> Acesso VITALÍCIO ao sistema</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Atualizações gratuitas sempre</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Avatar e Tema Exclusivo</li>
-             <li><CheckCircle size={14} color="#00FF88" /> Acesso ao Grupo VIP</li>
+             <li><CheckCircle size={14} color="#7B2FFF" /> Acesso vitalício completo</li>
+             <li><CheckCircle size={14} color="#7B2FFF" /> Todas as funcionalidades desbloqueadas</li>
+             <li><CheckCircle size={14} color="#7B2FFF" /> Todas as atualizações futuras</li>
+             <li><CheckCircle size={14} color="#7B2FFF" /> Suporte prioritário VIP via whatsapp</li>
+             <li><CheckCircle size={14} color="#7B2FFF" /> Acesso grátis ao grupo de membros</li>
+             <li><CheckCircle size={14} color="#7B2FFF" /> Pague uma vez, use para sempre</li>
            </ul>
-           <button className="fn-price-btn best-value" onClick={() => setShowSignup(true)}>PEGAR VITALÍCIO</button>
+           <button className="fn-price-btn best-value" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
         </div>
       </div>
 
