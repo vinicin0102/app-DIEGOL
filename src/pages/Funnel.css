@@ -1484,6 +1484,15 @@ html.funnel-active #root {
   transform: translateY(-5px);
   border-color: #444;
 }
+.fn-pricing-card.basic {
+  border-color: #222;
+}
+.fn-pricing-card.lifetime {
+  border-color: #7B2FFF;
+}
+.fn-pricing-card.lifetime:hover {
+  box-shadow: 0 0 30px rgba(123,47,255,0.15);
+}
 .fn-pricing-card.premium {
   border-color: #FF3366;
   box-shadow: 0 0 30px rgba(255,51,102,0.15);
