@@ -1,22 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Users, Shield, Zap, TrendingUp, Skull, Trophy, Star, Activity, PlusCircle, CheckCircle2, Flame } from 'lucide-react';
+import { Target, Users, Shield, Zap, TrendingUp, Skull, Trophy, Star, Activity, PlusCircle, CheckCircle2, Flame, ChevronRight, ChevronLeft, Lock } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import BossSprite from '../components/BossSprites';
+import { getCurrentBoss, getAllBosses } from '../data/bossesData';
 import './BossGlobal.css';
 
-const BOSS_TOTAL_HP = 25000;
-const WEEKLY_CAPS = [5000, 6250, 6250, 7500];
+const DIFFICULTY_COLORS = {
+    'Normal': '#00FF88',
+    'Difícil': '#FFD700',
+    'Épico': '#FF3366',
+    'Lendário': '#7B2FFF',
+};
 
 const BossGlobal = () => {
     const { user, addXp } = useGame();
+    const currentBoss = getCurrentBoss();
+    const allBosses = getAllBosses();
+
+    const BOSS_TOTAL_HP = currentBoss.hp;
+    const WEEKLY_CAPS = currentBoss.weeklyCaps;
 
     // For simulation & local storage tracking
-    const [teamXp, setTeamXp] = useState(12450); // Simulated team progress
+    const [teamXp, setTeamXp] = useState(12450);
     const [myMonthXp, setMyMonthXp] = useState(0);
     const [myTreinos, setMyTreinos] = useState(0);
     const [myHidratacoes, setMyHidratacoes] = useState(0);
     const [myExtras, setMyExtras] = useState(0);
-    const [streak, setStreak] = useState(2); // In months
+    const [streak, setStreak] = useState(2);
+    const [showBestiary, setShowBestiary] = useState(false);
 
     useEffect(() => {
         const saved = localStorage.getItem('bossGlobalProgress');
@@ -65,7 +76,6 @@ const BossGlobal = () => {
     const bossRemaining = Math.max(0, BOSS_TOTAL_HP - teamXp);
     const bossPercent = Math.min(100, Math.max(0, (bossRemaining / BOSS_TOTAL_HP) * 100));
 
-    // Identify current week based on teamXp (simplification for UI)
     let currentWeek = 1;
     let accumulatedCap = 0;
     for (let i = 0; i < WEEKLY_CAPS.length; i++) {
@@ -93,29 +103,51 @@ const BossGlobal = () => {
             <header className="boss-header">
                 <div>
                     <h1 className="boss-title">Boss Global</h1>
-                    <p className="boss-subtitle">30 Guerreiros vs O Inimigo Comum</p>
+                    <p className="boss-subtitle">30 Guerreiros vs <span style={{ color: currentBoss.color, fontWeight: 800 }}>{currentBoss.name}</span></p>
                 </div>
-                <div className="streak-badge">
-                    <Flame color="#ff4500" size={24} />
-                    <div className="streak-info">
-                        <span>Streak</span>
-                        <strong>{streak} Meses</strong>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <button
+                        className="bestiary-btn"
+                        onClick={() => setShowBestiary(!showBestiary)}
+                        title="Bestiário"
+                    >
+                        <Skull size={20} />
+                        <span>Bestiário</span>
+                    </button>
+                    <div className="streak-badge">
+                        <Flame color="#ff4500" size={24} />
+                        <div className="streak-info">
+                            <span>Streak</span>
+                            <strong>{streak} Meses</strong>
+                        </div>
                     </div>
                 </div>
             </header>
 
-            <div className="boss-arena glass-panel">
+            {/* ─── BOSS ARENA ─── */}
+            <div className="boss-arena glass-panel" style={{ borderColor: currentBoss.aura }}>
                 <div className="boss-visual">
-                    <div className="boss-avatar">
-                        <BossSprite bossType="cerberus" isAttacking={false} isDefeated={bossRemaining === 0} />
+                    <div className="boss-info-badge">
+                        <span className="boss-difficulty" style={{ color: DIFFICULTY_COLORS[currentBoss.difficulty], borderColor: DIFFICULTY_COLORS[currentBoss.difficulty] }}>
+                            {currentBoss.difficulty}
+                        </span>
+                        <span className="boss-emoji">{currentBoss.emoji}</span>
                     </div>
+                    <div className="boss-avatar" style={{ boxShadow: `0 0 40px ${currentBoss.aura}` }}>
+                        <BossSprite bossType={currentBoss.key} isAttacking={false} isDefeated={bossRemaining === 0} />
+                    </div>
+                    <div className="boss-name-plate">
+                        <h2 style={{ color: currentBoss.color }}>{currentBoss.name}</h2>
+                        <p className="boss-title-sub">{currentBoss.title}</p>
+                    </div>
+                    <p className="boss-lore">{currentBoss.description}</p>
                     <div className="boss-health-container">
                         <div className="boss-health-labels">
                             <span className="boss-hp-label">HP DO BOSS</span>
                             <span className="boss-hp-value">{bossRemaining.toLocaleString('pt-BR')} / {BOSS_TOTAL_HP.toLocaleString('pt-BR')}</span>
                         </div>
                         <div className="boss-health-bar">
-                            <div className="boss-health-fill" style={{ width: `${bossPercent}%` }}></div>
+                            <div className="boss-health-fill" style={{ width: `${bossPercent}%`, background: `linear-gradient(90deg, ${currentBoss.color}, #FF3366)` }}></div>
                         </div>
                         <div className="boss-fase-indicator">
                             FASE SEMANAL: {currentWeek}/4
@@ -209,6 +241,65 @@ const BossGlobal = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ─── BESTIÁRIO MODAL ─── */}
+            {showBestiary && (
+                <div className="bestiary-overlay" onClick={() => setShowBestiary(false)}>
+                    <div className="bestiary-modal" onClick={e => e.stopPropagation()}>
+                        <div className="bestiary-header">
+                            <Skull size={28} color="#FF3366" />
+                            <h2>Bestiário dos Chefões</h2>
+                            <button className="bestiary-close" onClick={() => setShowBestiary(false)}>×</button>
+                        </div>
+                        <p className="bestiary-sub">10 inimigos mortais que você deve derrotar ao longo da sua jornada</p>
+                        
+                        <div className="bestiary-grid">
+                            {allBosses.map((boss, i) => {
+                                const isCurrentBoss = boss.key === currentBoss.key;
+                                const isDefeated = i < (new Date().getMonth() % allBosses.length);
+                                return (
+                                    <div
+                                        key={boss.id}
+                                        className={`bestiary-card ${isCurrentBoss ? 'bestiary-active' : ''} ${isDefeated ? 'bestiary-defeated' : ''}`}
+                                        style={{ '--boss-color': boss.color }}
+                                    >
+                                        <div className="bestiary-card-header">
+                                            <span className="bestiary-number">#{boss.id}</span>
+                                            <span className="bestiary-difficulty" style={{ color: DIFFICULTY_COLORS[boss.difficulty] }}>
+                                                {boss.difficulty}
+                                            </span>
+                                        </div>
+                                        <div className="bestiary-sprite">
+                                            <BossSprite bossType={boss.key} isAttacking={false} isDefeated={isDefeated} />
+                                        </div>
+                                        <div className="bestiary-info">
+                                            <h3 style={{ color: boss.color }}>
+                                                {boss.emoji} {boss.name}
+                                            </h3>
+                                            <p className="bestiary-title">{boss.title}</p>
+                                            <p className="bestiary-desc">{boss.description}</p>
+                                            <div className="bestiary-stats">
+                                                <span>❤️ {boss.hp.toLocaleString('pt-BR')} HP</span>
+                                                <span>📅 Mês {boss.month}</span>
+                                            </div>
+                                            {isCurrentBoss && (
+                                                <div className="bestiary-current-badge">
+                                                    <Flame size={14} /> BOSS ATUAL
+                                                </div>
+                                            )}
+                                            {isDefeated && (
+                                                <div className="bestiary-defeated-badge">
+                                                    <CheckCircle2 size={14} /> DERROTADO
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

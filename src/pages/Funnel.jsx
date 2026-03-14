@@ -167,6 +167,12 @@ const TypingText = ({ texts, speed = 50 }) => {
 const Funnel = () => {
   const navigate = useNavigate();
   const { login, signUp } = useGame();
+
+  /* ─── ENABLE SCROLL: override global overflow:hidden ─── */
+  useEffect(() => {
+    document.documentElement.classList.add('funnel-active');
+    return () => document.documentElement.classList.remove('funnel-active');
+  }, []);
   const [funnelState, setFunnelState] = useState('start');
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingSteps, setLoadingSteps] = useState([
@@ -273,16 +279,21 @@ const Funnel = () => {
           setShowUnlockScreen(false);
           setActiveTab(5);
           setMaxTabReached(5);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 3500);
       } else {
         setActiveTab(next);
         if (next > maxTabReached) setMaxTabReached(next);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
   };
 
   const handleTabClick = (tabId) => {
-    if (tabId <= maxTabReached) setActiveTab(tabId);
+    if (tabId <= maxTabReached) {
+      setActiveTab(tabId);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   /* ═══════════════════════════════════════════

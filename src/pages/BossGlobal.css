@@ -479,3 +479,302 @@
     font-size: 12px;
     line-height: 1.5;
 }
+
+/* ─── BOSS INFO BADGE ─── */
+.boss-info-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.boss-difficulty {
+    padding: 4px 14px;
+    border: 1px solid;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.boss-emoji {
+    font-size: 1.8rem;
+}
+
+.boss-name-plate {
+    margin-bottom: 8px;
+}
+
+.boss-name-plate h2 {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.boss-title-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin: 4px 0 0;
+}
+
+.boss-lore {
+    max-width: 500px;
+    margin: 0 auto 24px;
+    font-size: 0.9rem;
+    color: #999;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+/* ─── BESTIARY BUTTON ─── */
+.bestiary-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255, 51, 102, 0.1);
+    border: 1px solid rgba(255, 51, 102, 0.3);
+    border-radius: 12px;
+    color: #FF3366;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.bestiary-btn:hover {
+    background: rgba(255, 51, 102, 0.2);
+    border-color: #FF3366;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 51, 102, 0.2);
+}
+
+/* ─── BESTIARY MODAL ─── */
+.bestiary-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.bestiary-modal {
+    width: 100%;
+    max-width: 900px;
+    max-height: 85vh;
+    overflow-y: auto;
+    background: #0a0a0f;
+    border: 1px solid #222;
+    border-radius: 24px;
+    padding: 36px;
+}
+
+.bestiary-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bestiary-modal::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+
+.bestiary-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+}
+
+.bestiary-header h2 {
+    font-size: 24px;
+    font-weight: 900;
+    color: #fff;
+    margin: 0;
+    flex: 1;
+}
+
+.bestiary-close {
+    background: none;
+    border: none;
+    color: #555;
+    font-size: 28px;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 4px 10px;
+}
+
+.bestiary-close:hover {
+    color: #fff;
+}
+
+.bestiary-sub {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 28px;
+}
+
+.bestiary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.bestiary-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid #1a1a1a;
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.bestiary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--boss-color, #333);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.bestiary-card:hover {
+    border-color: var(--boss-color, #333);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.bestiary-card:hover::before {
+    opacity: 1;
+}
+
+.bestiary-active {
+    border-color: var(--boss-color, #FF3366) !important;
+    box-shadow: 0 0 20px color-mix(in srgb, var(--boss-color, #FF3366) 20%, transparent);
+}
+
+.bestiary-active::before {
+    opacity: 1 !important;
+}
+
+.bestiary-defeated {
+    opacity: 0.5;
+}
+
+.bestiary-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.bestiary-number {
+    font-size: 12px;
+    font-weight: 800;
+    color: #555;
+}
+
+.bestiary-difficulty {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.bestiary-sprite {
+    width: 100%;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.bestiary-info h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    margin: 0 0 4px;
+}
+
+.bestiary-title {
+    font-size: 0.75rem;
+    color: #666;
+    font-style: italic;
+    margin: 0 0 8px;
+}
+
+.bestiary-desc {
+    font-size: 0.8rem;
+    color: #888;
+    line-height: 1.5;
+    margin: 0 0 12px;
+}
+
+.bestiary-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 0.75rem;
+    color: #555;
+}
+
+.bestiary-current-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 4px 12px;
+    background: rgba(255, 51, 102, 0.15);
+    color: #FF3366;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    animation: pulse 2s infinite;
+}
+
+.bestiary-defeated-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 4px 12px;
+    background: rgba(0, 255, 136, 0.1);
+    color: #00FF88;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .bestiary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bestiary-modal {
+        padding: 20px;
+    }
+
+    .boss-header {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+}

@@ -2,6 +2,15 @@
    ██  FUNNEL CSS - EPIC EDITION  ██
    ═══════════════════════════════════════════ */
 
+/* Override global overflow:hidden so funnel pages can scroll */
+html.funnel-active,
+html.funnel-active body,
+html.funnel-active #root {
+  overflow: auto !important;
+  height: auto !important;
+  min-height: 100vh;
+}
+
 /* ─── BASE ─── */
 .fn-container {
   min-height: 100vh;
@@ -9,6 +18,7 @@
   color: #fff;
   font-family: var(--font-main, 'Inter', sans-serif);
   overflow-x: hidden;
+  overflow-y: auto;
   position: relative;
 }
 
