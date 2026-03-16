@@ -6,7 +6,7 @@ import {
     Bell, Send, Calendar, Clock, Loader
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
-import { BOSS_MESSAGES, MOTIVATIONAL_MESSAGES, getScheduledMessage } from '../data/notificationMessages';
+import { BOSS_MESSAGES, MOTIVATIONAL_MESSAGES, WATER_MESSAGES, getScheduledMessage } from '../data/notificationMessages';
 
 const Admin = ({ superMail }) => {
     const { challenges, addChallenge, updateChallenge, deleteChallenge, user, session } = useGame();
@@ -154,6 +154,17 @@ const Admin = ({ superMail }) => {
                         schedule_at: scheduleTime.toISOString(),
                         status: 'pending'
                     });
+
+                    // Adicionar lembrete de água a cada 2 horas (horas pares)
+                    if (h % 2 === 0) {
+                        const waterIndex = Math.floor(h / 2) % WATER_MESSAGES.length;
+                        newRows.push({
+                            title: `💧 HIDRATAÇÃO`,
+                            body: WATER_MESSAGES[waterIndex],
+                            schedule_at: scheduleTime.toISOString(),
+                            status: 'pending'
+                        });
+                    }
                 }
             }
 
@@ -680,6 +691,25 @@ const Admin = ({ superMail }) => {
                                                 key={i}
                                                 onClick={() => { setNotifTitle('⚡ INCENTIVO DIÁRIO'); setNotifBody(msg); }}
                                                 style={{ textAlign: 'left', padding: '8px 12px', background: 'rgba(0,255,136,0.05)', border: '1px solid rgba(0,255,136,0.1)', borderRadius: '8px', color: '#eee', fontSize: '11px', cursor: 'pointer' }}
+                                            >
+                                                {msg}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Hidratação */}
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                        <span style={{ fontSize: '18px' }}>💧</span>
+                                        <span style={{ fontWeight: '800', fontSize: '12px', color: '#00D4FF' }}>LEMBRETES DE ÁGUA</span>
+                                    </div>
+                                    <div style={{ height: '150px', overflowY: 'auto', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }} className="custom-scroll">
+                                        {WATER_MESSAGES.map((msg, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => { setNotifTitle('💧 BEBA ÁGUA!'); setNotifBody(msg); }}
+                                                style={{ textAlign: 'left', padding: '8px 12px', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.1)', borderRadius: '8px', color: '#eee', fontSize: '11px', cursor: 'pointer' }}
                                             >
                                                 {msg}
                                             </button>

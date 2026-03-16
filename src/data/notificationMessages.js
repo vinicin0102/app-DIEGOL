@@ -65,6 +65,19 @@ export const MOTIVATIONAL_MESSAGES = [
     "Bora treinar. O primeiro passo é levantar."
 ];
 
+export const WATER_MESSAGES = [
+    "Hora do Drop de Hidratação! 💧 Beba um copo d'água agora.",
+    "Guerreiro hidratado é guerreiro mais forte. Bebe água! 🥤",
+    "Sua performance cai se você estiver desidratado. Água neles! 💦",
+    "Não espere ter sede. Beba água agora! 💧",
+    "Água é o combustível do seu metabolismo. Abasteça! ⚡💧",
+    "Beba água para manter o foco e a energia. 🧘‍♂️💦",
+    "Já bebeu seus 2L hoje? Comece agora! 💧",
+    "Seu corpo é 70% água. Não deixe o tanque baixar! 🌊",
+    "Hidratação é disciplina. Beba água! 💧🦾",
+    "Um copo d'água agora para continuar vencendo. 🏆💦"
+];
+
 export const getScheduledMessage = (hour) => {
     // Hour is expected to be 0-23
     if (hour < 6 || hour > 23) return null;
