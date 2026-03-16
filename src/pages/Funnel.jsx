@@ -672,7 +672,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#00FF88" /> Acesso grátis ao grupo de membros</li>
              <li><CheckCircle size={14} color="#00FF88" /> Cancele quando quiser</li>
            </ul>
-           <button className="fn-price-btn" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn" onClick={() => window.location.href = 'https://buy.stripe.com/test_aFa8wQbgS9ws9wycbqfrW01'}>ESCOLHER PLANO</button>
         </div>
 
         {/* SEMESTRAL (Destaque) */}
@@ -705,7 +705,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#FF3366" /> Suporte via WhatsApp</li>
              <li><CheckCircle size={14} color="#FF3366" /> Acesso grátis ao grupo de membros</li>
            </ul>
-           <button className="fn-price-btn highlight" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn highlight" onClick={() => window.location.href = 'https://buy.stripe.com/test_5kQ9AUet48soaACa3ifrW02'}>ESCOLHER PLANO</button>
         </div>
 
         {/* ANUAL */}
@@ -728,7 +728,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#00FF88" /> Acesso grátis ao grupo de membros</li>
              <li><CheckCircle size={14} color="#00FF88" /> Economia de R$ 250 por ano vs mensal</li>
            </ul>
-           <button className="fn-price-btn" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn" onClick={() => window.location.href = 'https://buy.stripe.com/test_dRmeVe2KmaAwaACgrGfrW03'}>ESCOLHER PLANO</button>
         </div>
 
         {/* VITALÍCIO */}
@@ -751,7 +751,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#7B2FFF" /> Acesso grátis ao grupo de membros</li>
              <li><CheckCircle size={14} color="#7B2FFF" /> Pague uma vez, use para sempre</li>
            </ul>
-           <button className="fn-price-btn best-value" onClick={() => setShowSignup(true)}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn best-value" onClick={() => window.location.href = 'https://buy.stripe.com/test_6oUaEYgBcbEA1022AQfrW00'}>ESCOLHER PLANO</button>
         </div>
       </div>
 
