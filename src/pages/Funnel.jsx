@@ -195,6 +195,12 @@ const Funnel = () => {
   const [name, setName] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedPlanUrl, setSelectedPlanUrl] = useState('');
+
+  const handlePlanSelection = (url) => {
+    setSelectedPlanUrl(url);
+    setShowSignup(true);
+  };
 
   /* ─── SOCIAL PROOF TOASTS ─── */
   useEffect(() => {
@@ -247,7 +253,13 @@ const Funnel = () => {
     try {
       const { error } = await login(email, password);
       if (error) setError('Credenciais inválidas. Tente novamente.');
-      else navigate('/app');
+      else {
+        if (selectedPlanUrl) {
+          window.location.href = selectedPlanUrl;
+        } else {
+          navigate('/app');
+        }
+      }
     } catch { setError('Erro inesperado.'); }
     finally { setAuthLoading(false); }
   };
@@ -260,11 +272,15 @@ const Funnel = () => {
     setAuthLoading(false);
     if (error) { setError('Erro: ' + error.message); return; }
     if (data?.user && !data?.session) {
-      alert('Conta criada! 📧 Verifique seu e-mail para confirmar.');
+      alert('Conta criada! 📧 Verifique seu e-mail para confirmar. Se logou com sucesso, clique novamente para escolher o plano.');
       setShowSignup(false);
       setShowLogin(true);
     } else if (data?.session) {
-      navigate('/app');
+      if (selectedPlanUrl) {
+        window.location.href = selectedPlanUrl;
+      } else {
+        navigate('/app');
+      }
     }
   };
 
@@ -672,7 +688,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#00FF88" /> Acesso grátis ao grupo de membros</li>
              <li><CheckCircle size={14} color="#00FF88" /> Cancele quando quiser</li>
            </ul>
-           <button className="fn-price-btn" onClick={() => window.location.href = 'https://buy.stripe.com/test_aFa8wQbgS9ws9wycbqfrW01'}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn" onClick={() => handlePlanSelection('https://buy.stripe.com/test_aFa8wQbgS9ws9wycbqfrW01')}>ESCOLHER PLANO</button>
         </div>
 
         {/* SEMESTRAL (Destaque) */}
@@ -705,7 +721,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#FF3366" /> Suporte via WhatsApp</li>
              <li><CheckCircle size={14} color="#FF3366" /> Acesso grátis ao grupo de membros</li>
            </ul>
-           <button className="fn-price-btn highlight" onClick={() => window.location.href = 'https://buy.stripe.com/test_5kQ9AUet48soaACa3ifrW02'}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn highlight" onClick={() => handlePlanSelection('https://buy.stripe.com/test_5kQ9AUet48soaACa3ifrW02')}>ESCOLHER PLANO</button>
         </div>
 
         {/* ANUAL */}
@@ -728,7 +744,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#00FF88" /> Acesso grátis ao grupo de membros</li>
              <li><CheckCircle size={14} color="#00FF88" /> Economia de R$ 250 por ano vs mensal</li>
            </ul>
-           <button className="fn-price-btn" onClick={() => window.location.href = 'https://buy.stripe.com/test_dRmeVe2KmaAwaACgrGfrW03'}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn" onClick={() => handlePlanSelection('https://buy.stripe.com/test_dRmeVe2KmaAwaACgrGfrW03')}>ESCOLHER PLANO</button>
         </div>
 
         {/* VITALÍCIO */}
@@ -751,7 +767,7 @@ const Funnel = () => {
              <li><CheckCircle size={14} color="#7B2FFF" /> Acesso grátis ao grupo de membros</li>
              <li><CheckCircle size={14} color="#7B2FFF" /> Pague uma vez, use para sempre</li>
            </ul>
-           <button className="fn-price-btn best-value" onClick={() => window.location.href = 'https://buy.stripe.com/test_6oUaEYgBcbEA1022AQfrW00'}>ESCOLHER PLANO</button>
+           <button className="fn-price-btn best-value" onClick={() => handlePlanSelection('https://buy.stripe.com/test_6oUaEYgBcbEA1022AQfrW00')}>ESCOLHER PLANO</button>
         </div>
       </div>
 
