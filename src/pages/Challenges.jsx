@@ -28,8 +28,8 @@ const DayEditModal = ({ isOpen, onClose, dayData, onToggle, dayIndex }) => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
                     {[
                         { key: 'corporal', label: 'Corpo (Treino/Saúde)', icon: '💪', desc: 'Movimento + Dieta Limpa' },
-                        { key: 'mental', label: 'Mente (Estudo/Leitura)', icon: '🧠', desc: 'Leitura + Estudo' },
-                        { key: 'spiritual', label: 'Espiritual (Extra/Hábito)', icon: '✨', desc: 'Conexão + Disciplina Digital' }
+                        { key: 'mental', label: 'Mente (Estudo)', icon: '🧠', desc: 'Estudo de Evolução' },
+                        { key: 'spiritual', label: 'Espiritual (Hábito)', icon: '✨', desc: 'Oração, Meditação ou Conexão' }
                     ].map(item => (
                         <div
                             key={item.key}

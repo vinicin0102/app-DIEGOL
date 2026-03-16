@@ -24,7 +24,7 @@ export const BOSSES = [
             importantNote: 'Você não precisa ser perfeito. Pode falhar alguns dias. O que importa é atingir o XP mínimo da fase.',
             winCondition: [
                 'Completar os 30 dias',
-                'Concluir 4 desafios obrigatórios',
+                'Concluir 3 desafios obrigatórios',
                 'Alcançar 70% do XP total da fase'
             ],
             mandatoryChallenges: [
@@ -45,15 +45,7 @@ export const BOSSES = [
                     extra: '+XP se completar a semana sem recaídas.'
                 },
                 {
-                    title: '3 — MENTE FORTE',
-                    name: 'Mente Forte',
-                    icon: '🧠',
-                    mission: 'Ler 5 páginas por dia de livro de desenvolvimento ou disciplina.',
-                    proof: 'Foto do livro + 1 insight curto.',
-                    extra: '+XP se não pular nenhum dia.'
-                },
-                {
-                    title: '4 — EVOLUÇÃO REAL',
+                    title: '3 — EVOLUÇÃO REAL',
                     name: 'Evolução Real',
                     icon: '⚙️',
                     mission: 'Estudar 20 minutos por dia algo que gere crescimento pessoal/profissional.',
@@ -66,7 +58,7 @@ export const BOSSES = [
                     title: '📖 CONEXÃO',
                     name: 'Conexão',
                     icon: '✨',
-                    mission: 'Escolha UM: Leitura espiritual, Oração/Meditação 10 min ou Encontro religioso.',
+                    mission: 'Escolha UM: Oração/Meditação 10 min ou Encontro religioso.',
                     proof: 'Foto ou check-in.'
                 },
                 {
