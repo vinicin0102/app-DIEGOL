@@ -124,6 +124,7 @@ export const GameProvider = ({ children }) => {
                 setSession(session);
                 if (session) {
                     fetchProfile(session.user.id);
+                    localStorage.setItem('vencedores_has_account', 'true');
                 } else {
                     // Reset to local/default if logged out
                     const saved = localStorage.getItem('gameUser');

@@ -70,13 +70,20 @@ const Home = () => {
 
   // Unlock scroll on mount
   useEffect(() => {
-    document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
+    document.documentElement.style.overflowY = 'auto';
+    document.documentElement.style.height = 'auto';
+    document.body.style.overflowY = 'auto';
+    document.body.style.height = 'auto';
+    document.body.style.position = 'relative';
+    document.documentElement.classList.add('funnel-active');
 
     return () => {
-      // Revert when leaving if necessary, but usually we want auto
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
+      document.documentElement.classList.remove('funnel-active');
+      document.documentElement.style.overflowY = '';
+      document.documentElement.style.height = '';
+      document.body.style.overflowY = '';
+      document.body.style.height = '';
+      document.body.style.position = '';
     };
   }, []);
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
-import { ChevronRight, Target, Shield, Zap, Swords, Trophy, Star, Lock, Crown, CheckCircle, Users, Flame, Award, TrendingUp, MessageCircle } from 'lucide-react';
+import { ChevronRight, Target, Shield, Zap, Swords, Trophy, Star, Lock, Crown, CheckCircle, Users, Flame, Award, TrendingUp, MessageCircle, ShieldCheck } from 'lucide-react';
 import './Funnel.css';
 
 /* ─── SOCIAL PROOF DATA ─── */
@@ -50,6 +50,16 @@ const TESTIMONIALS = [
 ];
 
 const COUNTER_STATS = { users: 2847, bosses: 156, missions: 48920 };
+
+/* ─── THEMES DATA ─── */
+const THEMES = [
+  { id: 'sakura', name: 'Sakura Cerejeira', emoji: '🌸', rarity: 'Épico', rarityColor: '#FF69B4', desc: 'Tons de rosa suave e pétalas flutuantes', bg: '#2d0a1e', accent: '#FF69B4', particles: '#FF69B4' },
+  { id: 'fire', name: 'Fogo Infernal', emoji: '🔥', rarity: 'Lendário', rarityColor: '#FFD700', desc: 'Chamas ardentes e cores de fogo intenso', bg: '#2d1500', accent: '#FF4500', particles: '#FF4500' },
+  { id: 'neon', name: 'Galáxia Neon', emoji: '⭐', rarity: 'Épico', rarityColor: '#00C8FF', desc: 'Cores neon vibrantes e estrelas brilhantes', bg: '#0a1a2d', accent: '#00C8FF', particles: '#00C8FF' },
+  { id: 'metal', name: 'Metal Líquido', emoji: '⚙️', rarity: 'Épico', rarityColor: '#C0C0C0', desc: 'Estética industrial elegante e minimalista', bg: '#1a1a1a', accent: '#888', particles: '#FFFFFF' },
+  { id: 'aurora', name: 'Aurora Boreal', emoji: '💜', rarity: 'Épico', rarityColor: '#7B2FFF', desc: 'Cores especiais das luzes do norte', bg: '#0a0a1a', accent: '#7B2FFF', particles: '#7B2FFF' },
+  { id: 'eclipse', name: 'Eclipse Sombrio', emoji: '🌑', rarity: 'Lendário', rarityColor: '#FFD700', desc: 'Estética do vazio cósmico profundo', bg: '#050508', accent: '#FFD700', particles: '#FFD700' },
+];
 
 /* ─── PARTICLES COMPONENT ─── */
 const Particles = ({ color = '#FFD700', count = 40 }) => {
@@ -186,6 +196,9 @@ const Funnel = () => {
   const [currentToast, setCurrentToast] = useState(0);
   const [toastVisible, setToastVisible] = useState(false);
   const [showUnlockScreen, setShowUnlockScreen] = useState(false);
+  const [selectedThemeId, setSelectedThemeId] = useState('fire');
+
+  const currentTheme = THEMES.find(t => t.id === selectedThemeId) || THEMES[1];
 
   // Auth modal states
   const [showLogin, setShowLogin] = useState(false);
@@ -195,6 +208,35 @@ const Funnel = () => {
   const [name, setName] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    // Redireciona se já for um usuário conhecido
+    const hasAccount = localStorage.getItem('vencedores_has_account');
+    if (hasAccount && funnelState === 'start') {
+       // navigate('/login'); // Opcional: Descomente para forçar o login se já tiver conta
+    }
+    window.scrollTo(0,0);
+  }, [funnelState]);
+
+  useEffect(() => {
+    // Force scroll enablement
+    document.documentElement.style.overflowY = 'auto';
+    document.documentElement.style.height = 'auto';
+    document.body.style.overflowY = 'auto';
+    document.body.style.height = 'auto';
+    document.body.style.position = 'relative';
+    
+    document.documentElement.classList.add('funnel-active');
+    
+    return () => {
+      document.documentElement.classList.remove('funnel-active');
+      document.documentElement.style.overflowY = '';
+      document.documentElement.style.height = '';
+      document.body.style.overflowY = '';
+      document.body.style.height = '';
+      document.body.style.position = '';
+    };
+  }, []);
 
   /* ─── SOCIAL PROOF TOASTS ─── */
   useEffect(() => {
@@ -304,26 +346,28 @@ const Funnel = () => {
   const renderStartScreen = () => (
     <div className="fn-start">
       <Particles color="#00FF88" count={30} />
-      <div className="fn-corner tl"></div>
-      <div className="fn-corner tr"></div>
-      <div className="fn-corner bl"></div>
-      <div className="fn-corner br"></div>
       
       <div className="fn-start-content">
-        <div className="fn-glitch-wrapper">
-          <h1 className="fn-glitch" data-text="SISTEMA FITQUEST">SISTEMA FITQUEST</h1>
+        <div className="fn-hero-image-wrap">
+          <img src="/assets/funnel/hero.png" alt="Plataforma Vencedores" className="fn-hero-image" />
         </div>
+
+        <h1 className="fn-glitch">SISTEMA <span style={{color: 'var(--primary)'}}>VENCEDORES</span></h1>
         
         <div className="fn-start-stats">
           <div className="fn-live-dot"></div>
-          <span><AnimatedCounter end={COUNTER_STATS.users} /> jogadores online agora</span>
+          <span><strong><AnimatedCounter end={COUNTER_STATS.users} /></strong> jogadores treinando agora</span>
         </div>
         
         <button className="fn-start-btn" onClick={() => setFunnelState('loading')}>
+          <span>COMEÇAR JORNADA</span>
           <ChevronRight size={22} className="fn-chevron-pulse" />
-          <span>INICIAR SISTEMA</span>
         </button>
-        <p className="fn-start-sub">Clique para liberar seu acesso</p>
+        <p className="fn-start-sub">Toque para desbloquear seu potencial máximo</p>
+        
+        <div className="fn-hero-login" style={{marginTop:'30px', opacity:'0.7'}}>
+          <p>Já é um Vencedor? <a onClick={() => navigate('/login')} style={{color:'var(--primary)', cursor:'pointer', fontWeight:'bold', textDecoration:'underline'}}>Entrar em minha conta</a></p>
+        </div>
       </div>
     </div>
   );
@@ -354,7 +398,6 @@ const Funnel = () => {
   /* ─── UNLOCK CINEMATIC ─── */
   const renderUnlockScreen = () => (
     <div className="fn-unlock-screen">
-      <Particles color="#FFD700" count={60} />
       <div className="fn-unlock-content">
         <Crown size={80} className="fn-crown-icon" />
         <h2 className="fn-unlock-title">NÍVEL FINAL</h2>
@@ -371,7 +414,7 @@ const Funnel = () => {
   const tabs = [
     { id: 1, title: 'NÍVEL 1', subtitle: 'O Despertar', icon: Star, color: '#00FF88' },
     { id: 2, title: 'NÍVEL 2', subtitle: 'O Sistema', icon: Target, color: '#00C8FF' },
-    { id: 3, title: 'NÍVEL 3', subtitle: 'Os Temas', icon: Swords, color: '#FF3366' },
+    { id: 3, title: 'NÍVEL 3', subtitle: 'Os Temas', icon: Swords, color: activeTab === 3 ? currentTheme.accent : '#FF3366' },
     { id: 4, title: 'NÍVEL 4', subtitle: 'Os Forjados', icon: MessageCircle, color: '#FFD700' },
     { id: 5, title: 'NÍVEL 5', subtitle: 'A Decisão', icon: Crown, color: '#7B2FFF' },
   ];
@@ -433,68 +476,29 @@ const Funnel = () => {
   /* ─── STEP 1: O DESPERTAR ─── */
   const renderStep1 = () => (
     <div className="fn-step fn-fade-in">
-      <h2 className="fn-big-title">
-        APRESENTANDO: <span className="fn-glow-green">SISTEMA FITQUEST</span>
-      </h2>
-      <p className="fn-desc">
-        O primeiro sistema de produtividade fitness que transforma sua rotina de treinos em um
-        <TypingText texts={[' jogo épico.', ' RPG da vida real.', ' aventura diária.']} speed={80} />
-      </p>
+      <div className="fn-text-side">
+        <h2 className="fn-big-title">
+          SEU TREINO NUNCA MAIS SERÁ <span style={{color: 'var(--secondary)'}}>O MESMO</span>
+        </h2>
+        <p className="fn-desc">
+          O Sistema Vencedores não é apenas um guia de exercícios. É a ponte entre quem você é hoje e o 
+          <TypingText texts={[' HERÓI que você nasceu para ser.', ' VENCEDOR que está adormecido.', ' EXEMPLO para todos ao seu redor.']} speed={80} />
+        </p>
 
-      <div className="fn-vs-row">
-        <div className="fn-vs-bad">
-          <span className="fn-vs-x">✕</span>
-          Não é mais um app de treinos genérico.
-        </div>
-        <div className="fn-vs-good">
-          <span className="fn-vs-check">✔</span>
-          É um sistema pessoal onde o personagem principal é <strong>VOCÊ</strong>.
-        </div>
-      </div>
-
-      {/* Live Stats */}
-      <div className="fn-live-stats">
-        <div className="fn-live-stat">
-          <Users size={28} className="fn-stat-icon" />
-          <strong><AnimatedCounter end={COUNTER_STATS.users} /></strong>
-          <span>Jogadores Ativos</span>
-        </div>
-        <div className="fn-live-divider"></div>
-        <div className="fn-live-stat">
-          <Flame size={28} className="fn-stat-icon" />
-          <strong><AnimatedCounter end={COUNTER_STATS.bosses} /></strong>
-          <span>Chefões Derrotados</span>
-        </div>
-        <div className="fn-live-divider"></div>
-        <div className="fn-live-stat">
-          <Trophy size={28} className="fn-stat-icon" />
-          <strong><AnimatedCounter end={COUNTER_STATS.missions} /></strong>
-          <span>Missões Completas</span>
-        </div>
-      </div>
-
-      {/* Phone Mockup */}
-      <div className="fn-mockup-wrap">
-        <div className="fn-phone fn-float">
-          <div className="fn-screen">
-            <div className="fn-screen-header">
-              <Zap color="#00FF88" size={20} />
-              <span>Level 1 — Novato</span>
-              <div className="fn-xp-pill">+500 XP</div>
-            </div>
-            <div className="fn-screen-card">
-              <Shield color="#FFD700" size={20} />
-              <span>Missão Diária</span>
-              <h4>Derrotar a Preguiça</h4>
-              <div className="fn-mini-bar"><div className="fn-mini-fill" style={{ width: '75%' }}></div></div>
-            </div>
-            <div className="fn-screen-stats-row">
-              <div><Zap size={14} color="#00FF88" /> Força</div>
-              <div><Swords size={14} color="#7B2FFF" /> Combate</div>
-              <div><Shield size={14} color="#FFD700" /> Defesa</div>
-            </div>
+        <div className="fn-vs-row">
+          <div className="fn-vs-good">
+            <span className="fn-vs-check">✔</span>
+            Psicologia aplicada à gamificação.
+          </div>
+          <div className="fn-vs-good">
+            <span className="fn-vs-check">✔</span>
+            Consistência forçada pelo entretenimento.
           </div>
         </div>
+      </div>
+
+      <div className="fn-visual-side">
+        <img src="/assets/funnel/evolution.png" alt="Evolução Fitness" className="fn-premium-image fn-float" />
       </div>
     </div>
   );
@@ -502,90 +506,30 @@ const Funnel = () => {
   /* ─── STEP 2: O SISTEMA ─── */
   const renderStep2 = () => (
     <div className="fn-step fn-fade-in">
-      <h2 className="fn-big-title" style={{ color: '#00C8FF' }}>A GAMIFICAÇÃO QUE FUNCIONA</h2>
-      <p className="fn-desc">Cada repetição conta. Transforme suor em XP e suba de nível na vida real.</p>
-
-      <div className="fn-showcase-grid">
-        {/* Showcase Block 1 */}
-        <div className="fn-showcase-block" style={{ '--sc-color': '#00FF88' }}>
-          <div className="fn-sc-text">
-            <h3><Target color="#00FF88" size={28} /> PÁGINA INICIAL</h3>
-            <p>VEJA SEU PROGRESSO GERAL, ESTATÍSTICAS E NÍVEL</p>
-            <span>Toda sua evolução visualizada de forma gráfica. Acompanhe seu rank, XP atual e metas semanais diretamente no painel.</span>
-          </div>
-          <div className="fn-sc-mockup">
-            <div className="fn-fake-laptop">
-              <div className="fn-fl-screen">
-                <div className="fn-fl-header"></div>
-                <div className="fn-fl-body">
-                  <div className="fn-fl-card"></div>
-                  <div className="fn-fl-card"></div>
-                </div>
+      <div className="fn-text-side">
+        <h2 className="fn-big-title" style={{ color: '#00C8FF' }}>BATALHE CONTRA<br/>SEUS LIMITES</h2>
+        <p className="fn-desc">Cada repetição no mundo real causa dano aos chefões globais. Una-se a milhares de jogadores para derrotar monstros que representam a procrastinação.</p>
+        
+        <div className="fn-features-list">
+           <div className="fn-feat-item" style={{display:'flex', gap:'15px', marginBottom:'20px'}}>
+              <Swords size={32} color="#FF3366" />
+              <div>
+                <h4 style={{margin:0, fontSize:'1.1rem'}}>Arena Global</h4>
+                <p style={{margin:0, fontSize:'0.9rem', color:'#888'}}>Todos batendo no mesmo boss ao mesmo tempo.</p>
               </div>
-              <div className="fn-fl-base"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Showcase Block 2 */}
-        <div className="fn-showcase-block reverse" style={{ '--sc-color': '#FFD700' }}>
-          <div className="fn-sc-text">
-            <h3><Trophy color="#FFD700" size={28} /> CONQUISTAS</h3>
-            <p>DESBLOQUEIE CONQUISTAS AVANÇANDO NO DESAFIO</p>
-            <span>Colecione medalhas épicas e mostre para a comunidade quem é que manda. Torne suas conquistas visíveis no ranking global!</span>
-          </div>
-          <div className="fn-sc-mockup">
-            <div className="fn-fake-phone">
-               <div className="fn-fp-screen">
-                  <div className="fn-fp-achievement"><div className="fn-fp-icon"></div><div className="fn-fp-lines"></div></div>
-                  <div className="fn-fp-achievement"><div className="fn-fp-icon"></div><div className="fn-fp-lines"></div></div>
-                  <div className="fn-fp-achievement"><div className="fn-fp-icon"></div><div className="fn-fp-lines"></div></div>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Showcase Block 3 */}
-        <div className="fn-showcase-block" style={{ '--sc-color': '#FF3366' }}>
-          <div className="fn-sc-text">
-            <h3><TrendingUp color="#FF3366" size={28} /> HÁBITOS</h3>
-            <p>REGISTRE E ACOMPANHE TODOS SEUS HÁBITOS</p>
-            <span>Marque sua consistência diária, mantenha o seu streak de vitórias vivo e ganhe buffs de experiência.</span>
-          </div>
-          <div className="fn-sc-mockup">
-            <div className="fn-fake-laptop">
-              <div className="fn-fl-screen">
-                <div className="fn-fl-header"></div>
-                <div className="fn-fl-body" style={{ flexDirection: 'column', gap: '8px' }}>
-                  <div className="fn-fl-row"></div>
-                  <div className="fn-fl-row"></div>
-                  <div className="fn-fl-row"></div>
-                </div>
+           </div>
+           <div className="fn-feat-item" style={{display:'flex', gap:'15px'}}>
+              <Trophy size={32} color="#FFD700" />
+              <div>
+                <h4 style={{margin:0, fontSize:'1.1rem'}}>Ranking Mundial</h4>
+                <p style={{margin:0, fontSize:'0.9rem', color:'#888'}}>Suba de patente e seja reconhecido na elite.</p>
               </div>
-              <div className="fn-fl-base"></div>
-            </div>
-          </div>
+           </div>
         </div>
+      </div>
 
-        {/* Showcase Block 4 */}
-        <div className="fn-showcase-block reverse" style={{ '--sc-color': '#7B2FFF' }}>
-          <div className="fn-sc-text">
-            <h3><Star color="#7B2FFF" size={28} /> LOJA DO TEMPO</h3>
-            <p>GANHE MOEDAS CUMPRINDO HÁBITOS E TAREFAS</p>
-            <span>Troque moedas ganhas por habilidades únicas, bônus de XP ou itens reais. O esforço literalmente paga.</span>
-          </div>
-          <div className="fn-sc-mockup">
-             <div className="fn-fake-phone">
-               <div className="fn-fp-screen">
-                  <div className="fn-fp-grid">
-                     <div className="fn-fp-item"></div><div className="fn-fp-item"></div>
-                     <div className="fn-fp-item"></div><div className="fn-fp-item"></div>
-                  </div>
-               </div>
-             </div>
-          </div>
-        </div>
-
+      <div className="fn-visual-side">
+        <img src="/assets/funnel/boss-arena.png" alt="Arena de Boss" className="fn-premium-image" />
       </div>
     </div>
   );
@@ -593,26 +537,33 @@ const Funnel = () => {
   /* ─── STEP 3: OS TEMAS ─── */
   const renderStep3 = () => (
     <div className="fn-step fn-fade-in">
-      <h2 className="fn-big-title" style={{ color: '#FF3366' }}>PERSONALIZE SUA EXPERIÊNCIA</h2>
-      <p className="fn-desc">Desbloqueie temas épicos e lendários que transformam todo o visual do app.</p>
+      <div className="fn-themes-header">
+        <h2 className="fn-big-title" style={{ color: currentTheme.accent, textShadow: `0 0 20px ${currentTheme.accent}44` }}>PERSONALIZE SUA EXPERIÊNCIA</h2>
+        <p className="fn-desc">Escolha um tema para ver a transformação em tempo real. No app, você poderá desbloquear centenas de combinações.</p>
+      </div>
 
       <div className="fn-themes-grid">
-        {[
-          { name: 'Sakura Cerejeira', emoji: '🌸', rarity: 'Épico', rarityColor: '#FF69B4', desc: 'Tons de rosa suave e pétalas flutuantes', bg: 'linear-gradient(135deg, #2d0a1e, #1a0510)' },
-          { name: 'Fogo Infernal', emoji: '🔥', rarity: 'Lendário', rarityColor: '#FFD700', desc: 'Chamas ardentes e cores de fogo intenso', bg: 'linear-gradient(135deg, #2d1500, #1a0a00)', equipped: true },
-          { name: 'Galáxia Neon', emoji: '⭐', rarity: 'Épico', rarityColor: '#00C8FF', desc: 'Cores neon vibrantes e estrelas brilhantes', bg: 'linear-gradient(135deg, #0a1a2d, #050a1a)' },
-          { name: 'Metal Líquido', emoji: '⚙️', rarity: 'Épico', rarityColor: '#C0C0C0', desc: 'Estética industrial elegante e minimalista', bg: 'linear-gradient(135deg, #1a1a1a, #0a0a0a)' },
-          { name: 'Aurora Boreal', emoji: '💜', rarity: 'Épico', rarityColor: '#7B2FFF', desc: 'Cores especiais das luzes do norte', bg: 'linear-gradient(135deg, #0a1a2d, #1a052d)' },
-          { name: 'Eclipse Sombrio', emoji: '🌑', rarity: 'Lendário', rarityColor: '#FFD700', desc: 'Estética do vazio cósmico profundo', bg: 'linear-gradient(135deg, #0d0d1a, #050510)' },
-        ].map((t, i) => (
-          <div key={i} className={`fn-theme-card ${t.equipped ? 'fn-theme-equipped' : ''}`} style={{ background: t.bg, '--stagger-delay': `${i * 0.08}s` }}>
-            {t.equipped && <div className="fn-equipped-badge"><CheckCircle size={14} /> Equipado</div>}
-            <span className="fn-theme-rarity" style={{ color: t.rarityColor }}>✦ {t.rarity}</span>
-            <div className="fn-theme-emoji">{t.emoji}</div>
-            <h4>{t.name}</h4>
-            <p>{t.desc}</p>
-          </div>
-        ))}
+        {THEMES.map((t, i) => {
+          const isSelected = selectedThemeId === t.id;
+          return (
+            <div 
+              key={t.id} 
+              className={`fn-theme-card ${isSelected ? 'fn-theme-equipped' : ''}`} 
+              onClick={() => setSelectedThemeId(t.id)}
+              style={{ 
+                background: isSelected ? `linear-gradient(135deg, ${t.bg}, #000)` : 'rgba(255,255,255,0.03)',
+                '--stagger-delay': `${i * 0.1}s`,
+                borderColor: isSelected ? t.accent : 'rgba(255,255,255,0.08)'
+              }}
+            >
+              {isSelected && <div className="fn-equipped-badge" style={{ background: t.accent }}><CheckCircle size={14} /> EQUIPADO</div>}
+              <span className="fn-theme-rarity" style={{ color: t.rarityColor }}>★ {t.rarity}</span>
+              <div className="fn-theme-emoji">{t.emoji}</div>
+              <h4>{t.name}</h4>
+              <p>{t.desc}</p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -620,29 +571,22 @@ const Funnel = () => {
   /* ─── STEP 4: OS FORJADOS (SOCIAL PROOF) ─── */
   const renderStep4 = () => (
     <div className="fn-step fn-fade-in">
-      <h2 className="fn-big-title" style={{ color: '#FFD700' }}>O QUE DIZEM OS FORJADOS</h2>
-      <p className="fn-desc">Jogadores reais. Resultados reais. Veja o que a comunidade tem a dizer.</p>
+      <div className="fn-text-side">
+        <h2 className="fn-big-title" style={{ color: '#FFD700' }}>UMA LEGIÃO DE<br/>VENCEDORES</h2>
+        <p className="fn-desc">Não lute sozinho. Faça parte da guilda mais forte do Brasil e compartilhe sua jornada com quem tem os mesmos objetivos.</p>
 
-      <div className="fn-testimonials">
-        {TESTIMONIALS.map((t, i) => (
-          <div key={i} className="fn-testimonial-card fn-stagger" style={{ '--stagger-delay': `${i * 0.15}s` }}>
-            <div className="fn-testi-header">
-              <div className="fn-testi-avatar">{t.avatar}</div>
-              <div>
-                <strong>{t.name}</strong>
-                <span className="fn-testi-level">{t.level}</span>
-              </div>
-              <div className="fn-testi-stars">{'⭐'.repeat(t.rating)}</div>
+        <div className="fn-testimonials-v2" style={{display:'flex', flexDirection:'column', gap:'15px'}}>
+          {TESTIMONIALS.slice(0, 3).map((t, i) => (
+            <div key={i} className="fn-mini-testi" style={{background:'var(--surface)', padding:'15px', borderRadius:'12px', border:'1px solid var(--border)'}}>
+              <div className="fn-mt-avatar" style={{fontSize:'1.2rem', marginBottom:'5px'}}>{t.avatar} <strong>{t.name}</strong></div>
+              <p style={{margin:0, fontSize:'0.85rem', color:'#aaa', fontStyle:'italic'}}>"{t.text}"</p>
             </div>
-            <p className="fn-testi-text">"{t.text}"</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
-      {/* Social Proof Counter */}
-      <div className="fn-social-counter">
-        <div className="fn-sc-live-dot"></div>
-        <span><strong><AnimatedCounter end={347} /></strong> pessoas visualizando esta página agora</span>
+      <div className="fn-visual-side">
+        <img src="/assets/funnel/ranking.png" alt="Ranking da Comunidade" className="fn-premium-image" />
       </div>
     </div>
   );
@@ -755,9 +699,15 @@ const Funnel = () => {
         </div>
       </div>
 
-      <div className="fn-cta-footer" style={{ marginTop: '30px' }}>
-          <p>Já tem conta? <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#FF3366', cursor: 'pointer', padding: '0', font: 'inherit', textDecoration: 'underline' }}>Fazer login</button></p>
-          <p className="fn-guarantee">🔒 Ambiente 100% seguro com garantia de 7 dias.</p>
+       <div className="fn-cta-footer" style={{ marginTop: '50px', paddingBottom: '100px' }}>
+          <p style={{fontSize:'1.1rem'}}>Já é um aluno? <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: '0', font: 'inherit', fontWeight:'bold', textDecoration: 'underline' }}>Entrar em minha conta</button></p>
+          <div className="fn-guarantee-badge">
+             <ShieldCheck size={40} color="var(--primary)" />
+             <div>
+               <strong>Garantia Blindada de 7 Dias</strong>
+               <p>Se você não sentir a evolução, devolvemos 100% do seu dinheiro sem perguntas.</p>
+             </div>
+          </div>
       </div>
 
     </div>
@@ -767,7 +717,12 @@ const Funnel = () => {
      ██  MAIN RETURN  ██
      ═══════════════════════════════════════════ */
   return (
-    <div className="fn-container">
+    <div className={`fn-container theme-${selectedThemeId}`} style={{ 
+      background: `radial-gradient(circle at 50% 30%, ${currentTheme.bg}, #030304)`, 
+      transition: 'background 1.2s cubic-bezier(0.23, 1, 0.32, 1)' 
+    }}>
+      <Particles key={selectedThemeId} color={currentTheme.particles} count={funnelState === 'presentation' ? 60 : 40} />
+      
       {funnelState === 'start' && renderStartScreen()}
       {funnelState === 'loading' && renderLoadingScreen()}
       {funnelState === 'presentation' && !showUnlockScreen && renderPresentation()}

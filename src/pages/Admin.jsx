@@ -6,6 +6,7 @@ import {
     Bell, Send, Calendar, Clock, Loader
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import { BOSS_MESSAGES, MOTIVATIONAL_MESSAGES, getScheduledMessage } from '../data/notificationMessages';
 
 const Admin = ({ superMail }) => {
     const { challenges, addChallenge, updateChallenge, deleteChallenge, user, session } = useGame();
@@ -120,6 +121,68 @@ const Admin = ({ superMail }) => {
         const { error } = await supabase.from('scheduled_notifications').delete().eq('id', id);
         if (!error) {
             setScheduledList(prev => prev.filter(n => n.id !== id));
+        }
+    };
+
+    const handleAutoSchedule = async (days = 7) => {
+        if (!confirm(`Isso irá agendar notificações de hora em hora (06h às 00h) pelos próximos ${days} dias. Confirmar?`)) return;
+        
+        setSending(true);
+        try {
+            const newRows = [];
+            const now = new Date();
+            
+            for (let d = 0; d < days; d++) {
+                const targetDay = new Date(now);
+                targetDay.setDate(now.getDate() + d);
+                
+                // Horários de 06:00 até 00:00 (próximo dia)
+                for (let h = 6; h <= 24; h++) {
+                    const scheduleTime = new Date(targetDay);
+                    scheduleTime.setHours(h === 24 ? 0 : h, 0, 0, 0);
+                    if (h === 24) scheduleTime.setDate(scheduleTime.getDate() + 1);
+
+                    // Pular horários que já passaram hoje
+                    if (scheduleTime <= now) continue;
+
+                    const msgData = getScheduledMessage(h === 24 ? 0 : h);
+                    if (!msgData) continue;
+
+                    newRows.push({
+                        title: `${msgData.icon} ${msgData.type}`,
+                        body: msgData.message,
+                        schedule_at: scheduleTime.toISOString(),
+                        status: 'pending'
+                    });
+                }
+            }
+
+            if (newRows.length === 0) {
+                alert('Nenhum horário futuro encontrado para agendar.');
+                return;
+            }
+
+            const { error } = await supabase
+                .from('scheduled_notifications')
+                .insert(newRows);
+
+            if (error) throw error;
+
+            alert(`✅ ${newRows.length} notificações agendadas com sucesso para os próximos ${days} dias!`);
+            
+            // Recarregar lista
+            const { data } = await supabase
+                .from('scheduled_notifications')
+                .select('*')
+                .eq('status', 'pending')
+                .order('schedule_at', { ascending: true });
+            setScheduledList(data || []);
+
+        } catch (err) {
+            console.error(err);
+            alert('Erro ao agendar automaticamente: ' + err.message);
+        } finally {
+            setSending(false);
         }
     };
 
@@ -581,6 +644,51 @@ const Admin = ({ superMail }) => {
                             </div>
                         </div>
 
+                        {/* Biblioteca de Frases Preprontas */}
+                        <div style={{ marginBottom: '32px', padding: '20px', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <h4 style={{ fontSize: '13px', fontWeight: '900', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '1px' }}>📚 Biblioteca de Frases (Pre-prontas)</h4>
+                            
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                                {/* Chefão */}
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                        <span style={{ fontSize: '18px' }}>💀</span>
+                                        <span style={{ fontWeight: '800', fontSize: '12px', color: 'var(--accent)' }}>FRASES DO CHEFÃO</span>
+                                    </div>
+                                    <div style={{ height: '150px', overflowY: 'auto', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }} className="custom-scroll">
+                                        {BOSS_MESSAGES.map((msg, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => { setNotifTitle('💀 MENSAGEM DO CHEFÃO'); setNotifBody(msg); }}
+                                                style={{ textAlign: 'left', padding: '8px 12px', background: 'rgba(255,51,102,0.05)', border: '1px solid rgba(255,51,102,0.1)', borderRadius: '8px', color: '#eee', fontSize: '11px', cursor: 'pointer' }}
+                                            >
+                                                {msg}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Motivacional */}
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                                        <span style={{ fontSize: '18px' }}>⚡</span>
+                                        <span style={{ fontWeight: '800', fontSize: '12px', color: 'var(--primary)' }}>FRASES MOTIVACIONAIS</span>
+                                    </div>
+                                    <div style={{ height: '150px', overflowY: 'auto', padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }} className="custom-scroll">
+                                        {MOTIVATIONAL_MESSAGES.map((msg, i) => (
+                                            <button
+                                                key={i}
+                                                onClick={() => { setNotifTitle('⚡ INCENTIVO DIÁRIO'); setNotifBody(msg); }}
+                                                style={{ textAlign: 'left', padding: '8px 12px', background: 'rgba(0,255,136,0.05)', border: '1px solid rgba(0,255,136,0.1)', borderRadius: '8px', color: '#eee', fontSize: '11px', cursor: 'pointer' }}
+                                            >
+                                                {msg}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Predefined Templates */}
                         <div style={{ marginBottom: '24px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
@@ -597,6 +705,13 @@ const Admin = ({ superMail }) => {
                                     style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '10px', fontWeight: '800', cursor: 'pointer' }}
                                 >
                                     + SALVAR ATUAL COMO MODELO
+                                </button>
+                                <button
+                                    onClick={() => handleAutoSchedule(7)}
+                                    disabled={sending}
+                                    style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid var(--primary)', color: 'var(--primary)', fontSize: '10px', fontWeight: '800', cursor: 'pointer', padding: '4px 10px', borderRadius: '6px' }}
+                                >
+                                    🚀 GERAR AUTOMÁTICO (7 DIAS)
                                 </button>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
