@@ -76,10 +76,16 @@ const App = () => {
   }
 
   // --- ROTEAMENTO PARA DOMÍNIO PRINCIPAL (APP) ---
+  const hasAccount = localStorage.getItem('gameUser');
+
   return (
     <>
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Funnel />} />
+        <Route path="/" element={
+          isAuthenticated 
+            ? <Navigate to="/app" /> 
+            : (hasAccount ? <Navigate to="/login" /> : <Funnel />)
+        } />
         <Route path="/sucesso" element={isAuthenticated ? <Navigate to="/app" /> : <Success />} />
         <Route path="/home-old" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
         <Route path="/login" element={isAuthenticated ? <Navigate to="/app" /> : <Login />} />

@@ -756,7 +756,7 @@ const Funnel = () => {
       </div>
 
       <div className="fn-cta-footer" style={{ marginTop: '30px' }}>
-          <p>Já tem conta? <a onClick={() => setShowLogin(true)}>Fazer login</a></p>
+          <p>Já tem conta? <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#FF3366', cursor: 'pointer', padding: '0', font: 'inherit', textDecoration: 'underline' }}>Fazer login</button></p>
           <p className="fn-guarantee">🔒 Ambiente 100% seguro com garantia de 7 dias.</p>
       </div>
 

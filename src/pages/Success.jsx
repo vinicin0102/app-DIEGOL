@@ -109,6 +109,10 @@ const Success = () => {
         </form>
         
         <p style={{ marginTop: '20px', color: '#666', fontSize: '0.8rem' }}>
+          Já tem conta? <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', color: '#FF3366', cursor: 'pointer', padding: '0', font: 'inherit', textDecoration: 'underline' }}>Fazer login</button>
+        </p>
+        
+        <p style={{ marginTop: '10px', color: '#666', fontSize: '0.7rem' }}>
           *Use o mesmo e-mail que você utilizou no pagamento para que possamos validar sua conta automaticamente no nosso sistema.
         </p>
       </div>
