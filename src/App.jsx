@@ -11,6 +11,7 @@ import Training from './pages/Training';
 import BossGlobal from './pages/BossGlobal';
 import Home from './pages/Home';
 import Funnel from './pages/Funnel';
+import Success from './pages/Success';
 import { useGame } from './context/GameContext';
 import './App.css';
 import LGPDBanner from './components/LGPDBanner';
@@ -78,6 +79,7 @@ const App = () => {
     <>
       <Routes>
         <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Funnel />} />
+        <Route path="/sucesso" element={isAuthenticated ? <Navigate to="/app" /> : <Success />} />
         <Route path="/home-old" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
         <Route path="/login" element={<Navigate to="/" />} />
 
