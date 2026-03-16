@@ -12,6 +12,7 @@ import BossGlobal from './pages/BossGlobal';
 import Home from './pages/Home';
 import Funnel from './pages/Funnel';
 import Success from './pages/Success';
+import Login from './pages/Login';
 import { useGame } from './context/GameContext';
 import './App.css';
 import LGPDBanner from './components/LGPDBanner';
@@ -81,7 +82,7 @@ const App = () => {
         <Route path="/" element={isAuthenticated ? <Navigate to="/app" /> : <Funnel />} />
         <Route path="/sucesso" element={isAuthenticated ? <Navigate to="/app" /> : <Success />} />
         <Route path="/home-old" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
-        <Route path="/login" element={<Navigate to="/" />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/app" /> : <Login />} />
 
         {/* Base App Route with Sidebar Layout */}
         <Route path="/app" element={<AppLayout />}>
