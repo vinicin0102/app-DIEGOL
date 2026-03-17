@@ -1,7 +1,7 @@
 
 // Service Worker robusto para PWA
 // CACHE_VERSION: v3 - atualizar este número força o service worker a limpar o cache antigo
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
