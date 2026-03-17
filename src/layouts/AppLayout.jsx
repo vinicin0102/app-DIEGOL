@@ -4,6 +4,7 @@ import { useGame } from '../context/GameContext';
 import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2, Swords, Zap, Menu, X, Skull } from 'lucide-react';
 import { getRank, getRankColor } from '../data/missionsData';
 import InstallPWA from '../components/InstallPWA';
+import NotificationModal from '../components/NotificationModal';
 import './AppLayout.css';
 
 const AppLayout = () => {
@@ -22,7 +23,7 @@ const AppLayout = () => {
     ]
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
-      { path: '/app/boss-global', icon: Skull, label: 'Boss Global' },
+      { path: '/app/boss-global', icon: Skull, label: 'Desafio Coletivo' },
       { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
@@ -45,7 +46,7 @@ const AppLayout = () => {
     ? navItems
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
-      { path: '/app/boss-global', icon: Skull, label: 'Boss G.' },
+      { path: '/app/boss-global', icon: Skull, label: 'Desafio C.' },
       { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
       { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
@@ -199,6 +200,7 @@ const AppLayout = () => {
         })}
       </nav>
       <InstallPWA />
+      <NotificationModal />
     </div>
   );
 };

@@ -14,11 +14,11 @@ const RadarChart = ({ stats, color = '#3B82F6' }) => {
     // 5. Espiritual (Top Left) 198
 
     const areas = [
-        { name: 'Físico', angle: -90, value: stats.fisico },
-        { name: 'Financeiro', angle: -18, value: stats.financeiro },
-        { name: 'Mental', angle: 54, value: stats.mental },
-        { name: 'Profissional', angle: 126, value: stats.profissional },
-        { name: 'Espiritual', angle: 198, value: stats.espiritual }
+        { name: 'Força', angle: -90, value: stats.forca },
+        { name: 'Disciplina', angle: -18, value: stats.disciplina },
+        { name: 'Foco', angle: 54, value: stats.foco },
+        { name: 'Evolução', angle: 126, value: stats.evolucao },
+        { name: 'Energia', angle: 198, value: stats.energia }
     ];
 
     // Calcular pontos do polígono baseado nos valores

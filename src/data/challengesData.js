@@ -68,6 +68,14 @@ export const BOSSES = [
                     mission: 'Reduzir redes sociais para até 2h por dia.',
                     proof: 'Print do tempo de uso.',
                     extra: '+XP se ficar abaixo de 1h ou substituir por estudo.'
+                },
+                {
+                    title: '🔥 MISSÃO BÔNUS',
+                    name: 'Missão Bônus',
+                    icon: '⚡',
+                    mission: 'Treino extra ou atividade física adicional (caminhada, alongamento, etc).',
+                    proof: 'Foto ou check-in.',
+                    extra: '+XP por cada treino bônus realizado.'
                 }
             ],
             rewards: [

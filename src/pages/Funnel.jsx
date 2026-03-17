@@ -9,7 +9,7 @@ const SOCIAL_PROOF_TOASTS = [
   { name: 'Lucas M.', action: 'acabou de criar sua conta', time: 'agora', emoji: '🔥' },
   { name: 'Ana C.', action: 'subiu para o nível 8', time: '2 min atrás', emoji: '⚡' },
   { name: 'Pedro H.', action: 'completou 30 dias seguidos', time: '5 min atrás', emoji: '🏆' },
-  { name: 'Mariana S.', action: 'derrotou o Boss Global', time: '8 min atrás', emoji: '💀' },
+  { name: 'Mariana S.', action: 'derrotou o Desafio Coletivo', time: '8 min atrás', emoji: '💀' },
   { name: 'Felipe R.', action: 'desbloqueou tema Fogo Infernal', time: '12 min atrás', emoji: '🔥' },
   { name: 'Camila L.', action: 'entrou na guilda Top 1', time: '15 min atrás', emoji: '👑' },
   { name: 'Gabriel T.', action: 'atingiu 10.000 XP', time: '18 min atrás', emoji: '💎' },
@@ -189,7 +189,7 @@ const Funnel = () => {
     { text: 'VERIFICANDO SINAIS VITAIS...', done: false },
     { text: 'INICIALIZANDO MOTOR DE GAMIFICAÇÃO...', done: false },
     { text: 'SINCRONIZANDO CONQUISTAS...', done: false },
-    { text: 'CARREGANDO CHEFÕES GLOBAIS...', done: false },
+    { text: 'CARREGANDO DESAFIOS COLETIVOS...', done: false },
   ]);
   const [activeTab, setActiveTab] = useState(1);
   const [maxTabReached, setMaxTabReached] = useState(1);

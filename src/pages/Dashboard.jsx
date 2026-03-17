@@ -39,11 +39,11 @@ const Dashboard = () => {
     const statFinanceiro = Math.min(100, user.completedWorkouts * 3);
 
     const radarStats = {
-        profissional: statProfissional,
-        espiritual: statEspiritual,
-        fisico: statFisico,
-        financeiro: statFinanceiro,
-        mental: statMental
+        forca: statFisico,
+        energia: statEspiritual, // Energia mapeada do espiritual/badges
+        foco: statMental, // Foco mapeado do mental/estudos
+        evolucao: statProfissional, // Evolução mapeada do profissional/level
+        disciplina: statFinanceiro // Disciplina mapeada do financeiro/workouts
     };
 
     const energyLevel = Math.round(

@@ -1,6 +1,6 @@
 /**
  * 🔥 10 CHEFÕES DO DESAFIO DOS VENCEDORES
- * Cada mês um boss diferente é rotacionado como o Boss Global.
+ * Cada mês um boss diferente é rotacionado como o Desafio Coletivo.
  * Os bosses escalam em dificuldade (HP crescente).
  */
 

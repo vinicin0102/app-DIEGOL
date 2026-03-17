@@ -132,6 +132,15 @@ const Admin = ({ superMail }) => {
             const newRows = [];
             const now = new Date();
             
+            // Limpar agendamentos pendentes futuros para evitar duplicatas
+            const endRange = new Date(now);
+            endRange.setDate(now.getDate() + days);
+            await supabase.from('scheduled_notifications')
+                .delete()
+                .eq('status', 'pending')
+                .gte('schedule_at', now.toISOString())
+                .lte('schedule_at', endRange.toISOString());
+            
             for (let d = 0; d < days; d++) {
                 const targetDay = new Date(now);
                 targetDay.setDate(now.getDate() + d);
@@ -155,13 +164,16 @@ const Admin = ({ superMail }) => {
                         status: 'pending'
                     });
 
-                    // Adicionar lembrete de água a cada 2 horas (horas pares)
+                    // Adicionar lembrete de água a cada 2 horas (horas pares) - DESLOCADO :30 para não duplicar no visor
                     if (h % 2 === 0) {
                         const waterIndex = Math.floor(h / 2) % WATER_MESSAGES.length;
+                        const waterTime = new Date(scheduleTime);
+                        waterTime.setMinutes(30);
+
                         newRows.push({
                             title: `💧 HIDRATAÇÃO`,
                             body: WATER_MESSAGES[waterIndex],
-                            schedule_at: scheduleTime.toISOString(),
+                            schedule_at: waterTime.toISOString(),
                             status: 'pending'
                         });
                     }

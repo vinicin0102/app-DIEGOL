@@ -102,7 +102,7 @@ const BossGlobal = () => {
 
             <header className="boss-header">
                 <div>
-                    <h1 className="boss-title">Boss Global</h1>
+                    <h1 className="boss-title">Desafio Coletivo</h1>
                     <p className="boss-subtitle">30 Guerreiros vs <span style={{ color: currentBoss.color, fontWeight: 800 }}>{currentBoss.name}</span></p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>

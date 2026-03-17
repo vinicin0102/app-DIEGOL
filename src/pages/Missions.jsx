@@ -185,16 +185,28 @@ const Missions = () => {
             </div>
 
             {/* Bonus Missions Section */}
-            {(bonusMissions.length > 0 || showBonusForm) && (
-                <div style={{ marginTop: '48px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                        <div style={{ padding: '8px', background: 'rgba(255, 51, 102, 0.1)', borderRadius: '10px' }}>
-                            <Flame size={18} color="#FF3366" />
-                        </div>
-                        <h3 style={{ fontSize: '18px', fontWeight: '900', color: '#fff' }}>Missões Bônus</h3>
+            <div style={{ marginTop: '48px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                    <div style={{ padding: '8px', background: 'rgba(255, 51, 102, 0.1)', borderRadius: '10px' }}>
+                        <Flame size={18} color="#FF3366" />
                     </div>
+                    <h3 style={{ fontSize: '18px', fontWeight: '900', color: '#fff' }}>Missão Bônus (Treinos Extra)</h3>
+                </div>
 
-                    {bonusMissions.map(m => (
+                {bonusMissions.length === 0 && !showBonusForm && (
+                    <div style={{ 
+                        padding: '32px', 
+                        textAlign: 'center', 
+                        background: 'rgba(255,51,102,0.02)', 
+                        borderRadius: '20px', 
+                        border: '1px dashed rgba(255,51,102,0.1)' 
+                    }}>
+                        <p style={{ color: '#666', fontSize: '14px' }}>Nenhuma missão bônus ativa.</p>
+                        <p style={{ color: '#444', fontSize: '12px', marginTop: '4px' }}>Toque no + acima para adicionar um treino extra.</p>
+                    </div>
+                )}
+
+                {bonusMissions.map(m => (
                         <div key={m.id} className={`mission-card ${m.completed ? 'completed' : ''}`} style={{ borderColor: m.completed ? 'rgba(0,255,136,0.2)' : 'rgba(255,51,102,0.3)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -236,9 +248,8 @@ const Missions = () => {
                         </div>
                     )}
                 </div>
-            )}
-        </div>
-    );
-};
+            </div>
+        );
+    };
 
 export default Missions;
