@@ -37,7 +37,33 @@ serve(async (req) => {
             return new Response(JSON.stringify({ message: 'Nada para enviar agora.' }), { headers: corsHeaders })
         }
 
-        // 2. Buscar inscritos e desduplicar por endpoint para evitar envios repetidos no mesmo dispositivo
+        // 2. Desduplicar agendamentos no próprio lote (caso existam registros idênticos no banco)
+        const uniquePending = []
+        const seenNotifs = new Set()
+        const duplicateIds = []
+
+        for (const notif of pending) {
+            const key = `${notif.title}|${notif.body}|${notif.schedule_at}`
+            if (seenNotifs.has(key)) {
+                duplicateIds.push(notif.id)
+                continue
+            }
+            seenNotifs.add(key)
+            uniquePending.push(notif)
+        }
+
+        // Marcar duplicatas como 'duplicate' para não tentarem ser processadas de novo
+        if (duplicateIds.length > 0) {
+            await supabase.from('scheduled_notifications')
+                .update({ status: 'duplicate' })
+                .in('id', duplicateIds)
+        }
+
+        if (uniquePending.length === 0) {
+            return new Response(JSON.stringify({ message: 'Tudo limpo ou desduplicado.' }), { headers: corsHeaders })
+        }
+
+        // 3. Buscar inscritos e desduplicar por endpoint para evitar envios repetidos no mesmo dispositivo
         const { data: rawSubs } = await supabase.from('notification_subscriptions').select('subscription')
         if (!rawSubs || rawSubs.length === 0) return new Response('Sem inscritos', { headers: corsHeaders })
 
@@ -51,9 +77,9 @@ serve(async (req) => {
             }
         }
 
-        console.log(`Processando ${pending.length} agendamentos para ${subs.length} dispositivos únicos (de ${rawSubs.length} totais).`)
+        console.log(`Processando ${uniquePending.length} agendamentos únicos para ${subs.length} dispositivos únicos.`)
 
-        for (const notif of pending) {
+        for (const notif of uniquePending) {
             // Incluir uma tag baseada no título para colapsar duplicatas no celular
             const payload = JSON.stringify({ 
                 title: notif.title, 
@@ -94,7 +120,7 @@ serve(async (req) => {
             console.log(`Notificação ${notif.id} finalizada: ${success} sucessos, ${failed} falhas.`);
         }
 
-        return new Response(JSON.stringify({ processed: pending.length }), {
+        return new Response(JSON.stringify({ processed: uniquePending.length }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,
         })
