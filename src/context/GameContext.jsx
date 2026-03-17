@@ -499,7 +499,7 @@ export const GameProvider = ({ children }) => {
     };
 
     const addBonusMission = (title) => {
-        if (bonusMissions.length >= 10) return; // Aumentado limite para 10 missões bônus
+        if (bonusMissions.length >= 1) return; // Limite de 1 missão extra por dia
         setBonusMissions(prev => [...prev, {
             id: Date.now(),
             title,
@@ -513,7 +513,8 @@ export const GameProvider = ({ children }) => {
         setBonusMissions(prev => {
             const updated = prev.map(m => {
                 if (m.id === id && !m.completed) {
-                    addXp(1);
+                    addXp(1); // 1 ponto de XP
+                    updateStats('strength', user.stats.strength + 1); // +1 Ponto de Evolução (Força)
                     return { ...m, completed: true };
                 }
                 return m;
