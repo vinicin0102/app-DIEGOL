@@ -31,13 +31,13 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const { data: subscriptions, error: subError } = await supabaseAdmin
+        const { data: rawSubscriptions, error: subError } = await supabaseAdmin
             .from('notification_subscriptions')
             .select('subscription')
 
         if (subError) throw subError
 
-        if (!subscriptions || subscriptions.length === 0) {
+        if (!rawSubscriptions || rawSubscriptions.length === 0) {
             return new Response(JSON.stringify({
                 message: 'Nenhuma inscrição encontrada.',
                 sent: 0, failed: 0, total: 0
@@ -47,9 +47,24 @@ serve(async (req) => {
             })
         }
 
+        // Desduplicar assinaturas por endpoint único
+        const uniqueSubs = []
+        const seenEndpoints = new Set()
+        for (const sub of rawSubscriptions) {
+            const endpoint = sub.subscription?.endpoint
+            if (endpoint && !seenEndpoints.has(endpoint)) {
+                seenEndpoints.add(endpoint)
+                uniqueSubs.push(sub)
+            }
+        }
+
+        const subscriptions = uniqueSubs // Usar apenas as únicas daqui em diante
+        console.log(`Disparo massivo para ${subscriptions.length} dispositivos únicos (de ${rawSubscriptions.length} totais).`)
+
         const payload = JSON.stringify({
             title: title || 'Desafio dos Vencedores',
-            body: body || 'Nova mensagem!'
+            body: body || 'Nova mensagem!',
+            tag: (title || 'general').toLowerCase().replace(/\s+/g, '-')
         })
 
         const results = await Promise.allSettled(

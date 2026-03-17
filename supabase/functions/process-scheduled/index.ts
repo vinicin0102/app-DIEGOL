@@ -37,17 +37,42 @@ serve(async (req) => {
             return new Response(JSON.stringify({ message: 'Nada para enviar agora.' }), { headers: corsHeaders })
         }
 
-        // 2. Buscar inscritos
-        const { data: subs } = await supabase.from('notification_subscriptions').select('subscription')
-        if (!subs || subs.length === 0) return new Response('Sem inscritos', { headers: corsHeaders })
+        // 2. Buscar inscritos e desduplicar por endpoint para evitar envios repetidos no mesmo dispositivo
+        const { data: rawSubs } = await supabase.from('notification_subscriptions').select('subscription')
+        if (!rawSubs || rawSubs.length === 0) return new Response('Sem inscritos', { headers: corsHeaders })
 
-        console.log(`Processando ${pending.length} agendamentos para ${subs.length} usuários.`)
+        const subs = []
+        const seenEndpoints = new Set()
+        for (const s of rawSubs) {
+            const endpoint = s.subscription?.endpoint
+            if (endpoint && !seenEndpoints.has(endpoint)) {
+                seenEndpoints.add(endpoint)
+                subs.push(s)
+            }
+        }
+
+        console.log(`Processando ${pending.length} agendamentos para ${subs.length} dispositivos únicos (de ${rawSubs.length} totais).`)
 
         for (const notif of pending) {
-            const payload = JSON.stringify({ title: notif.title, body: notif.body })
+            // Incluir uma tag baseada no título para colapsar duplicatas no celular
+            const payload = JSON.stringify({ 
+                title: notif.title, 
+                body: notif.body,
+                tag: notif.title.toLowerCase().replace(/\s+/g, '-') // Ex: 'chefão', 'hidratação'
+            })
 
-            // Marcar como 'processando' para evitar duplicidade e conflitos entre instâncias
-            await supabase.from('scheduled_notifications').update({ status: 'sending' }).eq('id', notif.id);
+            // Trava Atômica: Tenta marcar como 'sending' apenas se ainda estiver 'pending'
+            const { data: updatedNotif, error: updateError } = await supabase
+                .from('scheduled_notifications')
+                .update({ status: 'sending' })
+                .eq('id', notif.id)
+                .eq('status', 'pending')
+                .select();
+
+            if (updateError || !updatedNotif || updatedNotif.length === 0) {
+                console.log(`Notificação ${notif.id} já está sendo processada por outra instância.`);
+                continue;
+            }
 
             const results = await Promise.allSettled(
                 subs.map(s => webpush.sendNotification(s.subscription, payload))
