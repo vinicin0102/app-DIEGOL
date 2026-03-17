@@ -499,7 +499,7 @@ export const GameProvider = ({ children }) => {
     };
 
     const addBonusMission = (title) => {
-        if (bonusMissions.length >= 2) return;
+        if (bonusMissions.length >= 10) return; // Aumentado limite para 10 missões bônus
         setBonusMissions(prev => [...prev, {
             id: Date.now(),
             title,

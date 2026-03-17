@@ -63,13 +63,23 @@ self.addEventListener('push', (event) => {
         icon: '/pwa-192x192.png',
         badge: '/pwa-192x192.png',
         data: notificationData.data || {},
-        tag: notificationData.tag || 'general-notification',
+        tag: notificationData.tag || 'vencedores-notification',
         renotify: true,
-        vibrate: [100, 50, 100],
+        vibrate: [200, 100, 200, 100, 200], // Vibração mais heróica
+        sound: '/notification.mp3', // Referência ao seu arquivo sound
         actions: notificationData.actions || []
     }
 
-    event.waitUntil(self.registration.showNotification(title, options))
+    // Tenta tocar som se houver uma janela aberta (Fundo)
+    event.waitUntil(
+        Promise.all([
+            self.registration.showNotification(title, options),
+            // Notifica as abas abertas para tocarem o som manualmente se necessário
+            self.clients.matchAll({ type: 'window' }).then(clients => {
+                clients.forEach(client => client.postMessage({ type: 'PLAY_SOUND', sound: 'notification' }))
+            })
+        ])
+    )
 })
 
 self.addEventListener('notificationclick', (event) => {

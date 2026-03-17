@@ -60,6 +60,20 @@ const AppLayout = () => {
   const savedAvatarId = localStorage.getItem('vencedores_avatar_id');
   const avatar = savedAvatarId ? AVATARS.find(a => a.id === savedAvatarId) : AVATARS[0];
   const userAvatar = avatar || AVATARS[0];
+  
+  // Ouvinte de sons para notificações em primeiro plano (Foreground)
+  React.useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      const handleMessage = (event) => {
+        if (event.data && event.data.type === 'PLAY_SOUND') {
+          const audio = new Audio('/notification.mp3');
+          audio.play().catch(e => console.log('Bloqueio de som pelo navegador:', e));
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+      return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+    }
+  }, []);
 
 
   return (

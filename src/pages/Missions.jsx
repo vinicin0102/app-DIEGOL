@@ -241,16 +241,17 @@ const Missions = () => {
 
                     {showBonusForm && (
                         <div className="glass-panel" style={{ padding: '24px', borderRadius: '20px', border: '1px solid rgba(255,51,102,0.2)' }}>
-                            <h4 style={{ marginBottom: '16px', fontWeight: '800' }}>Nova Missão Bônus</h4>
+                            <h4 style={{ marginBottom: '8px', fontWeight: '800' }}>Nova Missão Extra</h4>
+                            <p style={{ fontSize: '12px', color: 'rgba(255,51,102,0.8)', marginBottom: '16px' }}>Custa foco, mas garante +1 ponto de evolução!</p>
                             <input
                                 type="text"
-                                placeholder="Ex: Caminhada de 15 min..."
+                                placeholder="Ex: Corrida extra, HIIT de 10 min..."
                                 value={bonusTitle}
                                 onChange={e => setBonusTitle(e.target.value)}
                                 style={{ width: '100%', padding: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,51,102,0.1)', borderRadius: '12px', color: '#fff', marginBottom: '16px' }}
                             />
                             <div style={{ display: 'flex', gap: '10px' }}>
-                                <button className="btn-complete" style={{ flex: 1, padding: '14px', background: '#FF3366', color: '#fff' }} onClick={handleAddBonus}>Adicionar</button>
+                                <button className="btn-complete" style={{ flex: 1, padding: '14px', background: '#FF3366', color: '#fff' }} onClick={handleAddBonus}>Adicionar (+1 PT)</button>
                                 <button className="category-tab" style={{ flex: 1, background: 'rgba(255,255,255,0.05)' }} onClick={() => setShowBonusForm(false)}>Cancelar</button>
                             </div>
                         </div>
