@@ -1,7 +1,7 @@
 
 // Service Worker robusto para PWA
 // CACHE_VERSION: v3 - atualizar este número força o service worker a limpar o cache antigo
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 
 import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
 import { clientsClaim } from 'workbox-core'
@@ -66,7 +66,7 @@ self.addEventListener('push', (event) => {
         tag: notificationData.tag || 'vencedores-notification',
         renotify: true,
         vibrate: [200, 100, 200, 100, 200], // Vibração mais heróica
-        sound: '/notification.mp3', // Referência ao seu arquivo sound
+        sound: '/notification.mp3?v=5', // Cache-busting para garantir novo som
         actions: notificationData.actions || []
     }
 

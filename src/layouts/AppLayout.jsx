@@ -66,7 +66,7 @@ const AppLayout = () => {
     if ('serviceWorker' in navigator) {
       const handleMessage = (event) => {
         if (event.data && event.data.type === 'PLAY_SOUND') {
-          const audio = new Audio('/notification.mp3');
+          const audio = new Audio('/notification.mp3?v=5');
           audio.play().catch(e => console.log('Bloqueio de som pelo navegador:', e));
         }
       };
