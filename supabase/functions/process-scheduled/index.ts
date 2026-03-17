@@ -46,23 +46,27 @@ serve(async (req) => {
         for (const notif of pending) {
             const payload = JSON.stringify({ title: notif.title, body: notif.body })
 
-            // Marcar como 'processando' para evitar duplicidade
-            await supabase.from('scheduled_notifications').update({ status: 'sending' }).eq('id', notif.id)
+            // Marcar como 'processando' para evitar duplicidade e conflitos entre instâncias
+            await supabase.from('scheduled_notifications').update({ status: 'sending' }).eq('id', notif.id);
 
             const results = await Promise.allSettled(
                 subs.map(s => webpush.sendNotification(s.subscription, payload))
-            )
+            );
 
-            const success = results.filter(r => r.status === 'fulfilled').length
+            const success = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.length - success;
 
-            // Atualizar status final
+            // Atualizar status final com timestamp real e contagem
             await supabase.from('scheduled_notifications')
                 .update({
-                    status: 'sent',
+                    status: success > 0 ? 'sent' : 'failed',
                     sent_at: new Date().toISOString(),
-                    sent_count: success
+                    sent_count: success,
+                    error_log: failed > 0 ? `Falha em ${failed} envios.` : null
                 })
-                .eq('id', notif.id)
+                .eq('id', notif.id);
+
+            console.log(`Notificação ${notif.id} finalizada: ${success} sucessos, ${failed} falhas.`);
         }
 
         return new Response(JSON.stringify({ processed: pending.length }), {

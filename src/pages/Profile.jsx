@@ -42,11 +42,11 @@ const Profile = () => {
     const statFinanceiro = Math.min(100, (user.completedWorkouts || 0) * 3);
 
     const radarStats = {
-        profissional: statProfissional,
-        espiritual: statEspiritual, // Usando badges como métrica
-        fisico: statFisico,
-        financeiro: statFinanceiro,
-        mental: statMental
+        forca: statFisico,
+        energia: statEspiritual, 
+        foco: statMental, 
+        evolucao: statProfissional, 
+        disciplina: statFinanceiro 
     };
 
     // Média para Energia
@@ -65,7 +65,7 @@ const Profile = () => {
 
     // Carregar Avatar do localStorage
     useEffect(() => {
-        const savedAvatarId = localStorage.getItem('userSelectedAvatarId');
+        const savedAvatarId = localStorage.getItem('vencedores_avatar_id');
         if (savedAvatarId) {
             setSelectedAvatar(savedAvatarId);
         } else {
@@ -77,7 +77,7 @@ const Profile = () => {
     // Handler para salvar o avatar
     const handleSaveAvatar = (avatar) => {
         setSelectedAvatar(avatar.id);
-        localStorage.setItem('userSelectedAvatarId', avatar.id);
+        localStorage.setItem('vencedores_avatar_id', avatar.id);
         setShowAvatarBuilder(false);
     };
 

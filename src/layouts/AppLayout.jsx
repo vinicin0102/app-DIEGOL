@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { Trophy, Users, User, ShieldCheck, Dumbbell, LayoutGrid, Calendar as CalendarIcon, Target, Clock, Gift, Layout, TrendingUp, Brain, TreeDeciduous, Info, HelpCircle, LifeBuoy, AlertTriangle, Settings, LogOut, Edit2, Swords, Zap, Menu, X, Skull } from 'lucide-react';
+import { AVATARS } from '../components/AvatarSelector';
 import { getRank, getRankColor } from '../data/missionsData';
 import InstallPWA from '../components/InstallPWA';
 import NotificationModal from '../components/NotificationModal';
@@ -56,6 +57,10 @@ const AppLayout = () => {
   const rank = getRank(user.level);
   const rankColor = getRankColor(rank);
 
+  const savedAvatarId = localStorage.getItem('vencedores_avatar_id');
+  const avatar = savedAvatarId ? AVATARS.find(a => a.id === savedAvatarId) : AVATARS[0];
+  const userAvatar = avatar || AVATARS[0];
+
 
   return (
     <div className="app-container">
@@ -76,19 +81,21 @@ const AppLayout = () => {
           </div>
         </div>
 
-        <div className="user-profile-summary" style={{ marginBottom: '32px', padding: '0 8px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <h3 style={{ fontSize: '20px', fontWeight: '900', color: '#00DDEE', textTransform: 'uppercase' }}>{user.name || 'JUNIO'}</h3>
-            <Edit2 size={14} color="var(--text-muted)" />
+        <div className="user-profile-summary" style={{ marginBottom: '32px', padding: '0 8px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ width: '60px', height: '60px', borderRadius: '15px', overflow: 'hidden', border: `2px solid ${rankColor}`, flexShrink: 0 }}>
+            <img src={userAvatar.image} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>NÍVEL {user.level} — O Despertar</span>
-          <span style={{ fontSize: '12px', color: rankColor, fontWeight: '800', display: 'block', marginBottom: '12px' }}>RANK {rank}</span>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: '900', color: '#00DDEE', textTransform: 'uppercase', margin: 0 }}>{user.name.split(' ')[0] || 'JUNIO'}</h3>
+              <Edit2 size={12} color="var(--text-muted)" onClick={() => navigate('/app/profile')} />
+            </div>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>NÍVEL {user.level}</span>
+            <span style={{ fontSize: '10px', color: rankColor, fontWeight: '800', display: 'block', marginBottom: '8px' }}>{rank}</span>
 
-          <div className="xp-bar" style={{ height: '4px' }}>
-            <div className="xp-bar-fill" style={{ width: `${(user.xp % 1000) / 10}%` }}></div>
-          </div>
-          <div style={{ textAlign: 'right', fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px' }}>
-            {user.xp % 1000}/1000 XP
+            <div className="xp-bar" style={{ height: '3px' }}>
+              <div className="xp-bar-fill" style={{ width: `${(user.xp % 1000) / 10}%` }}></div>
+            </div>
           </div>
         </div>
 

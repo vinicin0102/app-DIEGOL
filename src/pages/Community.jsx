@@ -6,7 +6,7 @@ import { AVATARS } from '../components/AvatarSelector';
 
 // Helper para obter avatar do localStorage
 const getUserAvatar = () => {
-    const savedAvatarId = localStorage.getItem('userSelectedAvatarId');
+    const savedAvatarId = localStorage.getItem('vencedores_avatar_id');
     if (savedAvatarId) {
         const avatar = AVATARS.find(a => a.id === savedAvatarId);
         return avatar || AVATARS[0];

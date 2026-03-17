@@ -14,6 +14,14 @@ const Missions = () => {
     const [activeFilter, setActiveFilter] = useState('Todas');
     const [showBonusForm, setShowBonusForm] = useState(false);
     const [bonusTitle, setBonusTitle] = useState('');
+    const location = React.useMemo(() => window.location, []);
+
+    React.useEffect(() => {
+        if (window.location.hash === '#bonus') {
+            const el = document.getElementById('bonus-section');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [location.hash]);
 
     const categories = ['Todos', 'Corpo', 'Saúde', 'Finanças', 'Trabalho', 'Espiritual', 'Mente'];
     const filters = ['Todas', 'Foco do Dia', 'Pendentes', 'Concluídas'];
@@ -185,7 +193,7 @@ const Missions = () => {
             </div>
 
             {/* Bonus Missions Section */}
-            <div style={{ marginTop: '48px' }}>
+            <div id="bonus-section" style={{ marginTop: '48px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
                     <div style={{ padding: '8px', background: 'rgba(255, 51, 102, 0.1)', borderRadius: '10px' }}>
                         <Flame size={18} color="#FF3366" />

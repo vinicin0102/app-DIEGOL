@@ -16,7 +16,7 @@ const Dashboard = () => {
     const [selectedAvatar, setSelectedAvatar] = useState(null);
 
     useEffect(() => {
-        const savedAvatarId = localStorage.getItem('selectedAvatarId');
+        const savedAvatarId = localStorage.getItem('vencedores_avatar_id');
         if (savedAvatarId) {
             const avatar = AVATARS.find(a => a.id === savedAvatarId);
             if (avatar) {
@@ -27,7 +27,7 @@ const Dashboard = () => {
 
     const handleSelectAvatar = (avatar) => {
         setSelectedAvatar(avatar);
-        localStorage.setItem('selectedAvatarId', avatar.id);
+        localStorage.setItem('vencedores_avatar_id', avatar.id);
     };
 
     // Calculate Stats

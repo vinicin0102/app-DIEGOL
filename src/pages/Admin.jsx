@@ -81,6 +81,15 @@ const Admin = ({ superMail }) => {
 
         setSending(true);
         try {
+            const nowIso = new Date().toISOString();
+            
+            // 1. Limpar conflitos exatos para as datas que estamos inserindo
+            const scheduleDates = scheduleBatch.map(dt => new Date(dt).toISOString());
+            await supabase.from('scheduled_notifications')
+                .delete()
+                .eq('status', 'pending')
+                .in('schedule_at', scheduleDates);
+
             const rows = scheduleBatch.map(dt => ({
                 title: notifTitle,
                 body: notifBody,
@@ -132,13 +141,15 @@ const Admin = ({ superMail }) => {
             const newRows = [];
             const now = new Date();
             
-            // Limpar agendamentos pendentes futuros para evitar duplicatas
+            // Limpar agendamentos AUTOMÁTICOS futuros para evitar duplicatas
+            const startRange = new Date(now);
             const endRange = new Date(now);
             endRange.setDate(now.getDate() + days);
+            
             await supabase.from('scheduled_notifications')
                 .delete()
                 .eq('status', 'pending')
-                .gte('schedule_at', now.toISOString())
+                .gte('schedule_at', startRange.toISOString())
                 .lte('schedule_at', endRange.toISOString());
             
             for (let d = 0; d < days; d++) {

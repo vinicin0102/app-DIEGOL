@@ -13,6 +13,14 @@ import Home from './pages/Home';
 import Funnel from './pages/Funnel';
 import Success from './pages/Success';
 import Login from './pages/Login';
+import Store from './pages/Store';
+import Rewards from './pages/Rewards';
+import Avatars from './pages/Avatars';
+import PriorityMatrix from './pages/PriorityMatrix';
+import Progress from './pages/Progress';
+import Virtues from './pages/Virtues';
+import AIChat from './pages/AIChat';
+import EvolutionTree from './pages/EvolutionTree';
 import { useGame } from './context/GameContext';
 import './App.css';
 import LGPDBanner from './components/LGPDBanner';
@@ -106,6 +114,14 @@ const App = () => {
             <Route path="profile" element={<Profile />} />
             <Route path="missions" element={<Missions />} />
             <Route path="calendar" element={<Calendar />} />
+            <Route path="store" element={<Store />} />
+            <Route path="rewards" element={<Rewards />} />
+            <Route path="avatars" element={<Avatars />} />
+            <Route path="priority" element={<PriorityMatrix />} />
+            <Route path="progress" element={<Progress />} />
+            <Route path="virtues" element={<Virtues />} />
+            <Route path="ai-chat" element={<AIChat />} />
+            <Route path="evolution-tree" element={<EvolutionTree />} />
           </Route>
         </Route>
 
