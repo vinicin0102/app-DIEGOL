@@ -24,22 +24,12 @@ const AppLayout = () => {
     ]
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
-      { path: '/app/boss-global', icon: Skull, label: 'Desafio Coletivo' },
-      { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
-      { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
-      { path: '/app/missions#bonus', icon: Zap, label: 'Bônus' },
-      { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
       { path: '/app/community', icon: Users, label: 'Comunidade' },
-      { path: '/app/store', icon: Clock, label: 'Loja do Tempo' },
-      { path: '/app/rewards', icon: Gift, label: 'Itens de Recompensa' },
-      { path: '/app/avatars', icon: User, label: 'Avatares' },
-      { path: '/app/priority', icon: Layout, label: 'Matriz de Prioridades' },
-      { path: '/app/progress', icon: TrendingUp, label: 'Progresso' },
-      { path: '/app/virtues', icon: Trophy, label: 'Virtudes' },
-      { path: '/app/ai-chat', icon: Brain, label: 'Evolução Chat IA' },
-      { path: '/app/evolution-tree', icon: TreeDeciduous, label: 'Árvore de Evolução' },
-      { path: '/app/admin', icon: ShieldCheck, label: 'Painel Admin' }
+      { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
+      { path: '/app/boss-global', icon: Skull, label: 'Desafio Coletivo' },
+      { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
+      { path: '/app/training', icon: Dumbbell, label: 'Treinos' }
     ];
 
   // Itens para a barra de navegação inferior no mobile (apenas os mais importantes)
@@ -47,10 +37,8 @@ const AppLayout = () => {
     ? navItems
     : [
       { path: '/app/profile', icon: LayoutGrid, label: 'Painel' },
-      { path: '/app/boss-global', icon: Skull, label: 'Desafio C.' },
-      { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
       { path: '/app/missions', icon: Target, label: 'Missões' },
-      { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
+      { path: '/app/community', icon: Users, label: 'Comunidade' },
       { path: '#menu', icon: Menu, label: 'Mais', isMenuToggle: true }
     ];
 
