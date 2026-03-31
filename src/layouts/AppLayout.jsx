@@ -29,7 +29,8 @@ const AppLayout = () => {
       { path: '/app/challenges', icon: Swords, label: 'Projeto Vencedores' },
       { path: '/app/boss-global', icon: Skull, label: 'Desafio Coletivo' },
       { path: '/app/calendar', icon: CalendarIcon, label: 'Calendário' },
-      { path: '/app/training', icon: Dumbbell, label: 'Treinos' }
+      { path: '/app/training', icon: Dumbbell, label: 'Treinos' },
+      { path: '/app/admin', icon: ShieldCheck, label: 'Administração', isProtected: true }
     ];
 
   // Itens para a barra de navegação inferior no mobile (apenas os mais importantes)
@@ -104,6 +105,11 @@ const AppLayout = () => {
         <nav className="nav-menu" style={{ overflowY: 'auto', paddingRight: '4px' }}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path || (item.path === '/app' && location.pathname === '/app/');
+            
+            // Filtro de segurança para o item de administração na barra lateral
+            if (item.path === '/app/admin' && !isSuperAdmin && !user.is_admin) {
+              return null;
+            }
 
             if (item.isExternal) {
               return (
