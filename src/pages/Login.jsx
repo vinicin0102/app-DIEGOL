@@ -114,6 +114,10 @@ const Login = () => {
 
         <p className="fn-switch">
           Ainda não é um Vencedor? <a onClick={() => navigate('/')}>Veja os planos</a>
+          <br />
+          <span style={{ fontSize: '0.85em', opacity: 0.8, marginTop: '8px', display: 'block' }}>
+            Tem e-mail autorizado? <a onClick={() => navigate('/registrar')} style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Crie sua conta gratuita aqui</a>
+          </span>
         </p>
       </div>
     </div>

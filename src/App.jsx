@@ -13,6 +13,7 @@ import Home from './pages/Home';
 import Funnel from './pages/Funnel';
 import Success from './pages/Success';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import Store from './pages/Store';
 import Rewards from './pages/Rewards';
 import Avatars from './pages/Avatars';
@@ -98,6 +99,7 @@ const App = () => {
         <Route path="/funil" element={<Funnel />} />
         <Route path="/home-old" element={isAuthenticated ? <Navigate to="/app" /> : <Home />} />
         <Route path="/login" element={isAuthenticated ? <Navigate to="/app" /> : <Login />} />
+        <Route path="/registrar" element={isAuthenticated ? <Navigate to="/app" /> : <Register />} />
 
         {/* Base App Route with Sidebar Layout */}
         <Route path="/app" element={<AppLayout />}>
