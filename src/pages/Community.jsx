@@ -198,6 +198,7 @@ const Community = () => {
     const uploadImage = async (file) => {
         // Primeiro, tenta usar o Supabase Storage
         try {
+            console.log('Iniciando upload de imagem para o storage...');
             const fileExt = file.name.split('.').pop();
             const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
             const filePath = `chat-images/${fileName}`;
@@ -209,19 +210,28 @@ const Community = () => {
                     upsert: false
                 });
 
-            if (!error && data) {
-                // Get public URL
+            if (error) {
+                console.error('Erro no upload Storage:', error.message);
+                throw error;
+            }
+
+            if (data) {
                 const { data: { publicUrl } } = supabase.storage
                     .from('community')
                     .getPublicUrl(filePath);
+                console.log('Upload concluído com sucesso:', publicUrl);
                 return publicUrl;
             }
         } catch (error) {
-            console.log('Storage not available, using base64');
+            console.warn('Storage indisponível ou erro de permissão, usando fallback base64...', error);
         }
 
-        // Fallback: usar base64 (funciona sem Storage configurado)
-        return imagePreview;
+        // Fallback: usar base64 (funciona mesmo sem Storage mas pode ser lento no Realtime)
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+        });
     };
 
     // Clear selected image (for chat)

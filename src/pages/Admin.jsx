@@ -27,6 +27,8 @@ const Admin = ({ superMail }) => {
     const [scheduledList, setScheduledList] = useState([]);
     const [scheduleBatch, setScheduleBatch] = useState([]);
     const [notifTemplates, setNotifTemplates] = useState([]);
+    const [whitelist, setWhitelist] = useState([]);
+    const [newWhitelistEmail, setNewWhitelistEmail] = useState('');
 
     const handleSaveNew = () => {
         if (!newChallenge.title) return;
@@ -38,6 +40,7 @@ const Admin = ({ superMail }) => {
     const tabs = [
         { id: 'challenges', label: 'Desafios', icon: Trophy },
         { id: 'users', label: 'Alunos', icon: Users },
+        { id: 'whitelist', label: 'Acessos', icon: Unlock },
         { id: 'notifications', label: 'Notificações', icon: Bell },
         { id: 'stats', label: 'Estatísticas', icon: BarChart3 },
     ];
@@ -60,12 +63,18 @@ const Admin = ({ superMail }) => {
                     .order('schedule_at', { ascending: true });
                 setScheduledList(scheduled || []);
 
-                // Carregar templates/predefinições
                 const { data: templates } = await supabase
                     .from('notification_templates')
                     .select('*')
                     .order('created_at', { ascending: true });
                 setNotifTemplates(templates || []);
+
+                // Carregar Whitelist
+                const { data: authList } = await supabase
+                    .from('authorized_emails')
+                    .select('*')
+                    .order('created_at', { descending: true });
+                setWhitelist(authList || []);
             }
         };
         fetchData();
@@ -337,6 +346,33 @@ const Admin = ({ superMail }) => {
                             <li>Certifique-se de estar logado.</li>
                             <li>Sua conta deve ter a permissão <code>is_admin</code> no banco de dados.</li>
                         </ol>
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                            <button
+                                className="btn-secondary"
+                                style={{ flex: 1, padding: '12px', fontSize: '13px' }}
+                                onClick={async () => {
+                                    if(confirm('Isso vai tentar reenviar todas as notificações que falharam hoje. Continuar?')) {
+                                        const { error } = await supabase
+                                            .from('scheduled_notifications')
+                                            .update({ status: 'pending' })
+                                            .eq('status', 'failed')
+                                            .gte('schedule_at', new Date().toISOString());
+                                        
+                                        if(!error) alert('Notificações resetadas para pendente! O servidor tentará enviar na próxima execução.');
+                                        else alert('Erro ao resetar: ' + error.message);
+                                    }
+                                }}
+                            >
+                                Reenviar Falhas de Hoje
+                            </button>
+                            <button
+                                className="btn-hero-primary"
+                                style={{ flex: 1, padding: '12px', fontSize: '13px' }}
+                                onClick={handleAutoSchedule}
+                            >
+                                Gerar Próximos 7 Dias
+                            </button>
+                        </div>
                     </div>
 
                     <button
@@ -644,6 +680,79 @@ const Admin = ({ superMail }) => {
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* === WHITELIST TAB === */}
+            {activeTab === 'whitelist' && (
+                <div className="glass-panel" style={{ padding: '28px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                        <h3 style={{ fontWeight: '700' }}>Controle de Acessos (Whitelist)</h3>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                             <input 
+                                placeholder="E-mail do aluno..."
+                                style={{ 
+                                    padding: '10px 14px', 
+                                    background: 'rgba(0,0,0,0.4)', 
+                                    border: '1px solid var(--border)', 
+                                    borderRadius: '10px', 
+                                    color: '#fff',
+                                    fontSize: '13px'
+                                }}
+                                value={newWhitelistEmail}
+                                onChange={e => setNewWhitelistEmail(e.target.value)}
+                             />
+                             <button className="btn-primary" 
+                                style={{ padding: '8px 16px', fontSize: '13px' }}
+                                onClick={async () => {
+                                 if (!newWhitelistEmail) return;
+                                 const { error } = await supabase.from('authorized_emails').insert([{ email: newWhitelistEmail }]);
+                                 if(!error) {
+                                     setWhitelist([{ email: newWhitelistEmail, created_at: new Date().toISOString() }, ...whitelist]);
+                                     setNewWhitelistEmail('');
+                                     alert('E-mail autorizado!');
+                                 } else {
+                                     alert('Erro ao adicionar: ' + error.message);
+                                 }
+                             }}>Liberar</button>
+                        </div>
+                    </div>
+
+                    <div style={{ maxHeight: '400px', overflowY: 'auto' }} className="custom-scroll">
+                        <table style={{ width: '100%', borderCollapse: 'collapse', color: '#fff' }}>
+                            <thead>
+                                <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                                    <th style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase' }}>E-mail Autorizado</th>
+                                    <th style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase' }}>Data de Liberação</th>
+                                    <th style={{ padding: '12px', color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', textAlign: 'right' }}>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {whitelist.length === 0 && (
+                                    <tr><td colSpan="3" style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>Nenhum e-mail liberado manualmente ainda.</td></tr>
+                                )}
+                                {whitelist.map(w => (
+                                    <tr key={w.email} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <td style={{ padding: '12px', fontSize: '14px', fontWeight: '500' }}>{w.email}</td>
+                                        <td style={{ padding: '12px', fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(w.created_at || new Date()).toLocaleDateString('pt-BR')}</td>
+                                        <td style={{ padding: '12px', textAlign: 'right' }}>
+                                            <button 
+                                                onClick={async () => {
+                                                    if(confirm(`Revogar acesso de ${w.email}?`)) {
+                                                        const { error } = await supabase.from('authorized_emails').delete().eq('email', w.email);
+                                                        if(!error) setWhitelist(prev => prev.filter(x => x.email !== w.email));
+                                                    }
+                                                }}
+                                                style={{ background: 'rgba(255,51,102,0.1)', border: 'none', borderRadius: '6px', color: 'var(--accent)', cursor: 'pointer', padding: '6px' }}
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 
