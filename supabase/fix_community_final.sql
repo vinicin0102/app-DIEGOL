@@ -1,5 +1,5 @@
 -- ==========================================
--- SOLUÇÃO DEFINITIVA PARA COMUNIDADE E CHAT
+-- SOLUÇÃO DEFINITIVA PARA COMUNIDADE E CHAT (V2)
 -- ==========================================
 
 -- 1. TABELA DE POSTS (Feed da Comunidade)
@@ -20,6 +20,10 @@ create table if not exists public.posts (
 alter table public.posts enable row level security;
 drop policy if exists "Posts are viewable by everyone." on public.posts;
 drop policy if exists "Authenticated users can insert posts." on public.posts;
+drop policy if exists "Authenticated users can update posts." on public.posts;
+drop policy if exists "Users can update own posts." on public.posts;
+drop policy if exists "Users can delete own posts." on public.posts;
+
 create policy "Posts are viewable by everyone." on public.posts for select using (true);
 create policy "Authenticated users can insert posts." on public.posts for insert with check (auth.role() = 'authenticated');
 create policy "Users can update own posts." on public.posts for update using (auth.uid() = user_id);
@@ -41,6 +45,8 @@ create table if not exists public.chat_messages (
 alter table public.chat_messages enable row level security;
 drop policy if exists "Chat messages are viewable by everyone." on public.chat_messages;
 drop policy if exists "Authenticated users can insert chat messages." on public.chat_messages;
+drop policy if exists "Users can delete own chat messages." on public.chat_messages;
+
 create policy "Chat messages are viewable by everyone." on public.chat_messages for select using (true);
 create policy "Authenticated users can insert chat messages." on public.chat_messages for insert with check (auth.role() = 'authenticated');
 create policy "Users can delete own chat messages." on public.chat_messages for delete using (auth.uid() = user_id);
@@ -61,6 +67,8 @@ create table if not exists public.comments (
 alter table public.comments enable row level security;
 drop policy if exists "Comments are viewable by everyone." on public.comments;
 drop policy if exists "Authenticated users can insert comments." on public.comments;
+drop policy if exists "Users can delete own comments." on public.comments;
+
 create policy "Comments are viewable by everyone." on public.comments for select using (true);
 create policy "Authenticated users can insert comments." on public.comments for insert with check (auth.role() = 'authenticated');
 create policy "Users can delete own comments." on public.comments for delete using (auth.uid() = user_id);
@@ -76,20 +84,18 @@ end;
 $$ language plpgsql security definer;
 
 -- 5. HABILITAR REALTIME (CRITICAL)
--- Caso a publicação já exista, adicionamos as tabelas
--- Caso use o dashboard, certifique-se de que 'Realtime' está ON para estas tabelas.
 do $$
 begin
-  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+  -- Tenta adicionar as tabelas à publicação de realtime
+  begin
     alter publication supabase_realtime add table chat_messages;
+  exception when others then null; end;
+  begin
     alter publication supabase_realtime add table posts;
+  exception when others then null; end;
+  begin
     alter publication supabase_realtime add table comments;
-  else
-    create publication supabase_realtime for table chat_messages, posts, comments;
-  end if;
-exception
-  when others then
-    null; -- Silencia se a tabela já estiver na publicação
+  exception when others then null; end;
 end $$;
 
 -- 6. GRANT PERMISSIONS
@@ -99,3 +105,6 @@ grant all on table public.comments to authenticated;
 grant all on sequence public.posts_id_seq to authenticated;
 grant all on sequence public.chat_messages_id_seq to authenticated;
 grant all on sequence public.comments_id_seq to authenticated;
+grant all on table public.posts to anon;
+grant all on table public.chat_messages to anon;
+grant all on table public.comments to anon;
