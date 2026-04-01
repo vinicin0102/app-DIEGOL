@@ -68,7 +68,9 @@ const Admin = ({ superMail }) => {
                     .select('*')
                     .order('created_at', { ascending: true });
                 setNotifTemplates(templates || []);
+            }
 
+            if (activeTab === 'whitelist') {
                 // Carregar Whitelist
                 const { data: authList } = await supabase
                     .from('authorized_emails')
@@ -706,13 +708,15 @@ const Admin = ({ superMail }) => {
                                 style={{ padding: '8px 16px', fontSize: '13px' }}
                                 onClick={async () => {
                                  if (!newWhitelistEmail) return;
-                                 const { error } = await supabase.from('authorized_emails').insert([{ email: newWhitelistEmail }]);
+                                 const normalizedEmail = newWhitelistEmail.toLowerCase().trim();
+                                 const { error } = await supabase.from('authorized_emails').insert([{ email: normalizedEmail }]);
                                  if(!error) {
-                                     setWhitelist([{ email: newWhitelistEmail, created_at: new Date().toISOString() }, ...whitelist]);
+                                     setWhitelist([{ email: normalizedEmail, created_at: new Date().toISOString() }, ...whitelist]);
                                      setNewWhitelistEmail('');
-                                     alert('E-mail autorizado!');
+                                     alert('E-mail autorizado com sucesso!');
                                  } else {
-                                     alert('Erro ao adicionar: ' + error.message);
+                                     if (error.code === '23505') alert('Este e-mail já está na lista!');
+                                     else alert('Erro ao adicionar: ' + error.message);
                                  }
                              }}>Liberar</button>
                         </div>
