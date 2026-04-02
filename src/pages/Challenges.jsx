@@ -136,7 +136,28 @@ const Challenges = () => {
     useEffect(() => {
         const savedBosses = localStorage.getItem('challengeBosses');
         if (savedBosses) {
-            setActiveBosses(JSON.parse(savedBosses));
+            const parsed = JSON.parse(savedBosses);
+            // Merge progress with new names/details from BOSSES
+            const merged = BOSSES.map(b => {
+                const saved = parsed.find(s => s.id === b.id);
+                if (saved) {
+                    return {
+                        ...b, // Use fresh data for names/descriptions
+                        calendar: saved.calendar || Array.from({ length: b.challengeDuration || 30 }, (_, i) => ({
+                            day: i + 1, spiritual: false, corporal: false, mental: false, verified: false
+                        })),
+                        currentHealth: saved.currentHealth ?? b.maxHealth,
+                        defeated: saved.defeated || false
+                    };
+                }
+                return {
+                    ...b,
+                    calendar: Array.from({ length: b.challengeDuration || 30 }, (_, i) => ({
+                        day: i + 1, spiritual: false, corporal: false, mental: false, verified: false
+                    }))
+                };
+            });
+            setActiveBosses(merged);
         } else {
             setActiveBosses(BOSSES.map(b => ({
                 ...b,
