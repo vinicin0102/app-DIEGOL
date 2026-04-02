@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, User, Sparkles } from 'lucide-react';
+import { X, Check, User, Sparkles, Shield, Swords } from 'lucide-react';
+import { useGame } from '../context/GameContext';
 
 // Import avatar images - Males
 import warriorMale1 from '../assets/avatars/warrior_male_1.png';
@@ -15,138 +16,68 @@ import warriorFemale3 from '../assets/avatars/warrior_female_3.png';
 import warriorFemale4 from '../assets/avatars/warrior_female_4.png';
 import warriorFemale5 from '../assets/avatars/warrior_female_5.png';
 
-// Avatar options
-const AVATARS = [
-    // === MALE WARRIORS ===
-    {
-        id: 'warrior_male_1',
-        name: 'Guerreiro das Sombras',
-        description: 'Armadura azul rúnica',
-        image: warriorMale1,
-        gender: 'male',
-        skinTone: 'light',
-        hairColor: 'dark'
-    },
-    {
-        id: 'warrior_male_2',
-        name: 'Paladino Dourado',
-        description: 'Armadura com runas douradas',
-        image: warriorMale2,
-        gender: 'male',
-        skinTone: 'dark',
-        hairColor: 'dark'
-    },
-    {
-        id: 'warrior_male_3',
-        name: 'Cavaleiro Esmeralda',
-        description: 'Armadura com brilho verde',
-        image: warriorMale3,
-        gender: 'male',
-        skinTone: 'medium',
-        hairColor: 'blonde'
-    },
-    {
-        id: 'warrior_male_4',
-        name: 'Samurai Carmesim',
-        description: 'Armadura oriental vermelha',
-        image: warriorMale4,
-        gender: 'male',
-        skinTone: 'light',
-        hairColor: 'black'
-    },
-    {
-        id: 'warrior_male_5',
-        name: 'Cavaleiro das Ruínas',
-        description: 'Armadura prateada e roxa',
-        image: warriorMale5,
-        gender: 'male',
-        skinTone: 'medium',
-        hairColor: 'dark'
-    },
-    // === FEMALE WARRIORS ===
-    {
-        id: 'warrior_female_1',
-        name: 'Guerreira Arcana',
-        description: 'Armadura roxa mística',
-        image: warriorFemale1,
-        gender: 'female',
-        skinTone: 'light',
-        hairColor: 'red'
-    },
-    {
-        id: 'warrior_female_2',
-        name: 'Rainha do Fogo',
-        description: 'Armadura dourada flamejante',
-        image: warriorFemale2,
-        gender: 'female',
-        skinTone: 'dark',
-        hairColor: 'braids'
-    },
-    {
-        id: 'warrior_female_3',
-        name: 'Caçadora de Dragões',
-        description: 'Armadura negra e carmesim',
-        image: warriorFemale3,
-        gender: 'female',
-        skinTone: 'medium',
-        hairColor: 'brown'
-    },
-    {
-        id: 'warrior_female_4',
-        name: 'Samurai de Gelo',
-        description: 'Armadura cristalina azul',
-        image: warriorFemale4,
-        gender: 'female',
-        skinTone: 'light',
-        hairColor: 'black'
-    },
-    {
-        id: 'warrior_female_5',
-        name: 'Guardiã da Floresta',
-        description: 'Armadura esmeralda natural',
-        image: warriorFemale5,
-        gender: 'female',
-        skinTone: 'medium',
-        hairColor: 'curly'
-    }
-];
+// AVATAR VISUAL OPTIONS
+const VISUALS = {
+    male: [
+        { id: 'm_loiro', name: 'Loiro', image: warriorMale3, desc: 'Guerreiro de cabelos claros' },
+        { id: 'm_moreno', name: 'Moreno', image: warriorMale1, desc: 'Guerreiro de cabelos escuros' },
+        { id: 'm_preto', name: 'Negro', image: warriorMale2, desc: 'Guerreiro de pele retinta' },
+        { id: 'm_ruivo', name: 'Ruivo', image: warriorMale5, desc: 'Guerreiro de cabelos avermelhados' },
+        { id: 'm_oriental', name: 'Oriental', image: warriorMale4, desc: 'Estilo Samurai' },
+    ],
+    female: [
+        { id: 'f_ruiva', name: 'Ruiva', image: warriorFemale1, desc: 'Guerreira de cabelos de fogo' },
+        { id: 'f_preta', name: 'Negra', image: warriorFemale2, desc: 'Guerreira de pele retinta' },
+        { id: 'f_morena', name: 'Morena', image: warriorFemale3, desc: 'Guerreira de cabelos castanhos' },
+        { id: 'f_loira', name: 'Loira', image: warriorFemale5, desc: 'Guerreira de cabelos claros' },
+        { id: 'f_oriental', name: 'Oriental', image: warriorFemale4, desc: 'Estilo Ninja/Samurai' },
+    ]
+};
+
+// WARRIOR TITLES
+const TITLES = {
+    female: [
+        'Exterminadora da Preguiça', 'Guardiã da Disciplina', 'Caçadora de Resultados',
+        'Rainha da Constância', 'Dominadora do Foco', 'Guerreira Imparável',
+        'Forjadora de Hábitos', 'Sentinela da Evolução', 'Gladiadora do Shape',
+        'Conquistadora de Metas'
+    ],
+    male: [
+        'Exterminador da Preguiça', 'Guardião da Disciplina', 'Caçador de Resultados',
+        'Rei da Constância', 'Dominador do Foco', 'Guerreiro Imparável',
+        'Forjador de Hábitos', 'Sentinela da Evolução', 'Gladiador do Shape',
+        'Conquistador de Metas'
+    ]
+};
 
 const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
-    const [selectedAvatar, setSelectedAvatar] = useState(currentAvatarId || null);
-    const [filter, setFilter] = useState('all'); // 'all', 'male', 'female'
+    const { user, updateWarriorTitle } = useGame();
+    const [step, setStep] = useState(1); // 1: Gender, 2: Title, 3: Visual
+    const [gender, setGender] = useState('male');
+    const [selectedTitle, setSelectedTitle] = useState('');
+    const [selectedVisual, setSelectedVisual] = useState(null);
 
-    useEffect(() => {
-        if (currentAvatarId) {
-            setSelectedAvatar(currentAvatarId);
-        }
-    }, [currentAvatarId]);
-
-    // Ocultar navbar mobile quando modal estiver aberto
     useEffect(() => {
         if (isOpen) {
+            setStep(1);
+            setGender(user.gender === 'female' ? 'female' : 'male');
+            setSelectedTitle(user.warrior_title || '');
             document.body.classList.add('hide-mobile-nav');
         } else {
             document.body.classList.remove('hide-mobile-nav');
         }
-
-        return () => {
-            document.body.classList.remove('hide-mobile-nav');
-        };
-    }, [isOpen]);
+    }, [isOpen, user]);
 
     if (!isOpen) return null;
 
-    const filteredAvatars = filter === 'all'
-        ? AVATARS
-        : AVATARS.filter(a => a.gender === filter);
-
-    const handleSelect = () => {
-        if (selectedAvatar) {
-            const avatar = AVATARS.find(a => a.id === selectedAvatar);
-            if (avatar) {
-                onSelect(avatar);
-                onClose();
-            }
+    const handleFinalize = () => {
+        if (selectedVisual && selectedTitle) {
+            updateWarriorTitle(selectedTitle);
+            onSelect({
+                ...selectedVisual,
+                title: selectedTitle
+            });
+            onClose();
         }
     };
 
@@ -154,276 +85,141 @@ const AvatarSelector = ({ isOpen, onClose, onSelect, currentAvatarId }) => {
         <div style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0, 0, 0, 0.9)',
+            background: 'rgba(0, 0, 0, 0.95)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999,
-            padding: '10px', // Reduzido padding para mobile
-            backdropFilter: 'blur(10px)'
+            padding: '20px',
+            backdropFilter: 'blur(15px)'
         }}>
             <div style={{
-                background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
-                borderRadius: '24px',
-                maxWidth: '800px',
+                background: '#0f0f1a',
+                borderRadius: '32px',
+                maxWidth: '600px',
                 width: '100%',
-                maxHeight: '95vh', // Aumentado um pouco
-                display: 'flex', // Mudança chave: Flex column
+                maxHeight: '90vh',
+                display: 'flex',
                 flexDirection: 'column',
                 overflow: 'hidden',
-                border: '2px solid rgba(255, 215, 0, 0.3)',
-                boxShadow: '0 25px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.15)'
+                border: '1px solid rgba(255, 215, 0, 0.2)',
+                boxShadow: '0 0 100px rgba(0,0,0,0.5)'
             }}>
-                {/* Header */}
-                <div style={{
-                    padding: '20px 24px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    background: 'linear-gradient(90deg, rgba(255, 215, 0, 0.1) 0%, transparent 100%)',
-                    flexShrink: 0 // Não deixa encolher
-                }}>
-                    <div>
-                        <h2 style={{
-                            margin: 0,
-                            fontSize: '24px', // Levemente menor para mobile
-                            fontWeight: '800',
-                            background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px'
-                        }}>
-                            <Sparkles size={24} color="#FFD700" />
-                            Seu Guerreiro
-                        </h2>
-                        <p style={{ margin: '4px 0 0', color: '#888', fontSize: '13px' }}>
-                            Quem você será na batalha?
-                        </p>
+                {/* Progress Header */}
+                <div style={{ padding: '30px 40px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#fff', margin: 0 }}>Forjar Personagem</h2>
+                        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}><X size={24}/></button>
                     </div>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            background: 'rgba(255, 255, 255, 0.1)',
-                            border: 'none',
-                            borderRadius: '12px',
-                            padding: '10px',
-                            cursor: 'pointer',
-                            color: '#fff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <X size={20} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {[1, 2, 3].map(s => (
+                            <div key={s} style={{ 
+                                height: '4px', flex: 1, borderRadius: '2px',
+                                background: step >= s ? 'var(--primary)' : 'rgba(255,255,255,0.1)',
+                                transition: 'all 0.3s'
+                            }} />
+                        ))}
+                    </div>
                 </div>
 
-                {/* Filters */}
-                <div style={{
-                    padding: '12px 24px',
-                    display: 'flex',
-                    gap: '8px',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                    overflowX: 'auto', // Scroll horizontal se precisar
-                    flexShrink: 0
-                }}>
-                    {[
-                        { id: 'all', label: '👥 Todos' },
-                        { id: 'male', label: '👨 Homens' },
-                        { id: 'female', label: '👩 Mulheres' }
-                    ].map(f => (
-                        <button
-                            key={f.id}
-                            onClick={() => setFilter(f.id)}
-                            style={{
-                                padding: '8px 16px',
-                                borderRadius: '16px',
-                                border: 'none',
-                                background: filter === f.id
-                                    ? 'linear-gradient(135deg, #FFD700, #FFA500)'
-                                    : 'rgba(255, 255, 255, 0.1)',
-                                color: filter === f.id ? '#000' : '#fff',
-                                fontWeight: filter === f.id ? '700' : '500',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                fontSize: '13px',
-                                whiteSpace: 'nowrap'
-                            }}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Avatar Grid - Scrollable Area */}
-                <div style={{
-                    padding: '20px 24px',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', // Cards um pouco menores
-                    gap: '16px',
-                    overflowY: 'auto',
-                    flex: 1, // Ocupa o espaço restante
-                    minHeight: 0 // Importante para flexbox scroll funcionar
-                }}>
-                    {filteredAvatars.map(avatar => (
-                        <div
-                            key={avatar.id}
-                            onClick={() => setSelectedAvatar(avatar.id)}
-                            style={{
-                                background: selectedAvatar === avatar.id
-                                    ? 'linear-gradient(145deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1))'
-                                    : 'rgba(255, 255, 255, 0.05)',
-                                borderRadius: '16px',
-                                padding: '10px',
-                                cursor: 'pointer',
-                                border: selectedAvatar === avatar.id
-                                    ? '3px solid #FFD700'
-                                    : '2px solid rgba(255, 255, 255, 0.1)',
-                                transition: 'all 0.3s ease',
-                                transform: selectedAvatar === avatar.id ? 'scale(1.02)' : 'scale(1)',
-                                position: 'relative'
-                            }}
-                        >
-                            {/* Selection indicator */}
-                            {selectedAvatar === avatar.id && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '-8px',
-                                    right: '-8px',
-                                    background: 'linear-gradient(135deg, #FFD700, #FFA500)',
-                                    borderRadius: '50%',
-                                    width: '24px',
-                                    height: '24px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.5)',
-                                    zIndex: 10
-                                }}>
-                                    <Check size={14} color="#000" strokeWidth={3} />
-                                </div>
-                            )}
-
-                            {/* Avatar Image */}
-                            <div style={{
-                                width: '100%',
-                                aspectRatio: '1',
-                                borderRadius: '12px',
-                                overflow: 'hidden',
-                                marginBottom: '10px',
-                                border: '2px solid rgba(255, 255, 255, 0.1)'
-                            }}>
-                                <img
-                                    src={avatar.image}
-                                    alt={avatar.name}
+                {/* Content Area */}
+                <div style={{ padding: '40px', overflowY: 'auto' }}>
+                    {step === 1 && (
+                        <div className="page-enter">
+                            <h3 style={{ textAlign: 'center', marginBottom: '30px', color: '#fff' }}>Qual sua essência?</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                                <button 
+                                    onClick={() => { setGender('male'); setStep(2); }}
                                     style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover'
+                                        padding: '40px 20px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)',
+                                        background: gender === 'male' ? 'rgba(0, 122, 255, 0.1)' : 'rgba(255,255,255,0.02)',
+                                        color: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px'
                                     }}
-                                />
+                                >
+                                    <Swords size={40} color="#007AFF" />
+                                    <span style={{ fontWeight: '700' }}>MASCULINO</span>
+                                </button>
+                                <button 
+                                    onClick={() => { setGender('female'); setStep(2); }}
+                                    style={{
+                                        padding: '40px 20px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)',
+                                        background: gender === 'female' ? 'rgba(255, 45, 85, 0.1)' : 'rgba(255,255,255,0.02)',
+                                        color: '#fff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px'
+                                    }}
+                                >
+                                    <Shield size={40} color="#FF2D55" />
+                                    <span style={{ fontWeight: '700' }}>FEMININO</span>
+                                </button>
                             </div>
-
-                            {/* Avatar Info */}
-                            <h4 style={{
-                                margin: '0 0 4px',
-                                fontSize: '13px',
-                                fontWeight: '700',
-                                color: '#fff',
-                                textAlign: 'center',
-                                lineHeight: '1.2'
-                            }}>
-                                {avatar.name}
-                            </h4>
-                            <p style={{
-                                margin: 0,
-                                fontSize: '11px',
-                                color: '#888',
-                                textAlign: 'center',
-                                lineHeight: '1.2'
-                            }}>
-                                {avatar.description}
-                            </p>
                         </div>
-                    ))}
-                </div>
+                    )}
 
-                {/* Avatar count - Footer Info */}
-                <div style={{
-                    padding: '12px 24px',
-                    background: 'rgba(46, 204, 113, 0.1)',
-                    borderTop: '1px solid rgba(46, 204, 113, 0.2)',
-                    textAlign: 'center',
-                    flexShrink: 0
-                }}>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#2ECC71' }}>
-                        ⚔️ 10 guerreiros disponíveis!
-                    </p>
-                </div>
+                    {step === 2 && (
+                        <div className="page-enter">
+                            <h3 style={{ color: '#fff', marginBottom: '20px' }}>Escolha seu título de herói:</h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                {TITLES[gender].map(t => (
+                                    <button 
+                                        key={t}
+                                        onClick={() => { setSelectedTitle(t); setStep(3); }}
+                                        style={{
+                                            padding: '16px 24px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)',
+                                            background: selectedTitle === t ? 'var(--primary)' : 'rgba(255,255,255,0.02)',
+                                            color: selectedTitle === t ? '#000' : '#fff', textAlign: 'left', cursor: 'pointer', fontWeight: '600'
+                                        }}
+                                    >
+                                        {t}
+                                    </button>
+                                ))}
+                            </div>
+                            <button onClick={() => setStep(1)} style={{ marginTop: '20px', background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>← Voltar</button>
+                        </div>
+                    )}
 
-                {/* Footer Actions */}
-                <div style={{
-                    padding: '16px 24px',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    gap: '12px',
-                    background: '#13131a', // Fundo sólido para garantir leitura
-                    flexShrink: 0
-                }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            padding: '12px 20px',
-                            borderRadius: '12px',
-                            border: '1px solid rgba(255, 255, 255, 0.2)',
-                            background: 'transparent',
-                            color: '#fff',
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            flex: 1 // Botões crescem iguais no mobile
-                        }}
-                    >
-                        Cancelar
-                    </button>
-                    <button
-                        onClick={handleSelect}
-                        disabled={!selectedAvatar}
-                        style={{
-                            padding: '12px 20px',
-                            borderRadius: '12px',
-                            border: 'none',
-                            background: selectedAvatar
-                                ? 'linear-gradient(135deg, #FFD700, #FFA500)'
-                                : 'rgba(255, 255, 255, 0.1)',
-                            color: selectedAvatar ? '#000' : '#666',
-                            fontSize: '14px',
-                            fontWeight: '700',
-                            cursor: selectedAvatar ? 'pointer' : 'not-allowed',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center', // Centralizar texto/ícone
-                            gap: '8px',
-                            flex: 2, // Botão de confirmar maior
-                            boxShadow: selectedAvatar ? '0 4px 15px rgba(255, 215, 0, 0.3)' : 'none'
-                        }}
-                    >
-                        <User size={18} />
-                        Confirmar
-                    </button>
+                    {step === 3 && (
+                        <div className="page-enter">
+                            <h3 style={{ color: '#fff', marginBottom: '20px' }}>Seu rastro visual:</h3>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '15px' }}>
+                                {VISUALS[gender].map(v => (
+                                    <div 
+                                        key={v.id}
+                                        onClick={() => setSelectedVisual(v)}
+                                        style={{
+                                            padding: '10px', borderRadius: '20px', border: selectedVisual?.id === v.id ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)',
+                                            background: 'rgba(255,255,255,0.02)', cursor: 'pointer', textAlign: 'center'
+                                        }}
+                                    >
+                                        <div style={{ width: '100%', aspectRatio: '1', borderRadius: '14px', overflow: 'hidden', marginBottom: '10px' }}>
+                                            <img src={v.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </div>
+                                        <span style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>{v.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px' }}>
+                                <button onClick={() => setStep(2)} style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer' }}>← Voltar</button>
+                                <button 
+                                    onClick={handleFinalize}
+                                    disabled={!selectedVisual}
+                                    style={{ 
+                                        padding: '12px 30px', borderRadius: '14px', background: 'var(--primary)', color: '#000', 
+                                        fontWeight: '800', border: 'none', cursor: 'pointer', opacity: selectedVisual ? 1 : 0.5 
+                                    }}
+                                >
+                                    Confirmar
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
 
-// Export avatars list for use elsewhere
-export { AVATARS };
+export const AVATARS = [
+    ...VISUALS.male.map(v => ({...v, gender: 'male'})),
+    ...VISUALS.female.map(v => ({...v, gender: 'female'}))
+];
+
 export default AvatarSelector;

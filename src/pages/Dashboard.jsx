@@ -7,7 +7,7 @@ import AvatarSelector, { AVATARS } from '../components/AvatarSelector';
 import RadarChart from '../components/RadarChart';
 
 const Dashboard = () => {
-    const { user, challenges } = useGame();
+    const { user, challenges, updateWeight } = useGame();
     const navigate = useNavigate();
     const [showAI, setShowAI] = useState(false);
 
@@ -40,17 +40,16 @@ const Dashboard = () => {
 
     const radarStats = {
         forca: statFisico,
-        energia: statEspiritual, // Energia mapeada do espiritual/badges
-        foco: statMental, // Foco mapeado do mental/estudos
-        evolucao: statProfissional, // Evolução mapeada do profissional/level
-        disciplina: statFinanceiro // Disciplina mapeada do financeiro/workouts
+        energia: statEspiritual, 
+        foco: statMental, 
+        evolucao: statProfissional, 
+        disciplina: statFinanceiro 
     };
 
     const energyLevel = Math.round(
         (Object.values(radarStats).reduce((a, b) => a + b, 0)) / 5
     );
 
-    // Simple tier calculation based on level
     const getTier = (level) => {
         if (level >= 40) return { name: 'Lendário', color: '#FFD700', glowColor: 'rgba(255, 215, 0, 0.4)' };
         if (level >= 30) return { name: 'Épico', color: '#9B59B6', glowColor: 'rgba(155, 89, 182, 0.4)' };
@@ -61,7 +60,6 @@ const Dashboard = () => {
     const currentTier = getTier(user.level);
     const accentColor = currentTier.color;
 
-    // === DASHBOARD LOGIC ===
     const unlockedChallenges = challenges.filter(c => !c.locked).slice(0, 2);
     const xpProgress = (user.xp % 1000) / 10;
 
@@ -97,7 +95,6 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container page-enter" style={{ paddingBottom: '80px' }}>
-            {/* === AVATAR SELECTOR MODAL === */}
             <AvatarSelector
                 isOpen={showAvatarBuilder}
                 onClose={() => setShowAvatarBuilder(false)}
@@ -105,7 +102,6 @@ const Dashboard = () => {
                 currentAvatarId={selectedAvatar?.id}
             />
 
-            {/* === HEADER === */}
             <header style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '24px' }}>
                 <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
@@ -127,7 +123,7 @@ const Dashboard = () => {
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                         <span className="level-badge">LVL {user.level}</span>
-                        <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>Guerreiro</span>
+                        <span style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: '600' }}>{user.warrior_title || 'Guerreiro'}</span>
                     </div>
                     <div className="xp-bar">
                         <div className="xp-bar-fill" style={{ width: `${xpProgress}%` }}></div>
@@ -138,7 +134,6 @@ const Dashboard = () => {
                 </div>
             </header>
 
-            {/* === MAIN PROFILE CARD (First Thing Seen) === */}
             <div style={{ marginBottom: '48px' }}>
                 <div className="glass-panel" style={{
                     padding: '32px',
@@ -147,7 +142,6 @@ const Dashboard = () => {
                     gap: '40px',
                     alignItems: 'center'
                 }}>
-                    {/* LEFT - AVATAR IMAGE */}
                     <div style={{
                         display: 'flex',
                         flexDirection: 'column',
@@ -160,64 +154,39 @@ const Dashboard = () => {
                                 cursor: 'pointer',
                                 position: 'relative',
                                 transition: 'transform 0.3s ease',
-                                width: '320px',
-                                height: '320px'
+                                width: '300px',
+                                height: '300px'
                             }}
-                            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-                            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                         >
-                            {/* Avatar Container */}
                             <div style={{
                                 width: '100%',
                                 height: '100%',
                                 borderRadius: '24px',
                                 overflow: 'hidden',
                                 border: `3px solid ${accentColor}`,
-                                boxShadow: `0 10px 40px ${currentTier.glowColor}, 0 0 60px ${currentTier.glowColor}`,
+                                boxShadow: `0 10px 40px ${currentTier.glowColor}`,
                                 background: 'linear-gradient(145deg, #1a1a2e, #0f0f23)'
                             }}>
                                 {selectedAvatar ? (
                                     <img
                                         src={selectedAvatar.image}
                                         alt={selectedAvatar.name}
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover'
-                                        }}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />
                                 ) : (
                                     <div style={{
-                                        width: '100%',
-                                        height: '100%',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        gap: '16px',
-                                        background: 'linear-gradient(145deg, rgba(255,215,0,0.1), rgba(255,165,0,0.05))'
+                                        width: '100%', height: '100%', display: 'flex', flexDirection: 'column',
+                                        alignItems: 'center', justifyContent: 'center', gap: '16px'
                                     }}>
                                         <Sparkles size={48} color="#FFD700" />
-                                        <span style={{ color: '#FFD700', fontSize: '16px', fontWeight: '600' }}>
-                                            Escolher Avatar
-                                        </span>
+                                        <span style={{ color: '#FFD700', fontSize: '16px', fontWeight: '600' }}>Escolher Avatar</span>
                                     </div>
                                 )}
                             </div>
-
-                            {/* Edit Button */}
                             <div style={{
-                                position: 'absolute',
-                                bottom: '15px',
-                                right: '15px',
-                                width: '44px',
-                                height: '44px',
-                                borderRadius: '50%',
-                                background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor}88)`,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                boxShadow: `0 4px 20px ${currentTier.glowColor}`,
+                                position: 'absolute', bottom: '15px', right: '15px',
+                                width: '44px', height: '44px', borderRadius: '50%',
+                                background: accentColor, display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 border: '2px solid rgba(255,255,255,0.3)'
                             }}>
                                 <Edit3 size={18} color="#fff" />
@@ -225,14 +194,9 @@ const Dashboard = () => {
                         </div>
 
                         <div style={{
-                            textAlign: 'center',
-                            marginTop: '20px',
-                            padding: '20px 28px',
+                            textAlign: 'center', marginTop: '20px', padding: '20px 28px',
                             background: `linear-gradient(135deg, ${accentColor}15, ${accentColor}08)`,
-                            borderRadius: '20px',
-                            border: `1px solid ${accentColor}33`,
-                            width: '100%',
-                            maxWidth: '300px'
+                            borderRadius: '20px', border: `1px solid ${accentColor}33`, width: '100%', maxWidth: '300px'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '16px' }}>
                                 <Crown size={18} color={accentColor} />
@@ -240,187 +204,121 @@ const Dashboard = () => {
                                     {user.name}
                                 </span>
                             </div>
-
-                            <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '8px',
-                                marginBottom: '16px',
-                                padding: '8px 16px',
-                                background: `${accentColor}22`,
-                                borderRadius: '100px',
-                                border: `1px solid ${accentColor}44`
-                            }}>
-                                <Dumbbell size={14} color={accentColor} />
-                                <span style={{ fontSize: '12px', fontWeight: '700', color: accentColor }}>
-                                    {currentTier.emoji} Nível {currentTier.name}
-                                </span>
-                                <Activity size={14} color={accentColor} />
-                            </div>
-
                             <div style={{ marginBottom: '14px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>Estado Geral</span>
+                                    <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)' }}>Status Vital</span>
                                     <span style={{ fontSize: '11px', fontWeight: '800', color: accentColor }}>{energyLevel}%</span>
                                 </div>
-                                <div style={{ height: '10px', background: 'rgba(0,0,0,0.4)', borderRadius: '100px', overflow: 'hidden' }}>
-                                    <div style={{
-                                        height: '100%',
-                                        width: `${energyLevel}%`,
-                                        background: `linear-gradient(90deg, ${accentColor}, #00FF88)`,
-                                        borderRadius: '100px',
-                                        boxShadow: `0 0 15px ${accentColor}66`,
-                                        transition: 'width 1s ease'
-                                    }} />
+                                <div style={{ height: '8px', background: 'rgba(0,0,0,0.4)', borderRadius: '100px', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${energyLevel}%`, background: accentColor }} />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* RIGHT - RADAR CHART */}
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
                         <RadarChart stats={radarStats} color={accentColor} />
-                        <p style={{ marginTop: '20px', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
-                            <Info size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                            Vença desafios para expandir seu gráfico
-                        </p>
                     </div>
                 </div>
             </div>
 
-            {/* === STATS GRID (Keep specific dashboard stats) === */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '48px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '48px' }}>
                 <div className="glass-panel stat-card" style={{ padding: '28px' }}>
-                    <div style={{
-                        width: '52px', height: '52px',
-                        borderRadius: '16px',
-                        background: 'linear-gradient(135deg, rgba(123, 47, 255, 0.2), rgba(123, 47, 255, 0.05))',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginBottom: '20px'
-                    }}>
+                    <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'rgba(123, 47, 255, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                         <Trophy size={26} color="var(--secondary)" />
                     </div>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>Pontos Totais</span>
-                    <h3 style={{ fontSize: '36px', fontWeight: '900', marginTop: '4px' }}>
-                        {user.xp.toLocaleString()} <span style={{ fontSize: '18px', color: 'var(--text-muted)' }}>XP</span>
-                    </h3>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700' }}>TOTAL XP</span>
+                    <h3 style={{ fontSize: '32px', fontWeight: '900' }}>{user.xp.toLocaleString()}</h3>
                 </div>
 
                 <div className="glass-panel stat-card" style={{ padding: '28px' }}>
-                    <div style={{
-                        width: '52px', height: '52px',
-                        borderRadius: '16px',
-                        background: 'linear-gradient(135deg, rgba(255, 51, 102, 0.2), rgba(255, 51, 102, 0.05))',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginBottom: '20px'
-                    }}>
+                    <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'rgba(255, 51, 102, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                         <Flame size={26} color="var(--accent)" />
                     </div>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>Sequência</span>
-                    <h3 style={{ fontSize: '36px', fontWeight: '900', marginTop: '4px' }}>
-                        {user.streak} <span style={{ fontSize: '18px', color: 'var(--text-muted)' }}>dias</span>
-                    </h3>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700' }}>SEQUÊNCIA</span>
+                    <h3 style={{ fontSize: '32px', fontWeight: '900' }}>{user.streak} <span style={{fontSize: '16px'}}>dias</span></h3>
                 </div>
 
                 <div className="glass-panel stat-card" style={{ padding: '28px' }}>
-                    <div style={{
-                        width: '52px', height: '52px',
-                        borderRadius: '16px',
-                        background: 'linear-gradient(135deg, rgba(0, 255, 136, 0.2), rgba(0, 255, 136, 0.05))',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginBottom: '20px'
-                    }}>
+                    <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'rgba(0, 255, 136, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
                         <Activity size={26} color="var(--primary)" />
                     </div>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '13px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>Treinos</span>
-                    <h3 style={{ fontSize: '36px', fontWeight: '900', marginTop: '4px' }}>
-                        {user.completedWorkouts}
-                    </h3>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '700' }}>TREINOS</span>
+                    <h3 style={{ fontSize: '32px', fontWeight: '900' }}>{user.completedWorkouts}</h3>
                 </div>
             </div>
 
-            {/* === AI TRAINER CTA === */}
+            {/* WEIGHT EVOLUTION */}
+            <div style={{ marginBottom: '48px' }}>
+                <div className="glass-panel" style={{ padding: '32px', border: '1px solid rgba(0, 255, 136, 0.2)' }}>
+                    <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <Activity size={24} color="var(--primary)" /> Evolução de Peso
+                    </h3>
+                    <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
+                        <div>
+                            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Peso Atual</span>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '8px' }}>
+                                <input 
+                                    type="number" step="0.1"
+                                    defaultValue={user.weight || 0}
+                                    onBlur={(e) => updateWeight(parseFloat(e.target.value) || 0, user.goal_weight)}
+                                    style={{ background: 'none', border: 'none', borderBottom: '2px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '32px', fontWeight: '900', width: '100px', outline: 'none' }}
+                                />
+                                <span style={{ fontSize: '18px', color: 'var(--text-muted)' }}>kg</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Meta</span>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '8px' }}>
+                                <input 
+                                    type="number" step="0.1"
+                                    defaultValue={user.goal_weight || 0}
+                                    onBlur={(e) => updateWeight(user.weight, parseFloat(e.target.value) || 0)}
+                                    style={{ background: 'none', border: 'none', borderBottom: '2px solid rgba(255,255,255,0.1)', color: 'var(--primary)', fontSize: '32px', fontWeight: '900', width: '100px', outline: 'none' }}
+                                />
+                                <span style={{ fontSize: '18px', color: 'var(--text-muted)' }}>kg</span>
+                            </div>
+                        </div>
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px' }}>
+                             <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-muted)' }}>
+                                {user.weight > user.goal_weight ? 
+                                    `Faltam ${(user.weight - user.goal_weight).toFixed(1)}kg para sua meta. Foco total! 🔥` : 
+                                    "Parabéns! Meta atingida. Mantenha o ritmo! 🏆"
+                                }
+                             </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <section style={{ marginBottom: '48px' }}>
-                <div
-                    className="glass-panel"
-                    style={{
-                        padding: '36px 40px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '32px',
-                        background: 'linear-gradient(135deg, rgba(123, 47, 255, 0.15) 0%, rgba(123, 47, 255, 0) 60%)',
-                        border: '1px solid rgba(123, 47, 255, 0.3)',
-                        flexWrap: 'wrap'
-                    }}
-                >
+                <div className="glass-panel" style={{ padding: '36px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '32px', background: 'linear-gradient(135deg, rgba(123, 47, 255, 0.15) 0%, rgba(123, 47, 255, 0) 60%)', border: '1px solid rgba(123, 47, 255, 0.3)', flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                        <div style={{
-                            width: '70px', height: '70px',
-                            borderRadius: '20px',
-                            background: 'linear-gradient(135deg, var(--secondary), #9B59FF)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            boxShadow: '0 10px 30px rgba(123, 47, 255, 0.4)'
-                        }}>
+                        <div style={{ width: '70px', height: '70px', borderRadius: '20px', background: 'linear-gradient(135deg, var(--secondary), #9B59FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <BrainCircuit size={36} color="#fff" />
                         </div>
                         <div>
                             <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '6px' }}>IA Personal Trainer</h2>
-                            <p style={{ color: 'var(--text-muted)', maxWidth: '400px', lineHeight: '1.5' }}>
-                                Tire uma foto para análise corporal e receba desafios personalizados.
-                            </p>
+                            <p style={{ color: 'var(--text-muted)', maxWidth: '400px', lineHeight: '1.5' }}>Tire uma foto para análise corporal e receba desafios personalizados.</p>
                         </div>
                     </div>
-                    <button
-                        className="btn-primary"
-                        style={{ display: 'flex', gap: '10px', alignItems: 'center' }}
-                        onClick={() => setShowAI(true)}
-                    >
-                        <Target size={18} /> Nova Análise
-                    </button>
+                    <button className="btn-primary" onClick={() => setShowAI(true)}>Nova Análise</button>
                 </div>
             </section>
 
-            {/* === ACTIVE CHALLENGES === */}
             <section>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                     <h2 style={{ fontSize: '26px', fontWeight: '800' }}>Desafios Ativos</h2>
-                    <button
-                        onClick={() => navigate('/challenges')}
-                        style={{
-                            background: 'none', border: 'none', color: 'var(--primary)',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
-                            fontWeight: '600', fontSize: '14px'
-                        }}
-                    >
+                    <button onClick={() => navigate('/challenges')} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600', fontSize: '14px' }}>
                         Ver todos <ChevronRight size={18} />
                     </button>
                 </div>
-
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
                     {unlockedChallenges.map((c, i) => (
-                        <div
-                            key={c.id}
-                            className="glass-panel challenge-card"
-                            style={{
-                                padding: '28px',
-                                border: i === 0 ? '1px solid rgba(0, 255, 136, 0.3)' : '1px solid var(--border)'
-                            }}
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                                <span className={i === 0 ? 'badge badge-primary' : 'badge badge-secondary'}>
-                                    {i === 0 ? 'RECOMENDADO' : `LEVEL ${c.level}`}
-                                </span>
-                                <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--primary)' }}>+{c.xp} XP</span>
-                            </div>
-                            <h3 style={{ fontSize: '22px', fontWeight: '800', marginBottom: '10px' }}>{c.title}</h3>
-                            <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
-                                {c.description}
-                            </p>
-                            <button className="btn-primary" style={{ width: '100%' }}>
-                                Iniciar Desafio
-                            </button>
+                        <div key={c.id} className="glass-panel challenge-card" style={{ padding: '28px', border: i === 0 ? '1px solid rgba(0, 255, 136, 0.3)' : '1px solid var(--border)' }}>
+                            <h3 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '10px' }}>{c.title}</h3>
+                            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginBottom: '24px' }}>{c.description}</p>
+                            <button className="btn-primary" style={{ width: '100%' }}>Iniciar Desafio</button>
                         </div>
                     ))}
                 </div>

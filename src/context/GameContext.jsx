@@ -38,6 +38,9 @@ export const GameProvider = ({ children }) => {
             { id: 3, name: 'Guerreiro', icon: '⚔️', description: 'Completou um desafio Elite' },
         ],
         photo: null,
+        weight: 0,
+        goal_weight: 0,
+        warrior_title: 'Iniciante',
         avatar: {
             helmet: { id: 1, emoji: '⛑️', name: 'Elmo Básico', color: '#8B4513' },
             armor: { id: 1, emoji: '🛡️', name: 'Escudo de Ferro', color: '#708090' },
@@ -157,7 +160,10 @@ export const GameProvider = ({ children }) => {
                     stats: data.stats || defaultUser.stats,
                     challengeProfile: data.challenge_profile,
                     defeatedBosses: data.defeated_bosses || [],
-                    isAdmin: data.is_admin || false
+                    isAdmin: data.is_admin || false,
+                    weight: data.weight || 0,
+                    goal_weight: data.goal_weight || 0,
+                    warrior_title: data.warrior_title || 'Iniciante'
                 });
             }
         } catch (error) {
@@ -195,7 +201,10 @@ export const GameProvider = ({ children }) => {
                 stats: updatedUser.stats,
                 badges: updatedUser.badges,
                 challenge_profile: updatedUser.challengeProfile,
-                defeated_bosses: updatedUser.defeatedBosses
+                defeated_bosses: updatedUser.defeatedBosses,
+                weight: updatedUser.weight,
+                goal_weight: updatedUser.goal_weight,
+                warrior_title: updatedUser.warrior_title
             }).eq('id', session.user.id);
 
             if (error) console.error('Error syncing user:', error);
@@ -443,6 +452,22 @@ export const GameProvider = ({ children }) => {
         }
     };
 
+    const updateWeight = async (current, goal) => {
+        setUser(prev => {
+            const newState = { ...prev, weight: current, goal_weight: goal };
+            if (session) syncUserToSupabase(newState);
+            return newState;
+        });
+    };
+
+    const updateWarriorTitle = async (title) => {
+        setUser(prev => {
+            const newState = { ...prev, warrior_title: title };
+            if (session) syncUserToSupabase(newState);
+            return newState;
+        });
+    };
+
     const likePost = async (id) => {
         if (session) {
             const { error } = await supabase.rpc('increment_likes', { post_id: id });
@@ -546,6 +571,8 @@ export const GameProvider = ({ children }) => {
             defeatBoss,
             updateAvatar,
             updateStats,
+            updateWeight,
+            updateWarriorTitle,
             logWorkout,
             saveChallengeProfile,
             // Missions
