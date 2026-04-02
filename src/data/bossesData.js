@@ -130,3 +130,8 @@ export const bosses = [
         attack: "Pesadelo Acordado"
     }
 ];
+
+export const getAllBosses = () => bosses;
+export const getCurrentBoss = (level) => {
+    return bosses.find(b => b.health >= level) || bosses[bosses.length - 1];
+};
