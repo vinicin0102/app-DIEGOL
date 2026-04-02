@@ -1,171 +1,132 @@
-/**
- * 🔥 10 CHEFÕES DO DESAFIO DOS VENCEDORES
- * Cada mês um boss diferente é rotacionado como o Desafio Coletivo.
- * Os bosses escalam em dificuldade (HP crescente).
- */
-
-const BOSSES_DESAFIO = [
-  {
-    id: 1,
-    key: 'sedentarion',
-    name: 'Sedentarion',
-    title: 'O senhor das cadeiras e do sofá',
-    description: 'Quanto mais você fica parado, mais forte ele fica.',
-    hp: 25000,
-    weeklyCaps: [5000, 6250, 6250, 7500],
-    emoji: '🪑',
-    color: '#8B0000',
-    aura: 'rgba(139, 0, 0, 0.3)',
-    difficulty: 'Normal',
-    month: 1,
-  },
-  {
-    id: 2,
-    key: 'procrastinossauro',
-    name: 'Procrastinossauro',
-    title: 'O monstro que sempre fala: “deixa pra amanhã…”',
-    description: 'Um gigante que paralisa sua produtividade com falsas promessas de tempo.',
-    hp: 27500,
-    weeklyCaps: [5500, 6875, 6875, 8250],
-    emoji: '🦖',
-    color: '#FF8C00',
-    aura: 'rgba(255, 140, 0, 0.3)',
-    difficulty: 'Normal',
-    month: 2,
-  },
-  {
-    id: 3,
-    key: 'preguicaor',
-    name: 'Preguiçor',
-    title: 'Drena sua energia antes mesmo de você começar',
-    description: 'Uma criatura gigante que drena sua energia antes mesmo de você começar.',
-    hp: 30000,
-    weeklyCaps: [6000, 7500, 7500, 9000],
-    emoji: '🦥',
-    color: '#228B22',
-    aura: 'rgba(34, 139, 34, 0.3)',
-    difficulty: 'Difícil',
-    month: 3,
-  },
-  {
-    id: 4,
-    key: 'sofatron',
-    name: 'Sofatron',
-    title: 'O robô do conforto absoluto',
-    description: 'Ele te prende no sofá e rouba sua disciplina.',
-    hp: 30000,
-    weeklyCaps: [6000, 7500, 7500, 9000],
-    emoji: '🤖',
-    color: '#4169E1',
-    aura: 'rgba(65, 105, 225, 0.3)',
-    difficulty: 'Difícil',
-    month: 4,
-  },
-  {
-    id: 5,
-    key: 'desculpator',
-    name: 'Desculpator',
-    title: 'Mestre das desculpas',
-    description: '“Tô cansado”, “amanhã eu vou”, “segunda eu começo”.',
-    hp: 32500,
-    weeklyCaps: [6500, 8125, 8125, 9750],
-    emoji: '🗣️',
-    color: '#FF6347',
-    aura: 'rgba(255, 99, 71, 0.3)',
-    difficulty: 'Difícil',
-    month: 5,
-  },
-  {
-    id: 6,
-    key: 'sedentarkus',
-    name: 'Sedentárkus',
-    title: 'O general da estagnação',
-    description: 'Seu objetivo é te manter parado para sempre.',
-    hp: 35000,
-    weeklyCaps: [7000, 8750, 8750, 10500],
-    emoji: '⚔️',
-    color: '#DC143C',
-    aura: 'rgba(220, 20, 60, 0.3)',
-    difficulty: 'Épico',
-    month: 6,
-  },
-  {
-    id: 7,
-    key: 'procrastikhan',
-    name: 'ProcrastiKhan',
-    title: 'O imperador do adiamento',
-    description: 'Governa o reino do “depois eu faço”.',
-    hp: 37500,
-    weeklyCaps: [7500, 9375, 9375, 11250],
-    emoji: '👑',
-    color: '#FFD700',
-    aura: 'rgba(255, 215, 0, 0.3)',
-    difficulty: 'Épico',
-    month: 7,
-  },
-  {
-    id: 8,
-    key: 'preguicovski',
-    name: 'Preguiçovski',
-    title: 'Um vilão frio e calculista',
-    description: 'Um vilão frio e calculista que destrói sua motivação lentamente.',
-    hp: 40000,
-    weeklyCaps: [8000, 10000, 10000, 12000],
-    emoji: '🧊',
-    color: '#00CED1',
-    aura: 'rgba(0, 206, 209, 0.3)',
-    difficulty: 'Épico',
-    month: 8,
-  },
-  {
-    id: 9,
-    key: 'lorde_inercius',
-    name: 'Lorde Inércius',
-    title: 'Senhor da inércia',
-    description: 'Ele controla a força que te impede de sair do lugar.',
-    hp: 42500,
-    weeklyCaps: [8500, 10625, 10625, 12750],
-    emoji: '🕳️',
-    color: '#7B2FFF',
-    aura: 'rgba(123, 47, 255, 0.3)',
-    difficulty: 'Lendário',
-    month: 9,
-  },
-  {
-    id: 10,
-    key: 'sombracansaco',
-    name: 'Sombracansaço',
-    title: 'A entidade do cansaço eterno',
-    description: 'Entidade que faz você se sentir cansado mesmo quando não fez nada.',
-    hp: 50000,
-    weeklyCaps: [10000, 12500, 12500, 15000],
-    emoji: '👻',
-    color: '#4B0082',
-    aura: 'rgba(75, 0, 130, 0.3)',
-    difficulty: 'Lendário',
-    month: 10,
-  },
+export const bosses = [
+    {
+        id: 1,
+        name: "Sedentarion",
+        title: "O Senhor das Cadeiras",
+        description: "O senhor das cadeiras e do sofá. Quanto mais você fica parado, mais forte ele fica.",
+        health: 100,
+        xpReward: 500,
+        unlocked: true,
+        image: "https://images.unsplash.com/photo-1555848962-6e79363ec58f?w=400&h=400&fit=crop",
+        difficulty: "Iniciante",
+        element: "Inércia",
+        attack: "Onda de Preguiça"
+    },
+    {
+        id: 2,
+        name: "Procrastinossauro",
+        title: "O Monstro do Amanhã",
+        description: "O monstro que sempre fala: “deixa pra amanhã…”",
+        health: 250,
+        xpReward: 1200,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1518110168401-f286b36006e8?w=400&h=400&fit=crop",
+        difficulty: "Médio",
+        element: "Tempo",
+        attack: "Rugido do Depois"
+    },
+    {
+        id: 3,
+        name: "Preguiçor",
+        title: "Dreno de Energia",
+        description: "Uma criatura gigante que drena sua energia antes mesmo de você começar.",
+        health: 450,
+        xpReward: 2500,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1621574539437-4b7b7405e68b?w=400&h=400&fit=crop",
+        difficulty: "Difícil",
+        element: "Cansaço",
+        attack: "Sopro Sonolento"
+    },
+    {
+        id: 4,
+        name: "Sofatron",
+        title: "Robô do Conforto",
+        description: "O robô do conforto absoluto. Ele te prende no sofá e rouba sua disciplina.",
+        health: 700,
+        xpReward: 4500,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&h=400&fit=crop",
+        difficulty: "Elite",
+        element: "Molas",
+        attack: "Prisão de Veludo"
+    },
+    {
+        id: 5,
+        name: "Desculpator",
+        title: "Mestre das Desculpas",
+        description: "Mestre das desculpas: “tô cansado”, “amanhã eu vou”, “segunda eu começo”.",
+        health: 1000,
+        xpReward: 7500,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=400&fit=crop",
+        difficulty: "Lendário",
+        element: "Mente",
+        attack: "Sussurro de Adiantamento"
+    },
+    {
+        id: 6,
+        name: "Sedentárkus",
+        title: "General da Estagnação",
+        description: "O general da estagnação. Seu objetivo é te manter parado para sempre.",
+        health: 1500,
+        xpReward: 12000,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1541411191165-f184e0d45360?w=400&h=400&fit=crop",
+        difficulty: "Mítico",
+        element: "Paralisia",
+        attack: "Ordem do Fique"
+    },
+    {
+        id: 7,
+        name: "ProcrastiKhan",
+        title: "Imperador do Adiamento",
+        description: "O imperador do adiamento. Governa o reino do “depois eu faço”.",
+        health: 2200,
+        xpReward: 18000,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=400&h=400&fit=crop",
+        difficulty: "Divino",
+        element: "Império do Nada",
+        attack: "Corte do Depois"
+    },
+    {
+        id: 8,
+        name: "Preguiçovski",
+        title: "O Destruidor de Motivação",
+        description: "Um vilão frio e calculista que destrói sua motivação lentamente.",
+        health: 3000,
+        xpReward: 25000,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1521791136064-7986c2923216?w=400&h=400&fit=crop",
+        difficulty: "Ancestral",
+        element: "Gelo Mental",
+        attack: "Cálculo do Desânimo"
+    },
+    {
+        id: 9,
+        name: "Lorde Inércius",
+        title: "Senhor da Inércia",
+        description: "Senhor da inércia. Ele controla a força que te impede de sair do lugar.",
+        health: 4500,
+        xpReward: 40000,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop",
+        difficulty: "Titan",
+        element: "Gravidade",
+        attack: "Campo Estático"
+    },
+    {
+        id: 10,
+        name: "Sombracansaço",
+        title: "Entidade do Esgotamento",
+        description: "A entidade que faz você se sentir cansado mesmo quando não fez nada.",
+        health: 7000,
+        xpReward: 100000,
+        unlocked: false,
+        image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400&h=400&fit=crop",
+        difficulty: "Final Boss",
+        element: "Sombra",
+        attack: "Pesadelo Acordado"
+    }
 ];
-
-/**
- * Retorna o boss atual baseado no mês corrente (1-10, depois cicla)
- */
-export const getCurrentBoss = () => {
-  const month = new Date().getMonth(); // 0-11
-  const bossIndex = month % BOSSES_DESAFIO.length;
-  return BOSSES_DESAFIO[bossIndex];
-};
-
-/**
- * Retorna boss por key
- */
-export const getBossByKey = (key) => {
-  return BOSSES_DESAFIO.find(b => b.key === key) || BOSSES_DESAFIO[0];
-};
-
-/**
- * Retorna todos os bosses
- */
-export const getAllBosses = () => BOSSES_DESAFIO;
-
-export default BOSSES_DESAFIO;

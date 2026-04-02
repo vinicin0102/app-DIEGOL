@@ -1,14 +1,14 @@
 export const BOSSES = [
     {
         id: 1,
-        name: 'O Procrastinador',
+        name: 'Sedentarion',
         spriteType: 'megalodon',
         maxHealth: 100,
         color: '#1E4258',
         glowColor: 'rgba(30, 66, 88, 0.6)',
-        story: 'Ele usa distrações, desculpas e dopamina barata para te impedir de começar. A única forma de vencê-lo é com CONSTÂNCIA.',
+        story: 'O senhor das cadeiras e do sofá. Quanto mais você fica parado, mais forte ele fica.',
         challenge: 'FASE 1 — O DESPERTAR: 30 dias de disciplina básica.',
-        reward: { xp: 1000, badge: '🏅 Fundador do Despertar' },
+        reward: { xp: 1000, badge: '🏅 Algoz do Sedentário' },
         difficulty: 'INICIANTE',
         locked: false,
         price: 0,
@@ -19,9 +19,8 @@ export const BOSSES = [
             title: 'FASE 1 — O DESPERTAR (Versão Iniciante)',
             duration: '30 dias',
             objective: 'Criar disciplina básica, constância e identidade vencedora',
-            bossName: 'O Procrastinador',
-            bossDescription: '(Inimigos: distração, desculpas, dopamina barata)',
-            importantNote: 'Você não precisa ser perfeito. Pode falhar alguns dias. O que importa é atingir o XP mínimo da fase.',
+            bossName: 'Sedentarion',
+            bossDescription: '(Inimigos: cadeiras, sofás, imobilidade)',
             winCondition: [
                 'Completar os 30 dias',
                 'Concluir 3 desafios obrigatórios',
@@ -33,138 +32,159 @@ export const BOSSES = [
                     name: 'Corpo em Movimento',
                     icon: '🦾',
                     mission: 'Treinar mínimo 3x por semana (20+ min). Vale caminhada, corrida, academia, funcional ou treino em casa.',
-                    proof: 'Foto pós-treino ou check-in simples no app.',
-                    extra: '+XP se treinar 4x na semana ou chamar alguém.'
+                    proof: 'Foto pós-treino ou check-in simples no app.'
                 },
                 {
                     title: '2 — CORPO LIMPO',
                     name: 'Corpo Limpo',
                     icon: '🥗',
                     mission: 'Reduzir açúcar refinado e refrigerante. Se escorregar um dia, segue o jogo.',
-                    proof: 'Foto de 1 refeição limpa por dia ou check-in.',
-                    extra: '+XP se completar a semana sem recaídas.'
+                    proof: 'Foto de 1 refeição limpa por dia ou check-in.'
                 },
                 {
                     title: '3 — EVOLUÇÃO REAL',
                     name: 'Evolução Real',
                     icon: '⚙️',
                     mission: 'Estudar 20 minutos por dia algo que gere crescimento pessoal/profissional.',
-                    proof: 'Print do estudo + o que aprendeu.',
-                    extra: '+XP se aplicar algo na prática.'
+                    proof: 'Print do estudo + o que aprendeu.'
                 }
-            ],
-            optionalChallenges: [
-                {
-                    title: '📖 CONEXÃO',
-                    name: 'Conexão',
-                    icon: '✨',
-                    mission: 'Escolha UM: Oração/Meditação 10 min ou Encontro religioso.',
-                    proof: 'Foto ou check-in.'
-                },
-                {
-                    title: '📵 DOMÍNIO DIGITAL',
-                    name: 'Domínio Digital',
-                    icon: '📵',
-                    mission: 'Reduzir redes sociais para até 2h por dia.',
-                    proof: 'Print do tempo de uso.',
-                    extra: '+XP se ficar abaixo de 1h ou substituir por estudo.'
-                },
-                {
-                    title: '🔥 MISSÃO BÔNUS',
-                    name: 'Missão Bônus',
-                    icon: '⚡',
-                    mission: 'Treino extra ou atividade física adicional (caminhada, alongamento, etc).',
-                    proof: 'Foto ou check-in.',
-                    extra: '+XP por cada treino bônus realizado.'
-                }
-            ],
-            rewards: [
-                'Acesso à Fase 2',
-                'Badge "Fundador do Despertar"',
-                'Nome no Hall dos Vencedores',
-                'Prioridade em desafios futuros',
-                'Acesso a grupo fechado'
             ]
         }
     },
     {
         id: 2,
-        name: 'Tigre Dentes de Sabre',
+        name: 'Procrastinossauro',
         spriteType: 'sabertooth',
         maxHealth: 200,
         color: '#C49432',
         glowColor: 'rgba(196, 148, 50, 0.6)',
-        story: 'Sobrevivente da Era do Gelo, o Smilodon Fatalis retornou! Seus caninos de 28cm perfuram qualquer defesa. Ele é a GULA que te caça quando você baixa a guarda.',
+        story: 'O monstro que sempre fala: “deixa pra amanhã…”',
         challenge: 'Siga sua dieta por 14 dias sem trapacear',
-        reward: { xp: 1000, badge: '🐯 Domador Primitivo' },
+        reward: { xp: 1000, badge: '🦖 Domador do Amanhã' },
         difficulty: 'MÉDIO',
         locked: true,
         price: 29.90,
         element: 'TERRA',
-        attack: 'Salto Fatal'
+        attack: 'Rugido do "Depois"'
     },
     {
         id: 3,
-        name: 'Dragão de Gelo Ancestral',
+        name: 'Preguiçor',
         spriteType: 'icedragon',
         maxHealth: 350,
         color: '#0288D1',
         glowColor: 'rgba(2, 136, 209, 0.6)',
-        story: 'Vindo das montanhas congeladas além do tempo, este dragão milenar congela almas com seu sopro. Ele é a INSEGURANÇA que paralisa seu progresso.',
+        story: 'Uma criatura gigante que drena sua energia antes mesmo de você começar.',
         challenge: 'Perca 5kg mantendo massa muscular',
-        reward: { xp: 2000, badge: '🐲 Senhor do Gelo' },
+        reward: { xp: 2000, badge: '⚔️ Executor do cansaço' },
         difficulty: 'DIFÍCIL',
         locked: true,
         price: 49.90,
         element: 'GELO',
-        attack: 'Sopro Glacial'
+        attack: 'Sopro de Sonolência'
     },
     {
         id: 4,
-        name: 'Cérbero Infernal',
+        name: 'Sofatron',
         spriteType: 'cerberus',
         maxHealth: 500,
         color: '#FF4500',
         glowColor: 'rgba(255, 69, 0, 0.6)',
-        story: 'O guardião dos portões do Inferno tem 3 cabeças, cada uma sussurrando: "Desista!", "Você não consegue!", "É impossível!". Derrotar o Cérbero é conquistar a IMORTALIDADE!',
+        story: 'O robô do conforto absoluto. Ele te prende no sofá e rouba sua disciplina.',
         challenge: 'Complete 30 dias de transformação total',
-        reward: { xp: 5000, badge: '👑 Conquistador do Inferno' },
+        reward: { xp: 5000, badge: '🤖 Destruidor de Conforto' },
         difficulty: 'ELITE',
         locked: true,
         price: 99.90,
         element: 'FOGO',
-        attack: 'Tríplice Mordida Infernal'
+        attack: 'Mola Expulsora'
     },
     {
         id: 5,
-        name: 'Kraken das Sombras',
+        name: 'Desculpator',
         spriteType: 'kraken',
         maxHealth: 300,
         color: '#6B3FA0',
         glowColor: 'rgba(107, 63, 160, 0.6)',
-        story: 'Das profundezas onde a luz nunca alcança, o Kraken estende seus tentáculos. Cada um representa uma desculpa: "Estou cansado", "Hoje não dá", "Amanhã eu vou".',
+        story: 'Mestre das desculpas: “tô cansado”, “amanhã eu vou”, “segunda eu começo”.',
         challenge: 'Acorde às 5h e treine por 21 dias',
-        reward: { xp: 2500, badge: '🦑 Destruidor de Tentáculos' },
+        reward: { xp: 2500, badge: '🤐 Silenciador de Desculpas' },
         difficulty: 'DIFÍCIL',
         locked: true,
         price: 59.90,
         element: 'TREVAS',
-        attack: 'Abraço Abissal'
+        attack: 'Língua de Mentiras'
     },
     {
         id: 6,
-        name: 'Fênix Sombria',
+        name: 'Sedentárkus',
         spriteType: 'phoenix',
         maxHealth: 250,
         color: '#DC143C',
         glowColor: 'rgba(220, 20, 60, 0.6)',
-        story: 'A Fênix Sombria renasce das cinzas da comparação. Ela te mostra o sucesso dos outros para queimar sua autoestima. Mas das suas próprias cinzas, você também pode renascer!',
+        story: 'O general da estagnação. Seu objetivo é te manter parado para sempre.',
         challenge: 'Melhore seus próprios records em todos exercícios',
-        reward: { xp: 1500, badge: '🔥 Renascido das Chamas' },
+        reward: { xp: 1500, badge: '🦅 General da Ação' },
         difficulty: 'MÉDIO',
         locked: true,
         price: 39.90,
         element: 'FOGO',
-        attack: 'Chama da Inveja'
+        attack: 'Ataque Estático'
+    },
+    {
+        id: 7,
+        name: 'ProcrastiKhan',
+        spriteType: 'wyvern',
+        maxHealth: 400,
+        color: '#FFD700',
+        glowColor: 'rgba(255, 215, 0, 0.3)',
+        story: 'O imperador do adiamento. Governa o reino do “depois eu faço”.',
+        challenge: 'Finalize todos os treinos da semana sem faltar',
+        difficulty: 'DIFÍCIL',
+        locked: true,
+        price: 49.90,
+        reward: { xp: 3000, badge: '👑 Imperador do Agora' }
+    },
+    {
+        id: 8,
+        name: 'Preguiçovski',
+        spriteType: 'giant',
+        maxHealth: 300,
+        color: '#4682B4',
+        glowColor: 'rgba(70, 130, 180, 0.3)',
+        story: 'Um vilão frio e calculista que destrói sua motivação lentamente.',
+        challenge: 'Leia 10 páginas de um livro de desenvolvimento diariamente',
+        difficulty: 'MÉDIO',
+        locked: true,
+        price: 29.90,
+        reward: { xp: 1500, badge: '🧊 Mente de Gelo' }
+    },
+    {
+        id: 9,
+        name: 'Lorde Inércius',
+        spriteType: 'golem',
+        maxHealth: 600,
+        color: '#808080',
+        glowColor: 'rgba(128, 128, 128, 0.3)',
+        story: 'Senhor da inércia. Ele controla a força que te impede de sair do lugar.',
+        challenge: 'Realize 60 dias de atividade física ininterrupta',
+        difficulty: 'ELITE',
+        locked: true,
+        price: 199.90,
+        reward: { xp: 10000, badge: '🏛️ Monumento da Disciplina' }
+    },
+    {
+        id: 10,
+        name: 'Sombracansaço',
+        spriteType: 'wraith',
+        maxHealth: 250,
+        color: '#2F4F4F',
+        glowColor: 'rgba(47, 79, 79, 0.3)',
+        story: 'A entidade que faz você se sentir cansado mesmo quando não fez nada.',
+        challenge: 'Mantenha 8 horas de sono por 30 dias',
+        difficulty: 'MÉDIO',
+        locked: true,
+        price: 39.90,
+        reward: { xp: 2000, badge: '🌑 Dominador do Descanso' }
     }
 ];
