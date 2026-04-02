@@ -541,7 +541,7 @@ const Community = () => {
                             <Zap size={20} color="#fff" />
                         </div>
                         <div>
-                            <h4 style={{ fontWeight: '700', marginBottom: '2px' }}>💬 Chat ao Vivo da Guilda</h4>
+                            <h4 style={{ fontWeight: '700', marginBottom: '2px' }}>💬 Chat ao vivo da comunidade</h4>
                             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                                 {onlineUsers} atletas conversando agora
                             </span>
