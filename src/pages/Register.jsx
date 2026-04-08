@@ -81,7 +81,8 @@ const Register = () => {
     setLoading(true);
 
     try {
-      // 1. Verificar se o e-mail está na whitelist
+      // 1. Verificar se o e-mail está na whitelist (REMOVIDO A PEDIDO DO CLIENTE PARA DEIXAR GRATUITO POR ENQUANTO)
+      /* 
       const { data: whitelistData, error: whitelistError } = await supabase
         .from('authorized_emails')
         .select('email')
@@ -93,6 +94,7 @@ const Register = () => {
         setLoading(false);
         return;
       }
+      */
 
       // 2. Tentar criar a conta
       const { data, error: signUpError } = await signUp(email.toLowerCase().trim(), password, name);

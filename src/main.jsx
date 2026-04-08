@@ -4,7 +4,13 @@ import App from './App.jsx'
 import './index.css'
 import { BrowserRouter } from 'react-router-dom'
 import { GameProvider } from './context/GameContext'
+import { registerSW } from 'virtual:pwa-register'
 
+// Registra o Service Worker (necessário para que navigator.serviceWorker.ready funcione)
+const updateSW = registerSW({
+  onNeedRefresh() {},
+  onOfflineReady() {},
+})
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
